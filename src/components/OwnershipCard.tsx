@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { formatDate, maskName } from "@/lib/format"
+import { formatDate, maskName, plateLabel } from "@/lib/format"
 import type { Vehicle } from "@/lib/vehicles"
 
 function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
@@ -22,8 +22,11 @@ export function OwnershipCard({ vehicle }: { vehicle: Vehicle }) {
           <Row label="Registered owner" value={maskName(vehicle.owner.name)} />
           <Row label="Owner address" value={vehicle.owner.city} />
           <Row label="Phone on file" value={`••• ••• ${vehicle.owner.phoneLast4}`} mono />
-          <Row label="Plate" value={vehicle.plate} mono />
-          <Row label="Registration date" value={formatDate(vehicle.registeredOn)} />
+          <Row label="Plate" value={plateLabel(vehicle.plate)} mono />
+          <Row
+            label="Registration date"
+            value={vehicle.registeredOn ? formatDate(vehicle.registeredOn) : "Not registered"}
+          />
           <Row label="Registration class" value="Passenger · PSGR" />
           <Row label="Previous owners" value="1 (dealer)" />
         </dl>

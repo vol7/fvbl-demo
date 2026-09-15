@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   formatDate,
+  plateLabel,
   formatOdometer,
   formatRelative,
   formatTime,
@@ -74,5 +75,12 @@ describe("formatRelative", () => {
     expect(formatRelative("2026-09-12T14:59:00.000Z", now)).toBe("1 minute ago")
     expect(formatRelative("2026-09-12T13:00:00.000Z", now)).toBe("2 hours ago")
     expect(formatRelative("2026-09-10T15:00:00.000Z", now)).toBe("2 days ago")
+  })
+})
+
+describe("plateLabel", () => {
+  it("prints the plate, or says the vehicle is not yet plated", () => {
+    expect(plateLabel("CKXR 214")).toBe("CKXR 214")
+    expect(plateLabel(null)).toBe("Not yet plated")
   })
 })

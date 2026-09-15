@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   activeAuthorization,
+  registrationState,
   createSessionStore,
   EMPTY_SESSION,
   sessionReducer,
@@ -115,7 +116,11 @@ describe("sessionReducer", () => {
   it("clear empties everything; force replaces everything", () => {
     const s = sessionReducer(EMPTY_SESSION, request(A))
     expect(sessionReducer(s, { type: "clear" })).toEqual(EMPTY_SESSION)
-    const forced = { authorizations: { [B]: { status: "blocked" as const } }, activeVin: B }
+    const forced = {
+      authorizations: { [B]: { status: "blocked" as const } },
+      registrations: {},
+      activeVin: B,
+    }
     expect(sessionReducer(s, { type: "force", session: forced })).toBe(forced)
   })
 })
@@ -189,5 +194,83 @@ describe("createSessionStore", () => {
     })
     store.dispatch({ type: "approve", vin: A, authorizationCode: "X", at: T1 })
     expect(warnings).toEqual(["[fvbl] ignored approve in no record"])
+  })
+})
+
+describe("registrations", () => {
+  const N = "W1N4M4HB0SA000117"
+  const submission = {
+    dealer: "Mercedes-Benz Downtown",
+    dealerMobileLast4: "2204",
+    nvis: "NVIS 2026-MB-0187342",
+    deliveryKm: 12,
+    firstOwner: "Léa Tremblay",
+  }
+  function submit(vin = N) {
+    return {
+      type: "submitRegistration" as const,
+      vin,
+      submission,
+      otp: "482 193",
+      link: LINK,
+      at: T0,
+    }
+  }
+
+  it("a dealer submission creates the registration slot and makes the VIN active", () => {
+    const s = sessionReducer(EMPTY_SESSION, submit())
+    expect(s.activeVin).toBe(N)
+    expect(s.registrations[N]).toMatchObject({ status: "pending", link: LINK })
+    expect(s.authorizations[N]).toBeUndefined()
+  })
+
+  it("confirming is targeted by VIN and does not move the active VIN", () => {
+    let s = sessionReducer(EMPTY_SESSION, submit())
+    s = sessionReducer(s, request(A))
+    s = sessionReducer(s, {
+      type: "confirmRegistration",
+      vin: N,
+      registrationRef: "FVBL-R-2026-09-15-0417",
+      at: T1,
+    })
+    expect(s.activeVin).toBe(A)
+    expect(s.registrations[N]).toMatchObject({ status: "registered", registeredAt: T1 })
+  })
+
+  it("declining withdraws the submission", () => {
+    let s = sessionReducer(EMPTY_SESSION, submit())
+    s = sessionReducer(s, { type: "declineRegistration", vin: N, at: T1 })
+    expect(s.registrations[N]).toMatchObject({ status: "declined" })
+  })
+
+  it("a confirm with no submission is ignored", () => {
+    const s = sessionReducer(EMPTY_SESSION, {
+      type: "confirmRegistration",
+      vin: N,
+      registrationRef: "X",
+      at: T1,
+    })
+    expect(s).toBe(EMPTY_SESSION)
+  })
+
+  it("clear resets registrations too", () => {
+    const s = sessionReducer(sessionReducer(EMPTY_SESSION, submit()), { type: "clear" })
+    expect(s).toEqual(EMPTY_SESSION)
+    expect(EMPTY_SESSION.registrations).toEqual({})
+  })
+
+  it("registrationState falls back to none", () => {
+    expect(registrationState(EMPTY_SESSION, N)).toEqual({ status: "none" })
+    const s = sessionReducer(EMPTY_SESSION, submit())
+    expect(registrationState(s, N).status).toBe("pending")
+  })
+
+  it("a stored session from before registrations existed still loads", () => {
+    const storage = memoryStorage()
+    storage.setItem(STORAGE_KEY, JSON.stringify({ authorizations: {}, activeVin: null }))
+    const store = createSessionStore({ storage, channel: null })
+    expect(store.getState().registrations).toEqual({})
+    store.dispatch(submit())
+    expect(store.getState().registrations[N]).toMatchObject({ status: "pending" })
   })
 })

@@ -87,7 +87,11 @@ describe("Vehicle route", () => {
 
   it("opening a vehicle writes nothing to the session", () => {
     renderVehicle(CLEAN_VIN)
-    expect(getSessionStore().getState()).toEqual({ authorizations: {}, activeVin: null })
+    expect(getSessionStore().getState()).toEqual({
+      authorizations: {},
+      registrations: {},
+      activeVin: null,
+    })
   })
 
   it("requesting records the applicant and makes this vehicle the active one", async () => {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import { allPass, evaluateChecks, failingChecks, highRiskChecks } from "./checks"
-import { CLEAN_VIN, CLONED_VIN, EXPORTED_VIN, findVehicle, type Vehicle } from "./vehicles"
+import { CLEAN_VIN, CLONED_VIN, EXPORTED_VIN, findVehicle, NEW_VIN, type Vehicle } from "./vehicles"
 
 const clean = findVehicle(CLEAN_VIN)!
 const cloned = findVehicle(CLONED_VIN)!
@@ -93,5 +93,14 @@ describe("evaluateChecks", () => {
     expect(odometer.severity).toBe("low")
     expect(odometer.detail).toContain("54 000 km")
     expect(odometer.detail).toContain("31 240 km")
+  })
+})
+
+describe("odometer check with no readings", () => {
+  it("passes and says so instead of crashing", () => {
+    const unborn = findVehicle(NEW_VIN)!
+    const odometer = evaluateChecks(unborn).find((c) => c.id === "odometer")!
+    expect(odometer.status).toBe("pass")
+    expect(odometer.detail).toMatch(/no readings/i)
   })
 })

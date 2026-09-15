@@ -25,7 +25,7 @@ import {
   INTEGRATIONS,
   type Check as RecordCheck,
 } from "@/lib/checks"
-import { formatDate, formatOdometer, formatRelative, maskName } from "@/lib/format"
+import { formatDate, formatOdometer, formatRelative, maskName, plateLabel } from "@/lib/format"
 import { ledgerEntries } from "@/lib/ledger"
 import type { Tone } from "@/lib/tone"
 import { verdictLabel } from "@/lib/verdict"
@@ -263,8 +263,17 @@ export function VehicleSummary({
             <div className="flex flex-col gap-1.5">
               <h1 className="text-xl font-semibold tracking-tight">{vehicleTitle(vehicle)}</h1>
               <p className="text-sm text-muted-foreground">
-                {vehicle.colour} · {vehicle.bodyStyle} · Ontario plate{" "}
-                <span className="font-mono tracking-wider text-foreground">{vehicle.plate}</span>
+                {vehicle.colour} · {vehicle.bodyStyle} ·{" "}
+                {vehicle.plate ? (
+                  <>
+                    Ontario plate{" "}
+                    <span className="font-mono tracking-wider text-foreground">
+                      {vehicle.plate}
+                    </span>
+                  </>
+                ) : (
+                  plateLabel(vehicle.plate)
+                )}
               </p>
               <div className="flex items-center gap-1 text-sm">
                 <span className="text-muted-foreground">VIN</span>
@@ -302,7 +311,10 @@ export function VehicleSummary({
         </div>
 
         <dl className="grid grid-cols-2 gap-x-8 gap-y-4 border-t pt-5 md:grid-cols-3 xl:grid-cols-6">
-          <Field label="Registered on" value={formatDate(vehicle.registeredOn)} />
+          <Field
+            label="Registered on"
+            value={vehicle.registeredOn ? formatDate(vehicle.registeredOn) : "Not registered"}
+          />
           <Field label="Odometer at registration" value={formatOdometer(vehicle.odometerKm)} />
           <Field label="Registered owner" value={maskName(vehicle.owner.name)} />
           <Field label="Owner phone" value={`••• ••• ${vehicle.owner.phoneLast4}`} mono />

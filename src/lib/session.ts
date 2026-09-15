@@ -8,16 +8,27 @@ import {
   type AuthorizationAction,
   type AuthorizationState,
 } from "./authorization"
+import {
+  NO_REGISTRATION,
+  registrationReducer,
+  type RegistrationAction,
+  type RegistrationState,
+  type Submission,
+} from "./registration"
 
 /**
  * Session model v2.
  *
  * Authorizations are keyed by VIN so several vehicles can hold state at once, and
  * browsing a vehicle page never writes. `activeVin` is what the phone follows; only
- * the actions that actually text the owner (or pre-approve) move it.
+ * the actions that actually text someone (or pre-approve) move it.
+ *
+ * Registrations (a dealer's first registration of a new VIN) live in their own map
+ * with their own machine. A VIN is never in both flows during the demo.
  */
 export type SessionState = {
   authorizations: Record<string, AuthorizationState>
+  registrations: Record<string, RegistrationState>
   activeVin: string | null
 }
 
@@ -32,8 +43,22 @@ export type SessionAction =
   | Targeted<Extract<AuthorizationAction, { type: "request" }> & { canRequest: boolean }>
   | Targeted<Extract<AuthorizationAction, { type: "escalate" }> & { canRequest: boolean }>
   | Targeted<Extract<AuthorizationAction, { type: "approve" | "deny" | "timeout" | "issue" }>>
+  | {
+      type: "submitRegistration"
+      vin: string
+      submission: Submission
+      otp: string
+      link: string
+      at: string
+    }
+  | { type: "confirmRegistration"; vin: string; registrationRef: string; at: string }
+  | { type: "declineRegistration"; vin: string; at: string }
 
-export const EMPTY_SESSION: SessionState = { authorizations: {}, activeVin: null }
+export const EMPTY_SESSION: SessionState = {
+  authorizations: {},
+  registrations: {},
+  activeVin: null,
+}
 
 /** The state of one vehicle, falling back to what its record checks imply. */
 export function vehicleState(
@@ -42,6 +67,11 @@ export function vehicleState(
   canRequest: boolean
 ): AuthorizationState {
   return session.authorizations[vin] ?? initialState(canRequest)
+}
+
+/** The registration of one vehicle, `none` until a dealer submits. */
+export function registrationState(session: SessionState, vin: string): RegistrationState {
+  return session.registrations[vin] ?? NO_REGISTRATION
 }
 
 /** The authorization the phone and hub follow, if any. */
@@ -61,7 +91,24 @@ function withSlot(
   activate = false
 ): SessionState {
   return {
+    ...session,
     authorizations: { ...session.authorizations, [vin]: next },
+    activeVin: activate ? vin : session.activeVin,
+  }
+}
+
+function withRegistration(
+  session: SessionState,
+  vin: string,
+  action: RegistrationAction,
+  activate = false
+): SessionState {
+  const base = registrationState(session, vin)
+  const next = registrationReducer(base, action)
+  if (next === base) return session
+  return {
+    ...session,
+    registrations: { ...session.registrations, [vin]: next },
     activeVin: activate ? vin : session.activeVin,
   }
 }
@@ -76,6 +123,27 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
       return withSlot(state, action.vin, preapprovedState(action), true)
     case "buyerRequest":
       return withSlot(state, action.vin, buyerPendingState(action), true)
+    case "submitRegistration":
+      return withRegistration(
+        state,
+        action.vin,
+        {
+          type: "submit",
+          submission: action.submission,
+          otp: action.otp,
+          link: action.link,
+          at: action.at,
+        },
+        true
+      )
+    case "confirmRegistration":
+      return withRegistration(state, action.vin, {
+        type: "confirm",
+        registrationRef: action.registrationRef,
+        at: action.at,
+      })
+    case "declineRegistration":
+      return withRegistration(state, action.vin, { type: "decline", at: action.at })
     case "request":
     case "escalate": {
       const { vin, canRequest, ...rest } = action
@@ -123,7 +191,9 @@ function readStorage(storage: StorageLike | null): SessionState | null {
     const raw = storage.getItem(STORAGE_KEY)
     if (!raw) return null
     const parsed: unknown = JSON.parse(raw)
-    return isSession(parsed) ? parsed : null
+    if (!isSession(parsed)) return null
+    // Sessions stored before registrations existed are still v2; fill the map.
+    return parsed.registrations ? parsed : { ...parsed, registrations: {} }
   } catch {
     return null
   }
@@ -149,7 +219,7 @@ function safeChannel(): BroadcastChannel | null {
   }
 }
 
-function describe(state: AuthorizationState | undefined): string {
+function describe(state: AuthorizationState | RegistrationState | undefined): string {
   return state ? state.status : "no record"
 }
 
@@ -201,9 +271,10 @@ export function createSessionStore(
       const next = sessionReducer(before, action)
       if (next === before) {
         const vin = "vin" in action ? action.vin : before.activeVin
-        warn(
-          `[fvbl] ignored ${action.type} in ${describe(vin ? before.authorizations[vin] : undefined)}`
-        )
+        const slot = action.type.endsWith("Registration")
+          ? vin && before.registrations[vin]
+          : vin && before.authorizations[vin]
+        warn(`[fvbl] ignored ${action.type} in ${describe(slot || undefined)}`)
         setState(before)
         return
       }

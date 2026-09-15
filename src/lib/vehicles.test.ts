@@ -6,6 +6,8 @@ import {
   CLONED_VIN,
   DEMO_VEHICLES,
   EXPORTED_VIN,
+  NEW_VIN,
+  bornVehicle,
   findVehicle,
   odometerEvents,
   openExport,
@@ -13,10 +15,10 @@ import {
 } from "./vehicles"
 
 describe("DEMO_VEHICLES", () => {
-  it("contains three vehicles with valid, unique VINs", () => {
-    expect(DEMO_VEHICLES).toHaveLength(3)
+  it("contains four vehicles with valid, unique VINs", () => {
+    expect(DEMO_VEHICLES).toHaveLength(4)
     const vins = DEMO_VEHICLES.map((v) => v.vin)
-    expect(new Set(vins).size).toBe(3)
+    expect(new Set(vins).size).toBe(4)
     for (const vin of vins) expect(isValidVin(vin)).toBe(true)
   })
 
@@ -44,8 +46,9 @@ describe("DEMO_VEHICLES", () => {
     }
   })
 
-  it("starts every history with a Transport Canada import", () => {
+  it("starts every authored history with a Transport Canada import", () => {
     for (const v of DEMO_VEHICLES) {
+      if (v.history.length === 0) continue
       const first = [...v.history].sort((a, b) => a.date.localeCompare(b.date))[0]
       expect(first.kind).toBe("import")
     }
@@ -81,5 +84,57 @@ describe("findVehicle", () => {
 describe("vehicleTitle", () => {
   it("joins year, make, model and trim", () => {
     expect(vehicleTitle(findVehicle(CLEAN_VIN)!)).toBe("2023 Mercedes-AMG GLE 63 S 4MATIC+")
+  })
+})
+
+describe("the unborn vehicle", () => {
+  const T = "2026-09-15T14:05:30.000Z"
+  const registered = {
+    status: "registered" as const,
+    dealer: "Mercedes-Benz Downtown",
+    dealerMobileLast4: "2204",
+    nvis: "NVIS 2026-MB-0187342",
+    deliveryKm: 12,
+    firstOwner: "Léa Tremblay",
+    otp: "482 193",
+    link: "k7m2p9xq4tvn8bwz",
+    sentAt: "2026-09-15T14:02:00.000Z",
+    registrationRef: "FVBL-R-2026-09-15-0417",
+    registeredAt: T,
+    office: "Dealer channel · Mercedes-Benz Downtown",
+  }
+
+  it("decodes but has no plate, no registration and no history", () => {
+    const v = findVehicle(NEW_VIN)!
+    expect(v.year).toBe(2026)
+    expect(v.plate).toBeNull()
+    expect(v.registeredOn).toBeNull()
+    expect(v.history).toEqual([])
+    expect(Object.values(v.records).every((r) => r === null)).toBe(true)
+  })
+
+  it("bornVehicle is the identity for authored vehicles and while unregistered", () => {
+    const clean = findVehicle(CLEAN_VIN)!
+    expect(bornVehicle(clean, { status: "none" })).toBe(clean)
+    expect(bornVehicle(clean, registered)).toBe(clean)
+    const unborn = findVehicle(NEW_VIN)!
+    expect(bornVehicle(unborn, { status: "none" })).toBe(unborn)
+  })
+
+  it("bornVehicle gives the newborn its first registration and delivery odometer", () => {
+    const born = bornVehicle(findVehicle(NEW_VIN)!, registered)
+    expect(born.history).toEqual([
+      {
+        kind: "firstRegistration",
+        date: "2026-09-15",
+        agency: "MTO",
+        office: "Dealer channel · Mercedes-Benz Downtown",
+      },
+      { kind: "odometer", date: "2026-09-15", agency: "Dealer", km: 12, source: "Dealer delivery" },
+    ])
+    expect(born.registeredOn).toBe("2026-09-15")
+    expect(born.odometerKm).toBe(12)
+    expect(born.plate).toBeNull()
+    expect(odometerEvents(born)).toHaveLength(1)
   })
 })

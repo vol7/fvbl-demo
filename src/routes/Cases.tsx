@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { formatTime } from "@/lib/format"
+import { formatTime, plateLabel } from "@/lib/format"
 import { CASE_ROWS, type CaseRow } from "@/lib/seed"
 import { useSession } from "@/lib/session"
 import { findVehicle, vehicleTitle } from "@/lib/vehicles"
@@ -23,7 +23,7 @@ export function Cases() {
       {
         reference: auth.caseReference,
         vehicle: vehicleTitle(vehicle),
-        plate: vehicle.plate,
+        plate: plateLabel(vehicle.plate),
         reason: "Duplicate identity · insurer write-off",
         routedTo: "OPP Auto Theft Unit",
         status: "Open" as const,

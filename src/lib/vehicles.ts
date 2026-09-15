@@ -1,4 +1,6 @@
 import { normalizeVin } from "./format"
+import { FIRST_OWNER } from "./people"
+import type { RegistrationState } from "./registration"
 
 export type Agency = "Transport Canada" | "CBSA" | "MTO" | "Insurer" | "Dealer"
 
@@ -54,8 +56,9 @@ export type Vehicle = {
   trim: string
   colour: string
   bodyStyle: string
-  plate: string
-  registeredOn: string
+  /** Null until the ministry records a first registration. */
+  plate: string | null
+  registeredOn: string | null
   odometerKm: number
   owner: { name: string; phoneLast4: string; city: string }
   lastInspection: string
@@ -68,6 +71,8 @@ export type Vehicle = {
 export const CLEAN_VIN = "4JGFB8KB5PA812634"
 export const CLONED_VIN = "5TDEBRCH7SS041927"
 export const EXPORTED_VIN = "SALWR2SE4NA209311"
+/** Brand new: decodes, but has no registration until a dealer submits one. */
+export const NEW_VIN = "4JGFF5KE9SB412009"
 
 export const DEMO_VEHICLES: Vehicle[] = [
   {
@@ -262,11 +267,66 @@ export const DEMO_VEHICLES: Vehicle[] = [
       },
     ],
   },
+  {
+    vin: NEW_VIN,
+    year: 2026,
+    make: "Mercedes-Benz",
+    model: "GLE 450",
+    trim: "4MATIC",
+    colour: "Obsidian Black",
+    bodyStyle: "SUV",
+    plate: null,
+    registeredOn: null,
+    odometerKm: 0,
+    owner: { name: FIRST_OWNER.name, phoneLast4: FIRST_OWNER.mobileLast4, city: "Toronto, ON" },
+    lastInspection: "",
+    riskTier: "high-value",
+    records: {
+      stolenReport: null,
+      writeOff: null,
+      collision: null,
+      duplicateIdentity: null,
+      lien: null,
+    },
+    decoded: {
+      year: 2026,
+      make: "Mercedes-Benz",
+      model: "GLE 450",
+      bodyStyle: "SUV",
+      plant: "Tuscaloosa, Alabama, USA",
+    },
+    history: [],
+  },
 ]
 
 export function findVehicle(vin: string): Vehicle | undefined {
   const needle = normalizeVin(vin)
   return DEMO_VEHICLES.find((v) => v.vin === needle)
+}
+
+/**
+ * The vehicle as the registry sees it. For a registered newborn, the dealer's
+ * submission becomes the first two history events; for everything else this is
+ * the identity, so authored vehicles never shift.
+ */
+export function bornVehicle(vehicle: Vehicle, registration: RegistrationState): Vehicle {
+  if (registration.status !== "registered" || vehicle.history.length > 0) return vehicle
+  const date = registration.registeredAt.slice(0, 10)
+  return {
+    ...vehicle,
+    registeredOn: date,
+    odometerKm: registration.deliveryKm,
+    history: [
+      { kind: "firstRegistration", date, agency: "MTO", office: registration.office },
+      {
+        kind: "odometer",
+        date,
+        agency: "Dealer",
+        km: registration.deliveryKm,
+        source: "Dealer delivery",
+      },
+    ],
+  }
 }
 
 export function vehicleTitle(vehicle: Vehicle): string {

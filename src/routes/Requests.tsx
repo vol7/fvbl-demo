@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import type { AuthorizationState } from "@/lib/authorization"
-import { formatTime } from "@/lib/format"
+import { formatTime, plateLabel } from "@/lib/format"
 import { REQUEST_ROWS, type RequestRow } from "@/lib/seed"
 import { useSession } from "@/lib/session"
 import { findVehicle, vehicleTitle } from "@/lib/vehicles"
@@ -24,7 +24,7 @@ function liveRow(vin: string, auth: AuthorizationState): RequestRow | null {
       return {
         reference: "—",
         vehicle: vehicleTitle(vehicle),
-        plate: vehicle.plate,
+        plate: plateLabel(vehicle.plate),
         applicant: online(auth.requester, auth.origin),
         status: "Pending",
         when: `Today, ${formatTime(auth.sentAt)}`,
@@ -33,7 +33,7 @@ function liveRow(vin: string, auth: AuthorizationState): RequestRow | null {
       return {
         reference: auth.authorizationCode,
         vehicle: vehicleTitle(vehicle),
-        plate: vehicle.plate,
+        plate: plateLabel(vehicle.plate),
         applicant:
           auth.origin === "owner"
             ? "Registered owner (pre-approval)"
@@ -45,7 +45,7 @@ function liveRow(vin: string, auth: AuthorizationState): RequestRow | null {
       return {
         reference: "—",
         vehicle: vehicleTitle(vehicle),
-        plate: vehicle.plate,
+        plate: plateLabel(vehicle.plate),
         applicant: online(auth.requester, auth.origin),
         status: auth.reason === "timeout" ? "Expired" : "Frozen",
         when: `Today, ${formatTime(auth.frozenAt)}`,

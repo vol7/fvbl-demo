@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table"
 import { OUTCOME_LABEL, recentRows } from "@/lib/seed"
 import { paths } from "@/lib/paths"
+import { useSession } from "@/lib/session"
 
 export function RecentLookupsTable({
   limit,
@@ -21,7 +22,8 @@ export function RecentLookupsTable({
   compact?: boolean
 }) {
   const navigate = useNavigate()
-  const rows = recentRows().slice(0, limit)
+  const [session] = useSession()
+  const rows = recentRows(session).slice(0, limit)
   return (
     <Table>
       <TableHeader>

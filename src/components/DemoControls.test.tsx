@@ -56,7 +56,7 @@ describe("DemoControls", () => {
       reason: "denied",
     })
     await userEvent.click(screen.getByRole("button", { name: /reset session/i }))
-    expect(store.getState()).toEqual({ authorizations: {}, activeVin: null })
+    expect(store.getState()).toEqual({ authorizations: {}, registrations: {}, activeVin: null })
   })
 
   it("disables owner actions when nothing is pending", async () => {

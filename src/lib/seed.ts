@@ -1,5 +1,7 @@
 import { allPass, evaluateChecks } from "./checks"
-import { DEMO_VEHICLES, vehicleTitle } from "./vehicles"
+import { bornVehicle, DEMO_VEHICLES, type Vehicle, vehicleTitle } from "./vehicles"
+import { plateLabel } from "./format"
+import { registrationState, type SessionState } from "./session"
 
 /** Static rows that make the portal look in use. Invented data. */
 
@@ -157,15 +159,33 @@ export const OUTCOME_LABEL: Record<RecentLookup["outcome"], string> = {
   frozen: "Frozen",
 }
 
-/** Demo vehicles first (they are the clickable ones), then static filler. */
-export function recentRows(): (RecentLookup & { live: boolean })[] {
-  const demo = DEMO_VEHICLES.map((v, i) => ({
+/**
+ * Demo vehicles first (they are the clickable ones), then static filler. A vehicle
+ * with no registration yet is not a lookup anyone made; it joins the list, at the
+ * top, the moment the dealer's submission is confirmed.
+ */
+export function recentRows(session: SessionState): (RecentLookup & { live: boolean })[] {
+  const row = (v: Vehicle, when: string) => ({
     vin: v.vin,
-    plate: v.plate,
+    plate: plateLabel(v.plate),
     vehicle: vehicleTitle(v),
     outcome: (allPass(evaluateChecks(v)) ? "clear" : "blocked") as RecentLookup["outcome"],
-    when: ["Today, 9:41 a.m.", "Today, 9:12 a.m.", "Today, 8:56 a.m."][i] ?? "Today",
+    when,
     live: true,
-  }))
-  return [...demo, ...RECENT_LOOKUPS.map((r) => ({ ...r, live: false }))]
+  })
+  const born: ReturnType<typeof row>[] = []
+  const authored: ReturnType<typeof row>[] = []
+  DEMO_VEHICLES.forEach((v, i) => {
+    if (v.history.length > 0) {
+      authored.push(
+        row(v, ["Today, 9:41 a.m.", "Today, 9:12 a.m.", "Today, 8:56 a.m."][i] ?? "Today")
+      )
+      return
+    }
+    const registration = registrationState(session, v.vin)
+    if (registration.status === "registered") {
+      born.push(row(bornVehicle(v, registration), "Today, just now"))
+    }
+  })
+  return [...born, ...authored, ...RECENT_LOOKUPS.map((r) => ({ ...r, live: false }))]
 }

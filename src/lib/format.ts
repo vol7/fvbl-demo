@@ -47,3 +47,8 @@ export function formatRelative(from: Date | string, now: Date = new Date()): str
   const days = Math.round(hours / 24)
   return `${days} day${days === 1 ? "" : "s"} ago`
 }
+
+/** A plate, or the phrase the portal uses for a vehicle the ministry has not plated yet. */
+export function plateLabel(plate: string | null): string {
+  return plate ?? "Not yet plated"
+}

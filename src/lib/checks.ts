@@ -151,7 +151,8 @@ function odometerCheck(readings: OdometerEvent[]): Check {
       )
     }
   }
-  const last = readings[readings.length - 1]
+  const last = readings.at(-1)
+  if (!last) return check("odometer", "pass", "No readings on file yet")
   return check(
     "odometer",
     "pass",

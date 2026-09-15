@@ -42,7 +42,7 @@ function iso(base: Date, offsetMs: number): string {
 }
 
 function one(vin: string, authorization: AuthorizationState): SessionState {
-  return { authorizations: { [vin]: authorization }, activeVin: vin }
+  return { authorizations: { [vin]: authorization }, registrations: {}, activeVin: vin }
 }
 
 export function forcedSession(key: ForceKey, now: Date = new Date()): SessionState {
@@ -64,7 +64,7 @@ export function forcedSession(key: ForceKey, now: Date = new Date()): SessionSta
 
   switch (key) {
     case "idle":
-      return { authorizations: {}, activeVin: null }
+      return { authorizations: {}, registrations: {}, activeVin: null }
     case "pending":
       return one(CLEAN_VIN, {
         status: "pending",
