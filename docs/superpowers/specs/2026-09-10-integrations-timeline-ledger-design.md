@@ -3,7 +3,10 @@
 Date: 2026-09-10
 Status: approved and built 2026-09-10 (François Deguire). Amended 2026-09-12: the
 ledger page was removed and the vehicle page restructured, see
-`2026-09-12-vehicle-page-summary-and-tabs.md`.
+`2026-09-12-vehicle-page-summary-and-tabs.md`. Amended 2026-09-15: the vehicle
+history is always fully expanded, and the export record no longer carries a
+destination; the border flag is framed as an identity conflict, not as the
+vehicle at the counter having left. Both changes are folded into the text below.
 Builds on `2026-09-09-session-v2-and-review-fixes.md`. Review source: Granola
 "FBVIL x V7 - Visual Review", 2026-09-10 (Frank Marineau, François Deguire,
 Francesco Policaro, Fawaz Owayda, Gus Stamatiou).
@@ -38,7 +41,7 @@ type Agency = "Transport Canada" | "CBSA" | "MTO" | "Insurer" | "Dealer"
 type VehicleEvent =
   | { kind: "import"; date: string; agency: "Transport Canada"; port: string; detail: string }
   | { kind: "customsEntry"; date: string; agency: "CBSA"; port: string }
-  | { kind: "export"; date: string; agency: "CBSA"; port: string; destination: string }
+  | { kind: "export"; date: string; agency: "CBSA"; port: string }
   | { kind: "firstRegistration"; date: string; agency: "MTO"; office: string }
   | { kind: "transfer"; date: string; agency: "MTO"; office: string }
   | { kind: "renewal"; date: string; agency: "MTO"; office: string }
@@ -57,8 +60,8 @@ decoded: { year: number; make: string; model: string; bodyStyle: string; plant: 
 ### Milestones versus detail
 
 `import`, `customsEntry`, `export`, `firstRegistration` and `transfer` are
-milestones. `renewal` and `odometer` are detail. The timeline card shows
-milestones collapsed and everything expanded.
+milestones. `renewal` and `odometer` are detail. The timeline card shows every
+event; milestones are set heavier so the list still scans.
 
 ## Checks
 
@@ -78,8 +81,15 @@ for eight in total:
 
 Pass details: border "Entered Canada {date} via {port} · no export on record";
 decode "Decodes to {year} {make} {model} {body} · matches MTO record".
-Fail details: border "Exported {date} via {port} to {destination} · no re-entry
-on record"; decode "Decodes to {decoded} · MTO record says {registered}".
+Fail details: border "A vehicle carrying this VIN was exported {date} via {port}
+· no re-entry on record"; decode "Decodes to {decoded} · MTO record says
+{registered}". The border wording is deliberate: one VIN cannot be abroad and at
+the counter at once, but the record does not say which vehicle is the clone. In
+the common Canadian pattern the stolen car ships under a cloned VIN and the
+original stays with its owner, so the flag names the conflict and holds the
+package for investigation rather than asserting that the car presented has left.
+No destination is recorded or shown; the port of exit and the missing re-entry
+are the whole signal, and a named foreign city added nothing to the decision.
 
 `allPass` and `failingChecks` are unchanged. Blocking stays binary: any failed
 check blocks the package and the online pre-approval. Severity is displayed,
@@ -94,7 +104,7 @@ before low), then passes in the table order above.
 | Vehicle | 2022 Land Rover Range Rover Sport HSE Dynamic, Santorini Black, SUV |
 | Plate | `CPLR 482` |
 | Owner | Amara Chen, Mississauga, ON, phone ending 2286 |
-| Story | Imported Halifax 2021-11, first registered 2022-01, CBSA export Montréal 2025-03-18 to Lagos, no re-entry. MTO record still shows Ontario registration. Everything else passes. |
+| Story | Imported Halifax 2021-11, first registered 2022-01, CBSA export via Montréal 2025-03-18, no re-entry, destination not recorded. MTO record still shows Ontario registration. Everything else passes. |
 
 One red row, high risk, blocks the package. On ServiceOntario the VIN returns
 the existing "cannot be pre-approved online" message with no code change. The
@@ -110,8 +120,8 @@ New `VehicleTimeline` component in the left column under the record checks. It
 replaces `OdometerHistory`; the `OwnershipCard` stays.
 
 - Title "Vehicle history", caption "{n} events · Transport Canada, CBSA, MTO".
-- Collapsed: milestones only, newest first. A "Show all {n} events" button
-  expands renewals and odometer readings in place; "Show milestones" collapses.
+- Every event, newest first. There is no collapsed view and nothing to expand;
+  milestones carry more weight than renewals and odometer readings.
 - Each row: date, title ("Entered Canada", "Cleared customs", "First
   registration", "Ownership transferred", "Registration renewed", "Odometer
   reading", "Exported"), detail (port, office, km), an agency chip, and the
@@ -212,7 +222,7 @@ are views, not ledger events). The mark renders under the detail line.
   the owner name, plate or phone.
 - `activity.test.ts`: approved and issued events carry a ledger mark, "Record
   retrieved" does not.
-- Component tests: `VehicleTimeline` collapsed shows milestones only and
-  expands; `RecordChecks` shows the severity badge on failures.
+- Component tests: `VehicleTimeline` shows every event with no button;
+  `RecordChecks` shows the severity badge on failures.
 - Browser check: the exported VIN on ServiceOntario returns the not-eligible
   message; the three portal pages and the ledger page at 1440×900.
