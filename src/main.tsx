@@ -3,11 +3,13 @@ import { createRoot } from "react-dom/client"
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router"
 
 import "./index.css"
+import { DealerShell } from "@/components/dealer/DealerShell"
 import { ConfirmPage } from "@/components/phone/ConfirmPage"
 import { PhoneScreen } from "@/components/phone/PhoneScreen"
 import { PortalShell } from "@/components/PortalShell"
 import { paths } from "@/lib/paths"
 import { Cases } from "@/routes/Cases"
+import { Register } from "@/routes/dealer/Register"
 import { Home } from "@/routes/Home"
 import { Hub } from "@/routes/Hub"
 import { Lookup } from "@/routes/Lookup"
@@ -33,6 +35,12 @@ const router = createBrowserRouter([
       { path: paths.portal.requests, element: <Requests /> },
       { path: paths.portal.cases, element: <Cases /> },
     ],
+  },
+
+  { path: paths.dealer.signIn, element: <SignIn variant="dealer" /> },
+  {
+    element: <DealerShell />,
+    children: [{ path: paths.dealer.register, element: <Register /> }],
   },
 
   {

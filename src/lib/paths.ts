@@ -23,6 +23,12 @@ export const paths = {
   phone: "/phone",
   phoneConfirm: "/phone/confirm",
 
+  /** The dealer's side: first registration of a brand-new vehicle. */
+  dealer: {
+    signIn: "/dealer",
+    register: "/dealer/register",
+  },
+
   /** Served statically from public/; needs the trailing slash. */
   serviceOntario: "/serviceontario/",
   uvip: "/uvip",
