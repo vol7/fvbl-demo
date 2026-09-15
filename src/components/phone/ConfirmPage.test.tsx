@@ -4,7 +4,7 @@ import { createMemoryRouter, RouterProvider } from "react-router"
 import { describe, expect, it } from "vitest"
 
 import { getSessionStore } from "@/lib/session"
-import { CLEAN_VIN } from "@/lib/vehicles"
+import { CLEAN_VIN, NEW_VIN } from "@/lib/vehicles"
 import { ConfirmPage } from "./ConfirmPage"
 
 const T0 = "2026-09-09T18:14:00.000Z"
@@ -73,5 +73,52 @@ describe("ConfirmPage", () => {
     const router = renderConfirm()
     await userEvent.click(screen.getByRole("button", { name: "Back" }))
     expect(router.state.location.pathname).toBe("/phone")
+  })
+})
+
+describe("ConfirmPage for a first registration", () => {
+  function submitRegistration() {
+    const store = getSessionStore()
+    store.dispatch({
+      type: "submitRegistration",
+      vin: NEW_VIN,
+      submission: {
+        dealer: "Mercedes-Benz Downtown",
+        dealerMobileLast4: "2204",
+        nvis: "NVIS 2026-MB-0187342",
+        deliveryKm: 12,
+        firstOwner: "Léa Tremblay",
+      },
+      otp: "111 222",
+      link: LINK,
+      at: T0,
+    })
+    return store
+  }
+
+  it("asks the dealership to confirm, showing NVIS and first owner, then records it", async () => {
+    const store = submitRegistration()
+    renderConfirm()
+    expect(screen.getByRole("region", { name: /dealer confirmation/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole("heading", { name: /confirm a first registration/i })
+    ).toBeInTheDocument()
+    expect(screen.getByText("2026 Mercedes-Benz GLE 450 4MATIC")).toBeInTheDocument()
+    expect(screen.getByText("Mercedes-Benz Downtown")).toBeInTheDocument()
+    expect(screen.getByText("Léa Tremblay")).toBeInTheDocument()
+    expect(screen.getByText("NVIS 2026-MB-0187342")).toBeInTheDocument()
+    expect(screen.queryByText(/plate/i)).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole("button", { name: "Confirm" }))
+    expect(store.getState().registrations[NEW_VIN].status).toBe("registered")
+    expect(await screen.findByText("Registration recorded")).toBeInTheDocument()
+    expect(screen.getByText(/^FVBL-R-\d{4}-\d{2}-\d{2}-\d{4}$/)).toBeInTheDocument()
+  })
+
+  it("declines the submission", async () => {
+    const store = submitRegistration()
+    renderConfirm()
+    await userEvent.click(screen.getByRole("button", { name: "Decline" }))
+    expect(store.getState().registrations[NEW_VIN].status).toBe("declined")
+    expect(await screen.findByText("Submission declined")).toBeInTheDocument()
   })
 })

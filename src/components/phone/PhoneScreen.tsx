@@ -5,10 +5,10 @@ import { useNavigate } from "react-router"
 import { StatusBar } from "@/components/phone/PhoneChrome"
 import { formatDate, formatTime } from "@/lib/format"
 import { useSession } from "@/lib/session"
-import { liveThread } from "@/lib/thread"
+import { liveThread, type Thread } from "@/lib/thread"
 import { smsLink } from "@/lib/sms"
 import { cn } from "@/lib/utils"
-import { vehicleTitle, type Vehicle } from "@/lib/vehicles"
+import { vehicleTitle } from "@/lib/vehicles"
 
 const BUBBLE_ENTER = { duration: 0.22, ease: "easeOut" } as const
 
@@ -18,25 +18,26 @@ function Bubble({
   caption,
   delay = 0,
 }: {
-  from: "fvbl" | "owner"
+  /** FVBL's messages sit left; whoever holds the phone (owner or dealership) sits right. */
+  from: "fvbl" | "them"
   children: React.ReactNode
   caption?: string
   delay?: number
 }) {
   const reduceMotion = useReducedMotion()
-  const owner = from === "owner"
+  const them = from === "them"
   return (
     <motion.div
       layout={!reduceMotion}
       initial={reduceMotion ? false : { opacity: 0, y: 8, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ ...BUBBLE_ENTER, delay }}
-      className={cn("flex flex-col gap-1", owner ? "items-end" : "items-start")}
+      className={cn("flex flex-col gap-1", them ? "items-end" : "items-start")}
     >
       <div
         className={cn(
           "max-w-[82%] px-3.5 py-2 text-[15px] leading-snug",
-          owner
+          them
             ? "rounded-[18px] rounded-br-[4px] bg-[#34c759] text-white"
             : "rounded-[18px] rounded-bl-[4px] bg-[#e9e9eb] text-black"
         )}
@@ -72,7 +73,21 @@ function Header() {
   )
 }
 
-function ContextBubble({ vehicle }: { vehicle: Vehicle | undefined }) {
+/** An older service message, so the thread does not start with the live request. */
+function ContextBubble({ thread }: { thread: Thread | null }) {
+  if (thread?.kind === "registration") {
+    // The dealership's phone: its previous registration, another vehicle.
+    return (
+      <>
+        <Separator>{formatDate("2026-09-08")}</Separator>
+        <Bubble from="fvbl">
+          FVBL: Registration FVBL-R-2026-09-08-2291 for a 2026 Mercedes-Benz GLC 300 4MATIC was
+          recorded on {formatDate("2026-09-08")}. Reply STOP to opt out of service messages.
+        </Bubble>
+      </>
+    )
+  }
+  const vehicle = thread?.vehicle
   const plate = vehicle?.plate ?? "CKXR 214"
   const renewed =
     vehicle?.history.filter((e) => e.kind === "renewal").at(-1)?.date ??
@@ -89,6 +104,48 @@ function ContextBubble({ vehicle }: { vehicle: Vehicle | undefined }) {
   )
 }
 
+/** The dealership is texted about its own submission and confirms it from the same link. */
+function RegistrationThread({
+  thread,
+  onOpen,
+}: {
+  thread: Extract<Thread, { kind: "registration" }>
+  onOpen: () => void
+}) {
+  const { vehicle, state } = thread
+  return (
+    <>
+      <Separator>Today {formatTime(state.sentAt)}</Separator>
+      <Bubble from="fvbl">
+        FVBL: {state.dealer} submitted the first registration of a {vehicleTitle(vehicle)} (VIN …
+        {vehicle.vin.slice(-4)}) to the ministry. Confirm this submission:{" "}
+        <button
+          type="button"
+          onClick={onOpen}
+          className="font-normal break-all text-[#0a84ff] underline decoration-[#0a84ff]/60 underline-offset-2"
+        >
+          {smsLink(state.link)}
+        </button>
+        . Expires in 24 hours.
+      </Bubble>
+
+      {state.status === "registered" ? (
+        <Bubble from="fvbl" delay={0.3}>
+          Confirmed. Registration{" "}
+          <span className="font-semibold tracking-wide">{state.registrationRef}</span> is recorded
+          and the vehicle's ledger has been opened.
+        </Bubble>
+      ) : null}
+
+      {state.status === "declined" ? (
+        <Bubble from="fvbl" delay={0.3}>
+          Understood. The submission has been withdrawn. Nothing was recorded.
+        </Bubble>
+      ) : null}
+    </>
+  )
+}
+
 export function PhoneScreen() {
   const [session] = useSession()
   const navigate = useNavigate()
@@ -96,7 +153,7 @@ export function PhoneScreen() {
 
   return (
     <div
-      aria-label="Registered owner's phone"
+      aria-label={thread?.kind === "registration" ? "Dealership phone" : "Registered owner's phone"}
       role="region"
       className="flex h-full w-full flex-col bg-white text-black"
     >
@@ -105,10 +162,20 @@ export function PhoneScreen() {
 
       <div className="flex min-h-0 flex-1 flex-col justify-end overflow-y-auto px-3 pb-3">
         <div className="flex flex-col gap-2.5 pt-3">
-          <ContextBubble vehicle={thread?.vehicle} />
+          <ContextBubble thread={thread} />
 
           <AnimatePresence initial={false}>
-            {thread ? (
+            {thread?.kind === "registration" ? (
+              <motion.div
+                key={`registration-${thread.state.sentAt}`}
+                className="flex flex-col gap-2.5"
+                initial={false}
+              >
+                <RegistrationThread thread={thread} onOpen={() => navigate("/phone/confirm")} />
+              </motion.div>
+            ) : null}
+
+            {thread?.kind === "authorization" ? (
               <motion.div
                 key={`thread-${thread.state.sentAt}`}
                 className="flex flex-col gap-2.5"

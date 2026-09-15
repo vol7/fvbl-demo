@@ -4,7 +4,7 @@ import { createMemoryRouter, RouterProvider } from "react-router"
 import { describe, expect, it } from "vitest"
 
 import { getSessionStore } from "@/lib/session"
-import { CLEAN_VIN } from "@/lib/vehicles"
+import { CLEAN_VIN, NEW_VIN } from "@/lib/vehicles"
 import { PhoneScreen } from "./PhoneScreen"
 
 const T0 = "2026-09-09T18:14:00.000Z"
@@ -85,5 +85,62 @@ describe("PhoneScreen", () => {
     })
     renderPhone()
     expect(screen.queryByText(/used vehicle information package/i)).not.toBeInTheDocument()
+  })
+})
+
+describe("PhoneScreen during a first registration", () => {
+  const submission = {
+    dealer: "Mercedes-Benz Downtown",
+    dealerMobileLast4: "2204",
+    nvis: "NVIS 2026-MB-0187342",
+    deliveryKm: 12,
+    firstOwner: "Léa Tremblay",
+  }
+  function submitRegistration() {
+    const store = getSessionStore()
+    store.dispatch({
+      type: "submitRegistration",
+      vin: NEW_VIN,
+      submission,
+      otp: "111 222",
+      link: LINK,
+      at: T0,
+    })
+    return store
+  }
+
+  it("becomes the dealership's phone and reads the submission back", async () => {
+    submitRegistration()
+    const router = renderPhone()
+    expect(screen.getByRole("region", { name: /dealership phone/i })).toBeInTheDocument()
+    expect(screen.queryByText(/registration for plate/i)).not.toBeInTheDocument()
+    expect(
+      screen.getByText(
+        /Mercedes-Benz Downtown submitted the first registration of a 2026 Mercedes-Benz GLE 450/
+      )
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/used vehicle information package/i)).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole("button", { name: `fvbl.on.ca/c/${LINK}` }))
+    expect(router.state.location.pathname).toBe("/phone/confirm")
+  })
+
+  it("confirms with the reference and says the ledger is open", () => {
+    const store = submitRegistration()
+    store.dispatch({
+      type: "confirmRegistration",
+      vin: NEW_VIN,
+      registrationRef: "FVBL-R-2026-09-15-0417",
+      at: T0,
+    })
+    renderPhone()
+    expect(screen.getByText("FVBL-R-2026-09-15-0417")).toBeInTheDocument()
+    expect(screen.getByText(/ledger has been opened/i)).toBeInTheDocument()
+  })
+
+  it("acknowledges a declined submission", () => {
+    const store = submitRegistration()
+    store.dispatch({ type: "declineRegistration", vin: NEW_VIN, at: T0 })
+    renderPhone()
+    expect(screen.getByText(/submission has been withdrawn/i)).toBeInTheDocument()
   })
 })
