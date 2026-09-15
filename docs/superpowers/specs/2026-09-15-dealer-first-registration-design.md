@@ -101,20 +101,21 @@ type SessionState = {
 One helper in `vehicles.ts`:
 
 ```ts
-bornHistory(vehicle: Vehicle, registration: RegistrationState): VehicleEvent[]
+bornVehicle(vehicle: Vehicle, registration: RegistrationState): Vehicle
 ```
 
-Returns `vehicle.history`, plus — when `registration.status === "registered"` —
-two synthesized events dated `registeredAt`:
+Returns the vehicle unchanged unless `registration.status === "registered"` and
+the vehicle has no history, in which case it returns a copy with `registeredOn`,
+`odometerKm` and two synthesized history events dated `registeredAt`:
 
 - `{ kind: "firstRegistration", agency: "MTO", office }`
 - `{ kind: "odometer", agency: "Dealer", km: deliveryKm, source: "Dealer delivery" }`
 
-Every reader of history on the vehicle page goes through this helper: checks,
-timeline, summary, ledger. `sortedHistory`, `odometerEvents`, `borderEvents`
-and `evaluateChecks` take a `history` argument rather than reading
-`vehicle.history`. For the four authored vehicles the helper is the identity and
-nothing shifts.
+The vehicle page, the breadcrumb and `recentRows` read the vehicle through this
+helper once and pass the result down, so checks, timeline, summary and ledger are
+untouched: history stays an input, and the four authored vehicles never shift.
+(The design draft threaded a `history` argument through every reader; a derived
+vehicle does the same job with no signature changes.)
 
 ### People
 
