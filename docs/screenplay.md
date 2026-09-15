@@ -115,7 +115,7 @@ Hold 6 s.
 
 | # | Window | Action | On screen |
 | --- | --- | --- | --- |
-| 2.3 | Portal | Click the **Vehicle history** tab. Hold, then click **Show all … events**. | Milestones newest first: ownership transfers, First registration (MTO office), Cleared customs (CBSA), Entered Canada (Transport Canada), each with an agency chip and a ledger mark. Expanded: renewals and odometer readings slot in. Hold 4 s on the expanded list. Zoom on the two border rows. |
+| 2.3 | Portal | Click the **Vehicle history** tab. Hold. | Every event newest first: ownership transfers, renewals and odometer readings, First registration (MTO office), Cleared customs (CBSA), Entered Canada (Transport Canada), each with an agency chip and a ledger mark. Milestones set heavier. Hold 4 s on the list. Zoom on the two border rows. |
 
 ## Card 4d — Authorization
 

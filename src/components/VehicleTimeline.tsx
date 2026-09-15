@@ -1,9 +1,7 @@
 import { motion, useReducedMotion } from "motion/react"
-import { useState } from "react"
 
 import { LedgerMark } from "@/components/LedgerMark"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatDate, formatOdometer } from "@/lib/format"
 import { historyCertificates, isDealerChannel } from "@/lib/ledger"
@@ -33,7 +31,7 @@ function detailFor(event: VehicleEvent): string {
     case "customsEntry":
       return event.port
     case "export":
-      return `${event.port} → ${event.destination}`
+      return event.port
     case "firstRegistration":
     case "transfer":
     case "renewal":
@@ -44,18 +42,17 @@ function detailFor(event: VehicleEvent): string {
 }
 
 /**
- * The vehicle's chronology across Transport Canada, CBSA and the MTO. Milestones
- * by default; renewals and odometer readings on request. Newest first.
+ * The vehicle's chronology across Transport Canada, CBSA and the MTO, every event,
+ * newest first. Milestones are weighted heavier than renewals and odometer readings
+ * so the record still scans; there is no collapsed view.
  */
 export function VehicleTimeline({ vehicle }: { vehicle: Vehicle }) {
   const reduceMotion = useReducedMotion()
-  const [expanded, setExpanded] = useState(false)
   const history = sortedHistory(vehicle)
   const certificates = historyCertificates(vehicle)
   const flagged = openExport(vehicle)
   const rows = history
     .map((event, i) => ({ event, hash: certificates[i], index: i }))
-    .filter(({ event }) => expanded || MILESTONES.has(event.kind))
     .reverse()
   const agencies = Array.from(new Set(history.map((e) => e.agency))).filter(
     (a) => a === "Transport Canada" || a === "CBSA" || a === "MTO"
@@ -144,11 +141,6 @@ export function VehicleTimeline({ vehicle }: { vehicle: Vehicle }) {
             )
           })}
         </motion.ol>
-        <div>
-          <Button variant="outline" size="sm" onClick={() => setExpanded((v) => !v)}>
-            {expanded ? "Show milestones" : `Show all ${history.length} events`}
-          </Button>
-        </div>
       </CardContent>
     </Card>
   )

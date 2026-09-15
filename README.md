@@ -76,9 +76,12 @@ authorization, ledger. A "Sources consulted" strip lists every agency the portal
 queries: Transport Canada, CBSA, MTO, CPIC, IBC, NHTSA, PPSR.
 
 When CBSA's last border event is an export with no re-entry, a border alert
-sits under the header and tells that story in one sentence. This is the demo's
-clearest federal-integration moment: the MTO record alone would show the
-vehicle as clear.
+sits under the header and tells that story in one sentence. It names an
+identity conflict, not a verdict on the person at the counter: the exported
+vehicle may have been the clone. No destination is shown; the port of exit and
+the missing re-entry are the whole signal. This is the demo's clearest
+federal-integration moment: the MTO record alone would show the vehicle as
+clear.
 
 Tabs (the tab is in the URL as `?tab=history` or `?tab=ownership`):
 

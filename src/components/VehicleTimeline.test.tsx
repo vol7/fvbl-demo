@@ -1,23 +1,18 @@
 import { render, screen } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
 
 import { CLEAN_VIN, EXPORTED_VIN, findVehicle } from "@/lib/vehicles"
 import { VehicleTimeline } from "./VehicleTimeline"
 
 describe("VehicleTimeline", () => {
-  it("shows milestones collapsed and everything expanded", async () => {
+  it("shows every event with nothing to expand", () => {
     const vehicle = findVehicle(CLEAN_VIN)!
     render(<VehicleTimeline vehicle={vehicle} />)
-    expect(screen.getAllByRole("listitem")).toHaveLength(3)
+    expect(screen.getAllByRole("listitem")).toHaveLength(7)
     expect(screen.getByText("Entered Canada")).toBeInTheDocument()
     expect(screen.getByText("First registration")).toBeInTheDocument()
-    expect(screen.queryByText("Odometer reading")).not.toBeInTheDocument()
-
-    await userEvent.click(screen.getByRole("button", { name: /show all 7 events/i }))
-    expect(screen.getAllByRole("listitem")).toHaveLength(7)
     expect(screen.getAllByText("Odometer reading")).toHaveLength(3)
-    expect(screen.getByRole("button", { name: /show milestones/i })).toBeInTheDocument()
+    expect(screen.queryByRole("button")).not.toBeInTheDocument()
   })
 
   it("lists newest first with a certificate on every row", () => {
