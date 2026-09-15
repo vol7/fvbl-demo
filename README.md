@@ -130,6 +130,12 @@ and everything else to the app, so a one-shot deploy on Vercel or Netlify
 behaves like `pnpm dev`. Session sync is per browser profile, so open every
 surface from the same browser and not from an incognito window.
 
+**`DEPLOY.md` is the runbook** — build, the two routing rules, a post-deploy
+checklist, and why the saved ServiceOntario page uses absolute asset paths.
+Read it before the first public deploy: the saved copy of ontario.ca needs
+password protection on the host, which is the one step neither config file can
+do for you.
+
 ## Scripts
 
     pnpm test          # vitest
