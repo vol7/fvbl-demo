@@ -4,7 +4,7 @@ import { createMemoryRouter, RouterProvider } from "react-router"
 import { describe, expect, it } from "vitest"
 
 import { getSessionStore } from "@/lib/session"
-import { CLEAN_VIN, CLONED_VIN, EXPORTED_VIN } from "@/lib/vehicles"
+import { CLEAN_VIN, CLONED_VIN, EXPORTED_VIN, NEW_VIN } from "@/lib/vehicles"
 import { Vehicle } from "./Vehicle"
 import { paths } from "@/lib/paths"
 
@@ -170,5 +170,56 @@ describe("Vehicle route", () => {
     await userEvent.click(requestButton())
     getSessionStore().dispatch({ type: "deny", vin: CLEAN_VIN, at: new Date().toISOString() })
     expect(await screen.findByText(/owner denied the request/i)).toBeInTheDocument()
+  })
+})
+
+describe("Vehicle route for a brand-new VIN", () => {
+  const submission = {
+    dealer: "Mercedes-Benz Downtown",
+    dealerMobileLast4: "2204",
+    nvis: "NVIS 2026-MB-0187342",
+    deliveryKm: 12,
+    firstOwner: "Léa Tremblay",
+  }
+  const T0 = "2026-09-15T14:02:00.000Z"
+
+  it("shows an unregistered card, not a record, before any submission", () => {
+    renderVehicle(NEW_VIN)
+    expect(screen.getByText(/no registration on file/i)).toBeInTheDocument()
+    expect(screen.getByText("2026 Mercedes-Benz GLE 450 4MATIC")).toBeInTheDocument()
+    expect(screen.queryByRole("tab")).not.toBeInTheDocument()
+    expect(screen.queryByText("Checks clear")).not.toBeInTheDocument()
+    expect(screen.queryByText(/awaiting confirmation/i)).not.toBeInTheDocument()
+  })
+
+  it("mentions a pending dealer submission, then resolves into the full record live", async () => {
+    const store = getSessionStore()
+    store.dispatch({
+      type: "submitRegistration",
+      vin: NEW_VIN,
+      submission,
+      otp: "1",
+      link: "k7m2p9xq4tvn8bwz",
+      at: T0,
+    })
+    renderVehicle(NEW_VIN)
+    expect(screen.getByText(/dealer submission is awaiting confirmation/i)).toBeInTheDocument()
+
+    store.dispatch({
+      type: "confirmRegistration",
+      vin: NEW_VIN,
+      registrationRef: "FVBL-R-2026-09-15-0417",
+      at: "2026-09-15T14:05:30.000Z",
+    })
+    expect(await screen.findByText("Checks clear")).toBeInTheDocument()
+    expect(screen.getByText("All 8 checks passed")).toBeInTheDocument()
+    expect(screen.getAllByText("Not yet plated").length).toBeGreaterThan(0)
+    expect(screen.getByRole("tab", { name: /vehicle history/i })).toHaveTextContent("2")
+
+    await userEvent.click(screen.getByRole("tab", { name: /vehicle history/i }))
+    expect(await screen.findByText("First registration")).toBeInTheDocument()
+    expect(screen.getByText(/ledger opened/i)).toBeInTheDocument()
+    expect(screen.getByText(/Dealer channel · Mercedes-Benz Downtown/)).toBeInTheDocument()
+    expect(screen.getByText("First registration recorded")).toBeInTheDocument()
   })
 })

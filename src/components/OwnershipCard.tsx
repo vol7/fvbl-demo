@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatDate, maskName, plateLabel } from "@/lib/format"
-import type { Vehicle } from "@/lib/vehicles"
+import { isDealerChannel } from "@/lib/ledger"
+import { sortedHistory, type Vehicle } from "@/lib/vehicles"
 
 function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
@@ -12,6 +13,8 @@ function Row({ label, value, mono }: { label: string; value: string; mono?: bool
 }
 
 export function OwnershipCard({ vehicle }: { vehicle: Vehicle }) {
+  const first = sortedHistory(vehicle)[0]
+  const bornHere = first?.kind === "firstRegistration" && isDealerChannel(first.office)
   return (
     <Card className="gap-0 py-0">
       <CardHeader className="border-b py-4">
@@ -28,7 +31,8 @@ export function OwnershipCard({ vehicle }: { vehicle: Vehicle }) {
             value={vehicle.registeredOn ? formatDate(vehicle.registeredOn) : "Not registered"}
           />
           <Row label="Registration class" value="Passenger · PSGR" />
-          <Row label="Previous owners" value="1 (dealer)" />
+          {bornHere ? <Row label="Registered via" value="Dealer submission (NVIS)" /> : null}
+          <Row label="Previous owners" value={bornHere ? "None · first owner" : "1 (dealer)"} />
         </dl>
       </CardContent>
     </Card>

@@ -8,7 +8,7 @@ import {
   ledgerEntries,
   shortHash,
 } from "./ledger"
-import { CLEAN_VIN, EXPORTED_VIN, findVehicle } from "./vehicles"
+import { bornVehicle, CLEAN_VIN, EXPORTED_VIN, findVehicle, NEW_VIN } from "./vehicles"
 
 const clean = findVehicle(CLEAN_VIN)!
 const exported = findVehicle(EXPORTED_VIN)!
@@ -104,5 +104,34 @@ describe("certificates", () => {
   it("has nothing for an idle or blocked vehicle", () => {
     expect(authorizationCertificates(clean, { status: "idle" })).toEqual({})
     expect(authorizationCertificates(exported, { status: "blocked" })).toEqual({})
+  })
+})
+
+describe("the newborn's chain", () => {
+  const registered = {
+    status: "registered" as const,
+    dealer: "Mercedes-Benz Downtown",
+    dealerMobileLast4: "2204",
+    nvis: "NVIS 2026-MB-0187342",
+    deliveryKm: 12,
+    firstOwner: "Léa Tremblay",
+    otp: "1",
+    link: "k7m2p9xq4tvn8bwz",
+    sentAt: "2026-09-15T14:02:00.000Z",
+    registrationRef: "FVBL-R-2026-09-15-0417",
+    registeredAt: "2026-09-15T14:05:30.000Z",
+    office: "Dealer channel · Mercedes-Benz Downtown",
+  }
+
+  it("has no entries before registration and two after, the first a dealer submission", () => {
+    const unborn = findVehicle(NEW_VIN)!
+    expect(historyCertificates(unborn)).toEqual([])
+    const born = bornVehicle(unborn, registered)
+    const entries = ledgerEntries(born, { status: "idle" })
+    expect(entries).toHaveLength(2)
+    expect(entries[0].seq).toBe(1)
+    expect(entries[0].title).toBe("First registration (dealer submission)")
+    expect(entries[0].office).toBe("Dealer channel · Mercedes-Benz Downtown")
+    expect(historyCertificates(born)).toEqual(entries.map((e) => e.hash))
   })
 })

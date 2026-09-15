@@ -12,7 +12,7 @@ import { VehicleSummary, type VehicleTab } from "@/components/VehicleSummary"
 import { VehicleTimeline } from "@/components/VehicleTimeline"
 import { buttonVariants } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { deriveActivity } from "@/lib/activity"
+import { deriveActivity, registrationActivity } from "@/lib/activity"
 import {
   generateCaseReference,
   generateLinkToken,
@@ -21,8 +21,14 @@ import {
 } from "@/lib/authorization"
 import { allPass, evaluateChecks } from "@/lib/checks"
 import { OFFICE } from "@/lib/office"
-import { useSession, vehicleState } from "@/lib/session"
-import { findVehicle, type Vehicle as VehicleRecord } from "@/lib/vehicles"
+import type { RegistrationState } from "@/lib/registration"
+import { registrationState, useSession, vehicleState } from "@/lib/session"
+import {
+  bornVehicle,
+  findVehicle,
+  vehicleTitle,
+  type Vehicle as VehicleRecord,
+} from "@/lib/vehicles"
 import { paths } from "@/lib/paths"
 
 const TABS: VehicleTab[] = ["checks", "history", "ownership"]
@@ -33,7 +39,11 @@ function isTab(value: string | null): value is VehicleTab {
 
 export function Vehicle() {
   const { vin = "" } = useParams<{ vin: string }>()
-  const vehicle = findVehicle(vin)
+  const [session] = useSession()
+  const found = findVehicle(vin)
+  const registration = registrationState(session, found?.vin ?? vin)
+  // The registry's view: a confirmed dealer submission becomes the first history events.
+  const vehicle = found ? bornVehicle(found, registration) : undefined
 
   if (!vehicle) {
     return (
@@ -48,10 +58,61 @@ export function Vehicle() {
     )
   }
 
-  return <VehicleView key={vehicle.vin} vehicle={vehicle} />
+  if (vehicle.history.length === 0) {
+    return <UnregisteredVehicle vehicle={vehicle} registration={registration} />
+  }
+
+  return <VehicleView key={vehicle.vin} vehicle={vehicle} registration={registration} />
 }
 
-function VehicleView({ vehicle }: { vehicle: VehicleRecord }) {
+/** The VIN decodes but the ministry has never registered it. Nothing to check yet. */
+function UnregisteredVehicle({
+  vehicle,
+  registration,
+}: {
+  vehicle: VehicleRecord
+  registration: RegistrationState
+}) {
+  return (
+    <Card className="mx-auto max-w-lg">
+      <CardContent className="items-start gap-4">
+        <div className="flex flex-col gap-1">
+          <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+            Unregistered VIN
+          </span>
+          <h1 className="text-xl font-semibold tracking-tight">{vehicleTitle(vehicle)}</h1>
+          <span className="font-mono text-sm tracking-wider text-muted-foreground">
+            {vehicle.vin}
+          </span>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          This VIN decodes to a {vehicle.year} {vehicle.make} {vehicle.model} but has{" "}
+          <span className="font-medium text-foreground">no registration on file</span> with the
+          ministry or any other jurisdiction. Record checks run once it is registered.
+        </p>
+        {registration.status === "pending" ? (
+          <p
+            role="status"
+            className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900"
+          >
+            A dealer submission is awaiting confirmation from {registration.dealer}.
+          </p>
+        ) : null}
+        <Link to={paths.portal.lookup} className={buttonVariants({ variant: "outline" })}>
+          Back to lookup
+        </Link>
+      </CardContent>
+    </Card>
+  )
+}
+
+function VehicleView({
+  vehicle,
+  registration,
+}: {
+  vehicle: VehicleRecord
+  registration: RegistrationState
+}) {
   const checks = useMemo(() => evaluateChecks(vehicle), [vehicle])
   const canRequest = allPass(checks)
   const [session, dispatch] = useSession()
@@ -100,7 +161,10 @@ function VehicleView({ vehicle }: { vehicle: VehicleRecord }) {
       at: now(),
     })
 
-  const events = deriveActivity(state, openedAt, OFFICE.clerk, vehicle)
+  const events = [
+    ...registrationActivity(vehicle, registration),
+    ...deriveActivity(state, openedAt, OFFICE.clerk, vehicle),
+  ].sort((a, b) => a.at.localeCompare(b.at))
 
   return (
     <div className="flex flex-col gap-6">

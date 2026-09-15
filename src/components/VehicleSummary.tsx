@@ -272,7 +272,7 @@ export function VehicleSummary({
                     </span>
                   </>
                 ) : (
-                  plateLabel(vehicle.plate)
+                  <span className="text-foreground">{plateLabel(vehicle.plate)}</span>
                 )}
               </p>
               <div className="flex items-center gap-1 text-sm">

@@ -3,8 +3,8 @@ import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
 
 import { getSessionStore } from "@/lib/session"
-import { CLEAN_VIN } from "@/lib/vehicles"
-import { DemoControls } from "./DemoControls"
+import { CLEAN_VIN, NEW_VIN } from "@/lib/vehicles"
+import { DemoControls, OwnerActionButtons } from "./DemoControls"
 
 function openPending() {
   const store = getSessionStore()
@@ -66,5 +66,29 @@ describe("DemoControls", () => {
     expect(screen.getByRole("button", { name: /owner denies/i })).toBeDisabled()
     expect(screen.getByRole("button", { name: /simulate 24h timeout/i })).toBeDisabled()
     expect(screen.getByRole("button", { name: /reset session/i })).toBeEnabled()
+  })
+})
+
+describe("OwnerActionButtons during a first registration", () => {
+  it("approves and denies the dealer submission through the same buttons", async () => {
+    const store = getSessionStore()
+    store.dispatch({
+      type: "submitRegistration",
+      vin: NEW_VIN,
+      submission: {
+        dealer: "Mercedes-Benz Downtown",
+        dealerMobileLast4: "2204",
+        nvis: "NVIS 2026-MB-0187342",
+        deliveryKm: 12,
+        firstOwner: "Léa Tremblay",
+      },
+      otp: "1",
+      link: "k7m2p9xq4tvn8bwz",
+      at: "2026-09-15T14:02:00.000Z",
+    })
+    render(<OwnerActionButtons />)
+    expect(screen.getByRole("button", { name: /simulate 24h timeout/i })).toBeDisabled()
+    await userEvent.click(screen.getByRole("button", { name: /owner approves/i }))
+    expect(store.getState().registrations[NEW_VIN].status).toBe("registered")
   })
 })

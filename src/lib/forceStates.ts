@@ -3,9 +3,10 @@ import {
   PREAPPROVAL_VALIDITY_MS,
   type AuthorizationState,
 } from "./authorization"
-import { BUYER } from "./people"
+import { BUYER, DEALER, FIRST_OWNER } from "./people"
+import { dealerOffice, REGISTRATION_WINDOW_MS, type RegistrationState } from "./registration"
 import type { SessionState } from "./session"
-import { CLEAN_VIN, CLONED_VIN } from "./vehicles"
+import { CLEAN_VIN, CLONED_VIN, NEW_VIN } from "./vehicles"
 
 /** Demo-control shortcuts: jump the session straight to a state for a re-shoot. */
 export type ForceKey =
@@ -19,6 +20,8 @@ export type ForceKey =
   | "timeout"
   | "blocked"
   | "escalated"
+  | "dealerSubmitted"
+  | "vehicleRegistered"
 
 export const FORCE_STATES: { key: ForceKey; label: string }[] = [
   { key: "idle", label: "Idle" },
@@ -31,6 +34,8 @@ export const FORCE_STATES: { key: ForceKey; label: string }[] = [
   { key: "timeout", label: "Expired" },
   { key: "blocked", label: "Blocked" },
   { key: "escalated", label: "Escalated" },
+  { key: "dealerSubmitted", label: "Dealer submitted" },
+  { key: "vehicleRegistered", label: "Vehicle registered" },
 ]
 
 const OTP = "868 292"
@@ -45,10 +50,21 @@ function one(vin: string, authorization: AuthorizationState): SessionState {
   return { authorizations: { [vin]: authorization }, registrations: {}, activeVin: vin }
 }
 
+function registration(vin: string, state: RegistrationState): SessionState {
+  return { authorizations: {}, registrations: { [vin]: state }, activeVin: vin }
+}
+
 export function forcedSession(key: ForceKey, now: Date = new Date()): SessionState {
   const sentAt = iso(now, -3 * 60_000)
   const at = now.toISOString()
   const clerk = { origin: "clerk" as const, requester: "Marcus B." }
+  const submission = {
+    dealer: DEALER.name,
+    dealerMobileLast4: DEALER.mobileLast4,
+    nvis: DEALER.nvis,
+    deliveryKm: 12,
+    firstOwner: FIRST_OWNER.name,
+  }
   const buyer = { origin: "buyer" as const, requester: BUYER.name }
 
   const authorized: AuthorizationState = {
@@ -120,6 +136,26 @@ export function forcedSession(key: ForceKey, now: Date = new Date()): SessionSta
         status: "escalated",
         caseReference: "FVBL-2026-09-09-3631",
         escalatedAt: at,
+      })
+    case "dealerSubmitted":
+      return registration(NEW_VIN, {
+        status: "pending",
+        ...submission,
+        otp: OTP,
+        link: LINK,
+        sentAt,
+        expiresAt: iso(now, REGISTRATION_WINDOW_MS),
+      })
+    case "vehicleRegistered":
+      return registration(NEW_VIN, {
+        status: "registered",
+        ...submission,
+        otp: OTP,
+        link: LINK,
+        sentAt,
+        registrationRef: "FVBL-R-2026-09-15-0417",
+        registeredAt: at,
+        office: dealerOffice(DEALER.name),
       })
   }
 }

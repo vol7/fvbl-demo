@@ -60,6 +60,11 @@ const HISTORY_TITLE: Record<Vehicle["history"][number]["kind"], string> = {
   odometer: "Odometer reading",
 }
 
+/** A registration that came through a dealer rather than a counter. */
+export function isDealerChannel(office: string): boolean {
+  return office.startsWith("Dealer channel")
+}
+
 function historyDrafts(vehicle: Vehicle): Draft[] {
   const vin = vehicle.vin
   return sortedHistory(vehicle).map((e): Draft => {
@@ -97,7 +102,10 @@ function historyDrafts(vehicle: Vehicle): Draft[] {
         return {
           at: e.date,
           kind: `registration.${e.kind}`,
-          title: HISTORY_TITLE[e.kind],
+          title:
+            e.kind === "firstRegistration" && isDealerChannel(e.office)
+              ? "First registration (dealer submission)"
+              : HISTORY_TITLE[e.kind],
           vin,
           office: e.office,
           visibility: "public",

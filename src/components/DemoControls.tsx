@@ -13,7 +13,7 @@ function isEditable(target: EventTarget | null): boolean {
 }
 
 export function OwnerActionButtons({ size = "sm" }: { size?: "sm" | "default" }) {
-  const { pending, approve, deny, timeout, reset } = useOwnerActions()
+  const { pending, canTimeout, approve, deny, timeout, reset } = useOwnerActions()
   return (
     <>
       <Button variant="outline" size={size} disabled={!pending} onClick={approve}>
@@ -22,7 +22,7 @@ export function OwnerActionButtons({ size = "sm" }: { size?: "sm" | "default" })
       <Button variant="outline" size={size} disabled={!pending} onClick={deny}>
         Owner denies
       </Button>
-      <Button variant="outline" size={size} disabled={!pending} onClick={timeout}>
+      <Button variant="outline" size={size} disabled={!canTimeout} onClick={timeout}>
         Simulate 24h timeout
       </Button>
       <Button variant="secondary" size={size} onClick={reset}>

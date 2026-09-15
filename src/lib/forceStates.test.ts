@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import { FORCE_STATES, forcedSession } from "./forceStates"
 import { activeAuthorization, EMPTY_SESSION, sessionReducer } from "./session"
-import { CLEAN_VIN, CLONED_VIN, findVehicle } from "./vehicles"
+import { CLEAN_VIN, CLONED_VIN, findVehicle, NEW_VIN } from "./vehicles"
 
 const NOW = new Date("2026-09-09T14:00:00.000Z")
 
@@ -14,9 +14,13 @@ describe("forcedSession", () => {
         expect(s).toEqual(EMPTY_SESSION)
         continue
       }
-      const active = activeAuthorization(s)
-      expect(active, key).not.toBeNull()
-      expect(findVehicle(active!.vin), key).toBeDefined()
+      expect(s.activeVin, key).not.toBeNull()
+      expect(findVehicle(s.activeVin!), key).toBeDefined()
+      if (key === "dealerSubmitted" || key === "vehicleRegistered") {
+        expect(s.registrations[s.activeVin!], key).toBeDefined()
+        continue
+      }
+      expect(activeAuthorization(s), key).not.toBeNull()
     }
   })
 
@@ -49,5 +53,25 @@ describe("force action", () => {
     const pending = forcedSession("pending", NOW)
     const next = sessionReducer(pending, { type: "force", session: forcedSession("issued", NOW) })
     expect(activeAuthorization(next)?.state).toMatchObject({ status: "authorized" })
+  })
+})
+
+describe("dealer beats", () => {
+  it("dealerSubmitted is a pending registration on the new VIN with a link", () => {
+    const s = forcedSession("dealerSubmitted", NOW)
+    expect(s.activeVin).toBe(NEW_VIN)
+    expect(s.registrations[NEW_VIN]).toMatchObject({
+      status: "pending",
+      dealer: "Mercedes-Benz Downtown",
+      link: expect.stringMatching(/^[a-z2-9]{16}$/),
+    })
+  })
+
+  it("vehicleRegistered is a recorded registration with a reference", () => {
+    const s = forcedSession("vehicleRegistered", NOW)
+    expect(s.registrations[NEW_VIN]).toMatchObject({
+      status: "registered",
+      registrationRef: expect.stringMatching(/^FVBL-R-\d{4}-\d{2}-\d{2}-\d{4}$/),
+    })
   })
 })

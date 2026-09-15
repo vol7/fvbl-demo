@@ -1,5 +1,6 @@
 import type { AuthorizationState } from "./authorization"
-import { authorizationCertificates, type AuthorizationEventId } from "./ledger"
+import { authorizationCertificates, historyCertificates, type AuthorizationEventId } from "./ledger"
+import type { RegistrationState } from "./registration"
 import type { Vehicle } from "./vehicles"
 
 export type ActivityEvent = {
@@ -114,6 +115,27 @@ export function deriveActivity(
     }
   }
   return events.sort((a, b) => a.at.localeCompare(b.at))
+}
+
+/**
+ * The birth, when it happened in this session: one feed event carrying the
+ * certificate of the chain's first entry. Pass the born vehicle.
+ */
+export function registrationActivity(
+  vehicle: Vehicle,
+  registration: RegistrationState
+): ActivityEvent[] {
+  if (registration.status !== "registered" || vehicle.history.length === 0) return []
+  return [
+    {
+      id: "registered",
+      at: registration.registeredAt,
+      title: "First registration recorded",
+      detail: `Submitted by ${registration.dealer} · confirmed from dealership mobile ending ${registration.dealerMobileLast4} · ${registration.registrationRef}`,
+      tone: "success",
+      certificate: historyCertificates(vehicle)[0],
+    },
+  ]
 }
 
 function sentEvent(state: {

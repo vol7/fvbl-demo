@@ -13,7 +13,13 @@ function useCrumbs(): Crumb[] {
   const vehicleMatch = matches.find((m) => m.params.vin)
   if (vehicleMatch?.params.vin) {
     const vehicle = findVehicle(vehicleMatch.params.vin)
-    crumbs.push({ label: vehicle ? `Plate ${vehicle.plate}` : "Not found" })
+    crumbs.push({
+      label: vehicle
+        ? vehicle.plate
+          ? `Plate ${vehicle.plate}`
+          : "Unregistered VIN"
+        : "Not found",
+    })
   }
   return crumbs
 }

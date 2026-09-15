@@ -1,4 +1,4 @@
-import { Check, Copy, ExternalLink, Globe, Monitor, Smartphone } from "lucide-react"
+import { CarFront, Check, Copy, ExternalLink, Globe, Monitor, Smartphone } from "lucide-react"
 import { useState } from "react"
 
 import { OutcomeBadge } from "@/components/OutcomeBadge"
@@ -13,11 +13,45 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { allPass, evaluateChecks } from "@/lib/checks"
-import { activeAuthorization, useSession } from "@/lib/session"
+import { plateLabel } from "@/lib/format"
+import { activeAuthorization, registrationState, useSession } from "@/lib/session"
 import { FORCE_STATES, forcedSession } from "@/lib/forceStates"
-import { DEMO_VEHICLES, findVehicle, vehicleTitle } from "@/lib/vehicles"
+import {
+  CLEAN_VIN,
+  CLONED_VIN,
+  EXPORTED_VIN,
+  findVehicle,
+  NEW_VIN,
+  vehicleTitle,
+} from "@/lib/vehicles"
 import { paths } from "@/lib/paths"
+
+/** The README's scenarios, in the README's order. */
+const SCENARIOS: { n: number; title: string; vin: string; route: string; outcome: string }[] = [
+  { n: 1, title: "Clean vehicle", vin: CLEAN_VIN, route: "Clerk lookup", outcome: "Clear" },
+  {
+    n: 2,
+    title: "Cloned VIN",
+    vin: CLONED_VIN,
+    route: "Clerk lookup → escalate",
+    outcome: "Blocked",
+  },
+  {
+    n: 3,
+    title: "Buyer pre-request",
+    vin: CLEAN_VIN,
+    route: "ServiceOntario → owner approves on phone → clerk lookup",
+    outcome: "Authorized",
+  },
+  { n: 4, title: "Exported vehicle", vin: EXPORTED_VIN, route: "Clerk lookup", outcome: "Blocked" },
+  {
+    n: 5,
+    title: "New vehicle · dealer first registration",
+    vin: NEW_VIN,
+    route: "Dealer portal → dealership confirms on phone → clerk lookup",
+    outcome: "Registered",
+  },
+]
 
 function CopyButton({ value }: { value: string }) {
   const [copied, setCopied] = useState(false)
@@ -45,6 +79,12 @@ function open(path: string, w: number, h: number) {
   window.open(path, `fvbl-${path}`, `popup=yes,width=${w},height=${h}`)
 }
 
+const REGISTRATION_LABEL: Record<string, string> = {
+  pending: "Pending",
+  registered: "Registered",
+  declined: "Declined",
+}
+
 const STATUS_LABEL: Record<string, string> = {
   idle: "Idle",
   blocked: "Blocked",
@@ -57,8 +97,9 @@ const STATUS_LABEL: Record<string, string> = {
 export function Hub() {
   const [session, dispatch] = useSession()
   const active = activeAuthorization(session)
-  const vehicle = active ? findVehicle(active.vin) : undefined
+  const vehicle = session.activeVin ? findVehicle(session.activeVin) : undefined
   const auth = active?.state
+  const registration = session.activeVin ? registrationState(session, session.activeVin) : null
 
   return (
     <main className="min-h-svh bg-muted/40 px-6 py-12">
@@ -75,7 +116,27 @@ export function Hub() {
           </p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <div className="mb-1 flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <CarFront className="size-5" aria-hidden />
+              </div>
+              <CardTitle>Dealer portal</CardTitle>
+              <CardDescription>
+                Day one: first registration of a new vehicle. Record at 1440×900.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex-row flex-wrap gap-2">
+              <Button onClick={() => open(paths.dealer.signIn, 1440, 900)}>
+                <ExternalLink data-icon="inline-start" aria-hidden />
+                Open window
+              </Button>
+              <a href={paths.dealer.signIn} className={buttonVariants({ variant: "outline" })}>
+                Open here
+              </a>
+            </CardContent>
+          </Card>
           <Card>
             <CardHeader>
               <div className="mb-1 flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -117,9 +178,9 @@ export function Hub() {
               <div className="mb-1 flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <Smartphone className="size-5" aria-hidden />
               </div>
-              <CardTitle>Registered owner phone</CardTitle>
+              <CardTitle>Phone</CardTitle>
               <CardDescription>
-                Messages thread and confirm page. Record at 390×844.
+                Owner's or dealership's messages, follows the latest request. Record at 390×844.
               </CardDescription>
             </CardHeader>
             <CardContent className="flex-row flex-wrap gap-2">
@@ -138,7 +199,8 @@ export function Hub() {
           <CardHeader className="border-b py-4">
             <CardTitle>Scenarios</CardTitle>
             <CardDescription>
-              Both VINs are listed under recent lookups in the clerk portal.
+              The registered VINs are listed under recent lookups in the clerk portal; the new one
+              joins them once the dealer's submission is confirmed.
             </CardDescription>
           </CardHeader>
           <CardContent className="px-0 pb-1">
@@ -152,14 +214,17 @@ export function Hub() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {DEMO_VEHICLES.map((v, i) => {
-                  const clear = allPass(evaluateChecks(v))
+                {SCENARIOS.map((s) => {
+                  const v = findVehicle(s.vin)!
                   return (
-                    <TableRow key={v.vin}>
-                      <TableCell className="pl-6 font-medium">
-                        {i + 1} · {clear ? "Clean vehicle" : "Cloned VIN"}
+                    <TableRow key={s.n}>
+                      <TableCell className="pl-6 font-medium whitespace-normal">
+                        {s.n} · {s.title}
+                        <span className="block text-xs font-normal text-muted-foreground">
+                          {s.route}
+                        </span>
                       </TableCell>
-                      <TableCell>{vehicleTitle(v)}</TableCell>
+                      <TableCell className="whitespace-normal">{vehicleTitle(v)}</TableCell>
                       <TableCell className="font-mono text-xs tracking-wider">
                         <span className="inline-flex items-center gap-1">
                           {v.vin}
@@ -167,21 +232,11 @@ export function Hub() {
                         </span>
                       </TableCell>
                       <TableCell className="pr-6">
-                        <OutcomeBadge label={clear ? "Clear" : "Blocked"} />
+                        <OutcomeBadge label={s.outcome} />
                       </TableCell>
                     </TableRow>
                   )
                 })}
-                <TableRow>
-                  <TableCell className="pl-6 font-medium">3 · Buyer pre-request</TableCell>
-                  <TableCell>{vehicleTitle(DEMO_VEHICLES[0])}</TableCell>
-                  <TableCell className="max-w-56 text-xs whitespace-normal text-muted-foreground">
-                    ServiceOntario → owner approves on phone → clerk lookup
-                  </TableCell>
-                  <TableCell className="pr-6">
-                    <OutcomeBadge label="Authorized" />
-                  </TableCell>
-                </TableRow>
               </TableBody>
             </Table>
           </CardContent>
@@ -193,8 +248,8 @@ export function Hub() {
             <CardDescription>
               {vehicle ? (
                 <>
-                  {vehicleTitle(vehicle)} · plate{" "}
-                  <span className="font-mono tracking-wider">{vehicle.plate}</span>
+                  {vehicleTitle(vehicle)} ·{" "}
+                  <span className="font-mono tracking-wider">{plateLabel(vehicle.plate)}</span>
                 </>
               ) : (
                 "No request in flight."
@@ -202,15 +257,23 @@ export function Hub() {
             </CardDescription>
           </CardHeader>
           <CardContent className="gap-4">
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">Authorization</span>
-              <OutcomeBadge label={STATUS_LABEL[auth?.status ?? "idle"]} />
-              {auth && "origin" in auth ? (
-                <span className="text-muted-foreground">
-                  · started by {auth.origin} ({auth.requester})
-                </span>
-              ) : null}
-            </div>
+            {registration && registration.status !== "none" ? (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-muted-foreground">Registration</span>
+                <OutcomeBadge label={REGISTRATION_LABEL[registration.status]} />
+                <span className="text-muted-foreground">· submitted by {registration.dealer}</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-muted-foreground">Authorization</span>
+                <OutcomeBadge label={STATUS_LABEL[auth?.status ?? "idle"]} />
+                {auth && "origin" in auth ? (
+                  <span className="text-muted-foreground">
+                    · started by {auth.origin} ({auth.requester})
+                  </span>
+                ) : null}
+              </div>
+            )}
             <div className="flex flex-wrap gap-2">
               <OwnerActionButtons size="default" />
             </div>

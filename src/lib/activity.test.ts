@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
-import { deriveActivity } from "./activity"
-import { CLEAN_VIN, findVehicle } from "./vehicles"
+import { deriveActivity, registrationActivity } from "./activity"
+import { bornVehicle, CLEAN_VIN, findVehicle, NEW_VIN } from "./vehicles"
 
 const T0 = "2026-09-04T18:10:00.000Z"
 const T1 = "2026-09-04T18:14:00.000Z"
@@ -146,5 +146,41 @@ describe("deriveActivity", () => {
     expect(byId.sent.certificate).toMatch(/^[0-9a-f]{64}$/)
     expect(byId.approved.certificate).toMatch(/^[0-9a-f]{64}$/)
     expect(byId.issued.certificate).toMatch(/^[0-9a-f]{64}$/)
+  })
+})
+
+describe("registrationActivity", () => {
+  const registered = {
+    status: "registered" as const,
+    dealer: "Mercedes-Benz Downtown",
+    dealerMobileLast4: "2204",
+    nvis: "NVIS 2026-MB-0187342",
+    deliveryKm: 12,
+    firstOwner: "Léa Tremblay",
+    otp: "1",
+    link: "k7m2p9xq4tvn8bwz",
+    sentAt: "2026-09-15T14:02:00.000Z",
+    registrationRef: "FVBL-R-2026-09-15-0417",
+    registeredAt: "2026-09-15T14:05:30.000Z",
+    office: "Dealer channel · Mercedes-Benz Downtown",
+  }
+
+  it("is empty for a vehicle that was not born in this session", () => {
+    expect(registrationActivity(findVehicle(CLEAN_VIN)!, { status: "none" })).toEqual([])
+    expect(registrationActivity(findVehicle(NEW_VIN)!, { status: "none" })).toEqual([])
+  })
+
+  it("records the first registration with the dealer, the reference and a certificate", () => {
+    const born = bornVehicle(findVehicle(NEW_VIN)!, registered)
+    const [event] = registrationActivity(born, registered)
+    expect(event).toMatchObject({
+      id: "registered",
+      at: registered.registeredAt,
+      title: "First registration recorded",
+      tone: "success",
+    })
+    expect(event.detail).toContain("Mercedes-Benz Downtown")
+    expect(event.detail).toContain("FVBL-R-2026-09-15-0417")
+    expect(event.certificate).toMatch(/^[0-9a-f]{64}$/)
   })
 })

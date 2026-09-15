@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatDate, formatOdometer } from "@/lib/format"
-import { historyCertificates } from "@/lib/ledger"
+import { historyCertificates, isDealerChannel } from "@/lib/ledger"
 import { cn } from "@/lib/utils"
 import {
   MILESTONES,
@@ -37,7 +37,7 @@ function detailFor(event: VehicleEvent): string {
     case "firstRegistration":
     case "transfer":
     case "renewal":
-      return `MTO office ${event.office}`
+      return isDealerChannel(event.office) ? event.office : `MTO office ${event.office}`
     case "odometer":
       return `${formatOdometer(event.km)} · ${event.source}`
   }
@@ -80,6 +80,8 @@ export function VehicleTimeline({ vehicle }: { vehicle: Vehicle }) {
         >
           {rows.map(({ event, hash, index }) => {
             const danger = flagged !== null && event === flagged
+            // A vehicle born on the ledger: its first entry is the registration itself.
+            const opened = index === 0 && event.kind === "firstRegistration"
             return (
               <motion.li
                 key={`${event.kind}-${event.date}-${index}`}
@@ -129,7 +131,14 @@ export function VehicleTimeline({ vehicle }: { vehicle: Vehicle }) {
                     {detailFor(event)}
                     {danger ? " · no re-entry on record" : null}
                   </span>
-                  <LedgerMark hash={hash} className="mt-0.5" />
+                  <span className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <LedgerMark hash={hash} />
+                    {opened ? (
+                      <span className="text-xs text-primary">
+                        Ledger opened · first entry for this VIN
+                      </span>
+                    ) : null}
+                  </span>
                 </div>
               </motion.li>
             )
