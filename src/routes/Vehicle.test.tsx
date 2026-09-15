@@ -4,7 +4,7 @@ import { createMemoryRouter, RouterProvider } from "react-router"
 import { describe, expect, it } from "vitest"
 
 import { getSessionStore } from "@/lib/session"
-import { CLEAN_VIN, CLONED_VIN } from "@/lib/vehicles"
+import { CLEAN_VIN, CLONED_VIN, EXPORTED_VIN } from "@/lib/vehicles"
 import { Vehicle } from "./Vehicle"
 import { paths } from "@/lib/paths"
 
@@ -30,6 +30,50 @@ describe("Vehicle route", () => {
     ).toBeInTheDocument()
     expect(screen.getAllByText("D***** O*****").length).toBeGreaterThan(0)
     expect(screen.getAllByText("CKXR 214").length).toBeGreaterThan(0)
+  })
+
+  it("opens on record checks and switches tabs through the URL", async () => {
+    const router = renderVehicle(CLEAN_VIN)
+    expect(screen.getByRole("tab", { name: /record checks/i })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    )
+    expect(screen.getByText("Import and export record")).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("tab", { name: /vehicle history/i }))
+    expect(router.state.location.search).toBe("?tab=history")
+    expect(await screen.findByText("Entered Canada")).toBeInTheDocument()
+    expect(screen.queryByText("Import and export record")).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole("tab", { name: /ownership/i }))
+    expect(await screen.findByText("Registration class")).toBeInTheDocument()
+  })
+
+  it("summarises the record in the header: verdict, tiles, sources", () => {
+    renderVehicle(CLEAN_VIN)
+    expect(screen.getByText("Checks clear")).toBeInTheDocument()
+    expect(screen.getByText("All 8 checks passed")).toBeInTheDocument()
+    expect(screen.getByText("Not yet requested")).toBeInTheDocument()
+    expect(screen.getByText("Blockchain certified")).toBeInTheDocument()
+    expect(screen.getByText("Sources consulted")).toBeInTheDocument()
+    expect(screen.getAllByText("CBSA").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("Transport Canada").length).toBeGreaterThan(0)
+  })
+
+  it("tells the border story for the exported vehicle", () => {
+    renderVehicle(EXPORTED_VIN)
+    expect(screen.getByText("Cannot be issued")).toBeInTheDocument()
+    expect(screen.getByText("1 high-risk flag")).toBeInTheDocument()
+    expect(screen.getByRole("alert")).toHaveTextContent(/recorded as having left Canada/)
+    expect(screen.getByRole("alert")).toHaveTextContent(/CBSA recorded an export on March 18, 2025/)
+    expect(screen.getByRole("alert")).toHaveTextContent(/Transport Canada has no re-entry/)
+    expect(screen.queryByRole("button", { name: /request owner authorization/i })).toBeDisabled()
+  })
+
+  it("verdict follows the session: pending shows awaiting owner", async () => {
+    renderVehicle(CLEAN_VIN)
+    await userEvent.click(requestButton())
+    // Once in the verdict pill, once in the authorization tile.
+    expect(screen.getAllByText("Awaiting owner")).toHaveLength(2)
+    expect(screen.getAllByText(/expires in/i).length).toBeGreaterThan(0)
   })
 
   it("shows not-found for an unknown VIN with a way back", () => {

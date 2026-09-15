@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import type { AuthorizationState } from "@/lib/authorization"
-import { allPass, failingChecks, type Check } from "@/lib/checks"
+import { allPass, failingChecks, highRiskChecks, type Check } from "@/lib/checks"
 import { formatDate, formatTime } from "@/lib/format"
 import { BUYER } from "@/lib/people"
 import type { Vehicle } from "@/lib/vehicles"
@@ -113,6 +113,7 @@ export function PackagePanel({
   const [mobile, setMobile] = useState<string>(BUYER.mobile)
   const canRequest = allPass(checks)
   const failing = failingChecks(checks)
+  const high = highRiskChecks(checks)
   const editable = state.status === "idle" || state.status === "blocked"
   const showStatus = state.status !== "idle" && (state.status !== "blocked" || settled)
 
@@ -196,11 +197,12 @@ export function PackagePanel({
               <StatusBox
                 tone="danger"
                 icon={<ShieldAlert className="size-4 text-destructive" aria-hidden />}
-                title="Package not issued"
+                title="Package cannot be issued"
               >
                 <p className="text-sm text-muted-foreground">
-                  {failing.length} record {failing.length === 1 ? "check" : "checks"} failed. This
-                  package cannot be issued until the flagged records are resolved.
+                  {failing.length} record {failing.length === 1 ? "check" : "checks"} failed
+                  {high.length > 0 ? `, ${high.length} high risk` : ""}. This package cannot be
+                  issued until the flagged records are resolved.
                 </p>
                 <div className="mt-2">
                   <Button variant="destructive" onClick={onEscalate}>

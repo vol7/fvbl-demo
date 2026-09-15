@@ -43,6 +43,12 @@ Hold 4 s.
 
 Hold 4 s.
 
+## Card 2b — Entry point
+
+> Customers can request a UVIP pre-approval from the ServiceOntario portal.
+
+Hold 5 s. Every actor change from here gets a card (2026-09-11 review).
+
 ## Flow 1a — ServiceOntario, the buyer (≈ 20 s)
 
 | # | Window | Action | On screen |
@@ -54,9 +60,9 @@ Hold 4 s.
 
 ## Card 3 — Cut to the phone
 
-> The registered owner receives a request for approval.
+> Registered owners get a request for approval.
 
-Hold 2 s.
+Hold 5 s.
 
 ## Flow 1b — Phone, the registered owner (≈ 15 s)
 
@@ -68,54 +74,79 @@ Hold 2 s.
 
 ## Card 4 — Process
 
-> The vehicle is checked against government records and the owner's
-> authorization is confirmed.
+> At the counter, the clerk sees the vehicle checked against historical
+> records and the owner's approval confirmed.
 
-Hold 4 s.
+Hold 6 s. Not "government records": we are talking to the government.
 
 ## Flow 2a — Portal, the clerk, green (≈ 15 s)
 
 | # | Window | Action | On screen |
 | --- | --- | --- | --- |
-| 2.1 | Portal | Home. Click the CKXR 214 row. Start recording before the click. | Six checks stagger in green. "6 sources checked · 6 verified". Panel: **Authorized by registered owner**, "Requested online by Fawaz Ahmed", reference. No request button. Hold 6 s. Zoom on the panel. |
+| 2.1 | Portal | Home. Click the CKXR 214 row. Start recording before the click. | Header: "Checks clear", three tiles (All 8 checks passed · Not yet requested · Blockchain certified), sources strip. Eight checks stagger in green under the Record checks tab. Panel: **Authorized by registered owner**, "Requested online by Fawaz Ahmed", reference. No request button. Hold 6 s. Zoom on the panel. |
+
+Blockchain beat, per the 2026-09-11 sync: not inside the flow. After the last
+flow, one interstitial ("All of this is secured on the blockchain to prevent
+tampering."), then a short clip: the Ledger tile in the header ("no tampering
+detected · verified 3 minutes ago"), the Vehicle history tab with its
+"Blockchain certified" rows, and the certified events in the activity feed.
 
 ## Card 5 — Failure
 
 > If a record check fails or approval is not given, the package cannot be
 > issued.
 
-Hold 4 s.
+Hold 6 s.
 
 ## Flow 2b — Portal, the clerk, red (≈ 20 s)
 
 | # | Window | Action | On screen |
 | --- | --- | --- | --- |
-| 2.2 | Portal | **Home** in the sidebar. Click the BWTP 903 row. | Checks stagger in. Insurer write-off, collision record, duplicate identity turn red with their detail lines. "3 of 6 failed". Panel: "Package not issued", request disabled. Hold until all three rows are readable, about 6 s. Zoom on the rows. |
+| 2.2 | Portal | **Home** in the sidebar. Click the BWTP 903 row. | Checks stagger in. Insurer write-off, duplicate identity, collision record are red at the top with "High risk" / "Low risk" badges. "3 of 8 checks failed · high risk". Panel: "Package cannot be issued", request disabled. Hold until all three rows are readable, about 6 s. Zoom on the rows. |
 | 2.3 | Portal | Click **Escalate to Insurance Hub / Law Enforcement**. | "Escalated for review", case reference `OVIL-2026-09-…`. Longest hold of the video, 6 s. Zoom on the reference. |
+
+## Card 5b — Blockchain
+
+> All of this is secured on the blockchain to prevent tampering.
+
+Hold 6 s.
+
+## Flow 3 — Portal, the ledger beat (≈ 8 s)
+
+| # | Window | Action | On screen |
+| --- | --- | --- | --- |
+| 3.1 | Portal | Back on the CKXR 214 record. Hover the **Ledger** tile, click it. | Tile: "Blockchain certified · no tampering detected · verified 3 minutes ago". Vehicle history tab opens; every row carries "Blockchain certified" and a certificate. Pan down to the activity feed: the approval and issue events carry one too. Hold 4 s. |
 
 ## Card 6 — Close
 
 > **A secure ledger of vehicle ownership.**
 > OVIL
 
-Hold 4 s, fade to black.
+Hold 5 s, fade to black.
 
 ---
 
 ## Runtime
 
+Everything after the first section runs about 50 percent slower than the first
+cut (2026-09-11 review). Clips are re-recorded at the pace of flow 1a; if it
+feels slow to us, it is right for the room.
+
 | Section | Target |
 | --- | --- |
 | Cards 1 and 2 | 8 s |
+| Card 2b | 5 s |
 | Flow 1a | 20 s |
-| Card 3 | 2 s |
-| Flow 1b | 15 s |
-| Card 4 | 4 s |
-| Flow 2a | 15 s |
-| Card 5 | 4 s |
-| Flow 2b | 20 s |
-| Card 6 | 4 s |
-| Total | about 1:30 |
+| Card 3 | 5 s |
+| Flow 1b | 20 s |
+| Card 4 | 6 s |
+| Flow 2a | 25 s |
+| Card 5 | 6 s |
+| Flow 2b | 25 s |
+| Card 5b | 6 s |
+| Flow 3 | 8 s |
+| Card 6 | 5 s |
+| Total | about 2:20 |
 
 ## Left out on purpose
 
@@ -128,11 +159,11 @@ Hold 4 s, fade to black.
 
 ## Recording notes
 
-- One CleanShot clip per numbered shot. Nine clips.
+- One CleanShot clip per numbered shot. Ten clips.
 - CleanShot zooms at five moments only: the text arriving, the green check on
   the phone, the authorized panel, the three red rows, the case reference.
 - Keep the cursor slow. Pause a beat on the thing that changed before cutting.
-- The check stagger is 0.7 s plus 6 × 0.08 s. Start the clip before clicking
+- The check stagger is 0.7 s plus 8 × 0.08 s. Start the clip before clicking
   the row so the stagger is on tape.
 - Flow 2 can be one continuous take on the portal, split afterwards.
 - Cards are rendered by Remotion, not recorded. Copy lives in

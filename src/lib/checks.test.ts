@@ -1,33 +1,39 @@
 import { describe, expect, it } from "vitest"
 
-import { allPass, evaluateChecks, failingChecks } from "./checks"
-import { CLEAN_VIN, CLONED_VIN, findVehicle, type Vehicle } from "./vehicles"
+import { allPass, evaluateChecks, failingChecks, highRiskChecks } from "./checks"
+import { CLEAN_VIN, CLONED_VIN, EXPORTED_VIN, findVehicle, type Vehicle } from "./vehicles"
 
 const clean = findVehicle(CLEAN_VIN)!
 const cloned = findVehicle(CLONED_VIN)!
+const exported = findVehicle(EXPORTED_VIN)!
 
 describe("evaluateChecks", () => {
-  it("returns six checks in a fixed order", () => {
+  it("returns eight checks in display order when everything passes", () => {
     expect(evaluateChecks(clean).map((c) => c.id)).toEqual([
+      "border",
+      "decode",
       "stolen",
       "writeOff",
+      "duplicate",
       "collision",
       "odometer",
-      "duplicate",
       "lien",
     ])
   })
 
   it("passes everything for the clean vehicle", () => {
     const checks = evaluateChecks(clean)
+    expect(checks).toHaveLength(8)
     expect(checks.every((c) => c.status === "pass")).toBe(true)
     expect(allPass(checks)).toBe(true)
     expect(failingChecks(checks)).toEqual([])
   })
 
-  it("fails write-off, collision and duplicate for the cloned vehicle", () => {
+  it("fails write-off, duplicate and collision for the cloned vehicle, high before low", () => {
     const checks = evaluateChecks(cloned)
-    expect(failingChecks(checks).map((c) => c.id)).toEqual(["writeOff", "collision", "duplicate"])
+    expect(failingChecks(checks).map((c) => c.id)).toEqual(["writeOff", "duplicate", "collision"])
+    expect(checks.slice(0, 3).map((c) => c.status)).toEqual(["fail", "fail", "fail"])
+    expect(highRiskChecks(checks).map((c) => c.id)).toEqual(["writeOff", "duplicate"])
     expect(allPass(checks)).toBe(false)
   })
 
@@ -37,20 +43,54 @@ describe("evaluateChecks", () => {
     expect(writeOff.detail).toContain("June 14, 2025")
   })
 
+  it("fails only the border check for the exported vehicle", () => {
+    const checks = evaluateChecks(exported)
+    expect(failingChecks(checks).map((c) => c.id)).toEqual(["border"])
+    expect(checks[0]).toMatchObject({ id: "border", status: "fail", severity: "high" })
+    expect(checks[0].detail).toContain("Exported March 18, 2025")
+    expect(checks[0].detail).toContain("no re-entry")
+  })
+
+  it("passes the border check when an export is followed by a re-entry", () => {
+    const returned: Vehicle = {
+      ...exported,
+      history: [
+        ...exported.history,
+        {
+          kind: "import",
+          date: "2025-09-01",
+          agency: "Transport Canada",
+          port: "Halifax, NS",
+          detail: "Registrar of Imported Vehicles · used vehicle",
+        },
+      ],
+    }
+    const border = evaluateChecks(returned).find((c) => c.id === "border")!
+    expect(border.status).toBe("pass")
+    expect(border.detail).toContain("no export on record")
+  })
+
+  it("fails the decode check when the VIN decodes to a different vehicle", () => {
+    const mismatch: Vehicle = {
+      ...clean,
+      decoded: { ...clean.decoded, model: "GLE 450" },
+    }
+    const decode = evaluateChecks(mismatch).find((c) => c.id === "decode")!
+    expect(decode).toMatchObject({ status: "fail", severity: "high" })
+    expect(decode.detail).toContain("GLE 450")
+    expect(decode.detail).toContain("MTO record says 2023 Mercedes-AMG GLE 63 S")
+  })
+
   it("fails odometer consistency when a later reading is lower", () => {
     const rolledBack: Vehicle = {
       ...clean,
-      records: {
-        ...clean.records,
-        odometerReadings: [
-          { date: "2023-04-18", km: 42, source: "Dealer delivery" },
-          { date: "2024-05-02", km: 54000, source: "Service record" },
-          { date: "2025-04-11", km: 31240, source: "Registration renewal" },
-        ],
-      },
+      history: clean.history.map((e) =>
+        e.kind === "odometer" && e.date === "2024-05-02" ? { ...e, km: 54000 } : e
+      ),
     }
     const odometer = evaluateChecks(rolledBack).find((c) => c.id === "odometer")!
     expect(odometer.status).toBe("fail")
+    expect(odometer.severity).toBe("low")
     expect(odometer.detail).toContain("54 000 km")
     expect(odometer.detail).toContain("31 240 km")
   })

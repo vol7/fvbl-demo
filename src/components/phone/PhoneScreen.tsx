@@ -74,7 +74,10 @@ function Header() {
 
 function ContextBubble({ vehicle }: { vehicle: Vehicle | undefined }) {
   const plate = vehicle?.plate ?? "CKXR 214"
-  const renewed = vehicle?.records.odometerReadings.at(-1)?.date ?? "2025-04-11"
+  const renewed =
+    vehicle?.history.filter((e) => e.kind === "renewal").at(-1)?.date ??
+    vehicle?.registeredOn ??
+    "2025-04-11"
   return (
     <>
       <Separator>{formatDate(renewed)}</Separator>

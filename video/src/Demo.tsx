@@ -6,7 +6,10 @@ import { settle } from "./settle";
 import { Backdrop, Slide } from "./Slide";
 
 /**
- * The cut. Slides carry the sentences; clips are the four recorded flows.
+ * The cut. Slides carry the sentences; clips are the five recorded flows.
+ * Slides hold 5 to 6 s and every actor change gets one, per the 2026-09-11
+ * review: the viewer must always know whether they are watching the buyer,
+ * the owner or the clerk. The blockchain beat is the last thing, not inline.
  * Every hand-off is `settle` (16 frames): the outgoing scene drifts away
  * through blur while the next fades up.
  *
@@ -15,7 +18,12 @@ import { Backdrop, Slide } from "./Slide";
  */
 export const Demo: React.FC = () => {
   return (
-    <AbsoluteFill name="Stage">
+    <AbsoluteFill
+      name="Stage"
+      style={{
+        letterSpacing: 6.9,
+      }}
+    >
       <Backdrop />
       <TransitionSeries name="OVIL demo">
         <TransitionSeries.Sequence name="Opening" durationInFrames={240}>
@@ -32,6 +40,19 @@ export const Demo: React.FC = () => {
           })}
         />
 
+        <TransitionSeries.Sequence name="Entry point" durationInFrames={150}>
+          <Slide
+            title="Customers can request a UVIP pre-approval from the ServiceOntario portal."
+            chrome={false}
+          />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition
+          presentation={settle()}
+          timing={linearTiming({
+            durationInFrames: 16,
+            easing: Easing.bezier(0.23, 1, 0.32, 1),
+          })}
+        />
         <TransitionSeries.Sequence
           name="Flow 1a ServiceOntario"
           durationInFrames={1074}
@@ -46,9 +67,9 @@ export const Demo: React.FC = () => {
           })}
         />
 
-        <TransitionSeries.Sequence name="Owner" durationInFrames={90}>
+        <TransitionSeries.Sequence name="Owner" durationInFrames={150}>
           <Slide
-            title="The registered owner receives a request for approval."
+            title="Registered owners get a request for approval."
             chrome={false}
           />
         </TransitionSeries.Sequence>
@@ -71,9 +92,9 @@ export const Demo: React.FC = () => {
           })}
         />
 
-        <TransitionSeries.Sequence name="Process" durationInFrames={120}>
+        <TransitionSeries.Sequence name="Process" durationInFrames={180}>
           <Slide
-            title="The vehicle is checked against government records and the owner's authorization is confirmed."
+            title="At the counter, the clerk sees the vehicle checked against historical records and the owner's approval confirmed."
             chrome={false}
           />
         </TransitionSeries.Sequence>
@@ -99,7 +120,7 @@ export const Demo: React.FC = () => {
           })}
         />
 
-        <TransitionSeries.Sequence name="Failure" durationInFrames={120}>
+        <TransitionSeries.Sequence name="Failure" durationInFrames={180}>
           <Slide
             title="If a record check fails or approval is not given, the package cannot be issued."
             chrome={false}
@@ -127,7 +148,30 @@ export const Demo: React.FC = () => {
           })}
         />
 
-        <TransitionSeries.Sequence name="Close" durationInFrames={120}>
+        <TransitionSeries.Sequence name="Blockchain" durationInFrames={180}>
+          <Slide
+            title="All of this is secured on the blockchain to prevent tampering."
+            chrome={false}
+          />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition
+          presentation={settle()}
+          timing={linearTiming({
+            durationInFrames: 16,
+            easing: Easing.bezier(0.23, 1, 0.32, 1),
+          })}
+        />
+        <TransitionSeries.Sequence name="Flow 3 Ledger" durationInFrames={240}>
+          <Clip shot="3" surface="Portal" file="flow-3.mp4" />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition
+          presentation={settle()}
+          timing={linearTiming({
+            durationInFrames: 16,
+            easing: Easing.bezier(0.23, 1, 0.32, 1),
+          })}
+        />
+        <TransitionSeries.Sequence name="Close" durationInFrames={150}>
           <Slide
             title="A secure ledger of vehicle ownership."
             lockup

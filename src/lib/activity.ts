@@ -1,4 +1,6 @@
 import type { AuthorizationState } from "./authorization"
+import { authorizationCertificates, type AuthorizationEventId } from "./ledger"
+import type { Vehicle } from "./vehicles"
 
 export type ActivityEvent = {
   id: string
@@ -6,13 +8,20 @@ export type ActivityEvent = {
   title: string
   detail?: string
   tone: "neutral" | "info" | "success" | "warning" | "danger"
+  /** Ledger certificate, present on events that are on the chain. */
+  certificate?: string
 }
 
-/** Timeline derived from the timestamps present in the authorization state. */
+/**
+ * Timeline derived from the timestamps present in the authorization state.
+ * Pass the vehicle to stamp on-chain events with their certificate; views
+ * ("Record retrieved", "Package cannot be issued") never get one.
+ */
 export function deriveActivity(
   state: AuthorizationState,
   openedAt: string | null,
-  clerk: string
+  clerk: string,
+  vehicle?: Vehicle
 ): ActivityEvent[] {
   const events: ActivityEvent[] = []
   if (openedAt) {
@@ -32,7 +41,7 @@ export function deriveActivity(
         events.push({
           id: "blocked",
           at: openedAt,
-          title: "Package not issued",
+          title: "Package cannot be issued",
           detail: "Record checks returned conflicts",
           tone: "danger",
         })
@@ -43,7 +52,7 @@ export function deriveActivity(
         events.push({
           id: "blocked",
           at: openedAt,
-          title: "Package not issued",
+          title: "Package cannot be issued",
           detail: "Record checks returned conflicts",
           tone: "danger",
         })
@@ -96,6 +105,13 @@ export function deriveActivity(
       detail: state.issued.packageNumber,
       tone: "success",
     })
+  }
+  if (vehicle) {
+    const certificates = authorizationCertificates(vehicle, state)
+    for (const event of events) {
+      const hash = certificates[event.id as AuthorizationEventId]
+      if (hash) event.certificate = hash
+    }
   }
   return events.sort((a, b) => a.at.localeCompare(b.at))
 }

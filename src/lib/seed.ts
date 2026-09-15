@@ -164,7 +164,7 @@ export function recentRows(): (RecentLookup & { live: boolean })[] {
     plate: v.plate,
     vehicle: vehicleTitle(v),
     outcome: (allPass(evaluateChecks(v)) ? "clear" : "blocked") as RecentLookup["outcome"],
-    when: i === 0 ? "Today, 9:41 a.m." : "Today, 9:12 a.m.",
+    when: ["Today, 9:41 a.m.", "Today, 9:12 a.m.", "Today, 8:56 a.m."][i] ?? "Today",
     live: true,
   }))
   return [...demo, ...RECENT_LOOKUPS.map((r) => ({ ...r, live: false }))]

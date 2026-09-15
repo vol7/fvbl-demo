@@ -3,7 +3,7 @@ import { motion, useReducedMotion } from "motion/react"
 
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { failingChecks, type Check } from "@/lib/checks"
+import { failingChecks, highRiskChecks, type Check } from "@/lib/checks"
 import { cn } from "@/lib/utils"
 
 export const CHECK_STAGGER_S = 0.08
@@ -12,9 +12,10 @@ export const CHECKS_SETTLE_MS = 700
 export function RecordChecks({ checks, onSettled }: { checks: Check[]; onSettled?: () => void }) {
   const reduceMotion = useReducedMotion()
   const failing = failingChecks(checks)
+  const high = highRiskChecks(checks)
   const failed = failing.length > 0
   const summary = failed
-    ? `${failing.length} of ${checks.length} checks failed`
+    ? `${failing.length} of ${checks.length} checks failed · ${high.length > 0 ? "high" : "low"} risk`
     : `${checks.length} of ${checks.length} checks passed`
   const asOf = new Date().toLocaleDateString("en-CA", { month: "short", day: "numeric" })
 
@@ -24,7 +25,7 @@ export function RecordChecks({ checks, onSettled }: { checks: Check[]; onSettled
         <CardTitle className="flex items-center justify-between gap-3">
           <span>Record checks</span>
           <span className="text-xs font-normal text-muted-foreground">
-            {checks.length} sources · as of {asOf}
+            {checks.length} checks · as of {asOf}
           </span>
         </CardTitle>
       </CardHeader>
@@ -55,6 +56,7 @@ export function RecordChecks({ checks, onSettled }: { checks: Check[]; onSettled
         >
           {checks.map((check) => {
             const pass = check.status === "pass"
+            const highRisk = !pass && check.severity === "high"
             return (
               <motion.li
                 key={check.id}
@@ -72,12 +74,40 @@ export function RecordChecks({ checks, onSettled }: { checks: Check[]; onSettled
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-sm font-medium">{check.label}</span>
-                    <Badge variant={pass ? "secondary" : "destructive"}>
-                      {pass ? "Pass" : "Fail"}
-                    </Badge>
+                    <span className="flex items-center gap-1.5">
+                      {pass ? null : (
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            highRisk
+                              ? "border-destructive/40 text-destructive"
+                              : "border-amber-500/50 text-amber-700"
+                          )}
+                        >
+                          {highRisk ? "High risk" : "Low risk"}
+                        </Badge>
+                      )}
+                      <Badge variant={pass ? "secondary" : "destructive"}>
+                        {pass ? "Pass" : "Fail"}
+                      </Badge>
+                    </span>
                   </div>
                   <span className="text-sm text-muted-foreground">{check.detail}</span>
-                  <span className="text-xs text-muted-foreground/70">{check.source}</span>
+                  <span className="mt-1 flex flex-wrap items-center gap-1.5">
+                    {check.agencies.map((agency) => (
+                      <Badge
+                        key={agency}
+                        variant="outline"
+                        title={check.source}
+                        className="h-4 px-1.5 text-[10px] font-medium text-muted-foreground"
+                      >
+                        {agency}
+                      </Badge>
+                    ))}
+                    {highRisk ? (
+                      <span className="text-xs text-destructive/80">Cannot be overridden</span>
+                    ) : null}
+                  </span>
                 </div>
               </motion.li>
             )

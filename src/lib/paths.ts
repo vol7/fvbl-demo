@@ -14,6 +14,8 @@ export const paths = {
     lookup: `${PORTAL_PREFIX}/lookup`,
     vehicle: (vin: string) => `${PORTAL_PREFIX}/vehicle/${vin}`,
     vehiclePattern: `${PORTAL_PREFIX}/vehicle/:vin`,
+    /** Tab on the vehicle page; omitted for the default (record checks). */
+    vehicleTab: (vin: string, tab: string) => `${PORTAL_PREFIX}/vehicle/${vin}?tab=${tab}`,
     requests: `${PORTAL_PREFIX}/requests`,
     cases: `${PORTAL_PREFIX}/cases`,
   },

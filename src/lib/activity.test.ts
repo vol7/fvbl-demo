@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import { deriveActivity } from "./activity"
+import { CLEAN_VIN, findVehicle } from "./vehicles"
 
 const T0 = "2026-09-04T18:10:00.000Z"
 const T1 = "2026-09-04T18:14:00.000Z"
@@ -120,5 +121,30 @@ describe("deriveActivity", () => {
     )
     expect(events.map((e) => e.id)).toContain("issued")
     expect(events.at(-1)).toMatchObject({ title: "Package issued", tone: "success" })
+  })
+
+  it("stamps on-chain events with a certificate when given the vehicle", () => {
+    const events = deriveActivity(
+      {
+        status: "authorized",
+        origin: "clerk",
+        requester: "Marcus B.",
+        otp: "1",
+        link: "",
+        sentAt: T1,
+        authorizationCode: "OV-AAAA-BBBB",
+        approvedAt: T2,
+        validUntil: T2,
+        issued: { at: T2, packageNumber: "UVIP-2026-09-09-4821" },
+      },
+      T0,
+      "M. Chen",
+      findVehicle(CLEAN_VIN)
+    )
+    const byId = Object.fromEntries(events.map((e) => [e.id, e]))
+    expect(byId.lookup.certificate).toBeUndefined()
+    expect(byId.sent.certificate).toMatch(/^[0-9a-f]{64}$/)
+    expect(byId.approved.certificate).toMatch(/^[0-9a-f]{64}$/)
+    expect(byId.issued.certificate).toMatch(/^[0-9a-f]{64}$/)
   })
 })

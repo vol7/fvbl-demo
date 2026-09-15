@@ -1,5 +1,6 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 
+import { LedgerMark } from "@/components/LedgerMark"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { ActivityEvent } from "@/lib/activity"
 import { formatTime } from "@/lib/format"
@@ -51,6 +52,9 @@ export function ActivityTimeline({ events }: { events: ActivityEvent[] }) {
                     </div>
                     {event.detail ? (
                       <span className="text-xs text-muted-foreground">{event.detail}</span>
+                    ) : null}
+                    {event.certificate ? (
+                      <LedgerMark hash={event.certificate} className="mt-0.5" />
                     ) : null}
                   </div>
                 </motion.li>

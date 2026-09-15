@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   formatDate,
   formatOdometer,
+  formatRelative,
   formatTime,
   isValidVin,
   maskName,
@@ -62,5 +63,16 @@ describe("formatTime", () => {
   it("renders hours and minutes", () => {
     const iso = new Date(2026, 8, 2, 14, 14).toISOString()
     expect(formatTime(iso)).toMatch(/2:14/)
+  })
+})
+
+describe("formatRelative", () => {
+  const now = new Date("2026-09-12T15:00:00.000Z")
+  it("rounds to the coarsest sensible unit", () => {
+    expect(formatRelative("2026-09-12T14:59:40.000Z", now)).toBe("just now")
+    expect(formatRelative("2026-09-12T14:57:00.000Z", now)).toBe("3 minutes ago")
+    expect(formatRelative("2026-09-12T14:59:00.000Z", now)).toBe("1 minute ago")
+    expect(formatRelative("2026-09-12T13:00:00.000Z", now)).toBe("2 hours ago")
+    expect(formatRelative("2026-09-10T15:00:00.000Z", now)).toBe("2 days ago")
   })
 })

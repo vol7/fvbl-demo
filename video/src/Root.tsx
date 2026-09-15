@@ -11,7 +11,7 @@ export const RemotionRoot: React.FC = () => {
       <Composition
         id="Demo"
         component={Demo}
-        durationInFrames={3359}
+        durationInFrames={4091}
         fps={30}
         width={1920}
         height={1080}
@@ -52,7 +52,7 @@ export const RemotionRoot: React.FC = () => {
           height={1080}
           defaultProps={{
             title:
-              "The vehicle is checked against government records and the owner's authorization is confirmed.",
+              "At the counter, the clerk sees the vehicle checked against historical records and the owner's approval confirmed.",
           }}
         />
       </Folder>

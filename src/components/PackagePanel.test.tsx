@@ -55,7 +55,7 @@ describe("PackagePanel", () => {
   it("blocked: request disabled, escalate goes to law enforcement", async () => {
     const { onEscalate } = renderPanel({ status: "blocked" }, cloned)
     expect(screen.getByRole("button", { name: /request owner authorization/i })).toBeDisabled()
-    expect(screen.getByText("Package not issued")).toBeInTheDocument()
+    expect(screen.getByText("Package cannot be issued")).toBeInTheDocument()
     await userEvent.click(screen.getByRole("button", { name: "Escalate to law enforcement" }))
     expect(onEscalate).toHaveBeenCalledTimes(1)
     expect(screen.queryByText(/insurance/i)).not.toBeInTheDocument()
