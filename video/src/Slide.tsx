@@ -5,6 +5,7 @@ import {
   interpolate,
   useCurrentFrame,
 } from "remotion";
+import { Mark } from "./Mark";
 import { fontFamily } from "./theme";
 
 /** Navy ground, blue bloom rising from the bottom, fine grain against banding. */
@@ -54,7 +55,7 @@ export const Backdrop: React.FC = () => {
 
 type Props = {
   title: string;
-  /** Shield + FVBL above the sentence. On for the hero and close. */
+  /** The FVBL mark and name above the sentence. On for the hero and close. */
   lockup?: boolean;
   /** Own backdrop. Off in the cut, where one Backdrop sits under the whole timeline. */
   chrome?: boolean;
@@ -112,20 +113,7 @@ export const Slide: React.FC<Props> = ({
             }),
           }}
         >
-          <svg
-            width="52"
-            height="52"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden
-          >
-            <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
-            <path d="m9 12 2 2 4-4" />
-          </svg>
+          <Mark height={52} />
           <div
             style={{
               fontSize: 44,
