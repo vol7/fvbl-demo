@@ -1,8 +1,8 @@
 # FVBL demo — screenplay
 
 Proof-of-concept video for RCMP and Ontario government stakeholders, via
-Polycaro. Silent: no voiceover, no on-screen labels. Six cards carry the
-structure; the screens carry the story. Target runtime about 1:30.
+Polycaro. Silent: no voiceover, no on-screen labels. Twelve cards carry the
+structure; the screens carry the story. Target runtime about 3:00.
 
 Two flows, straight from the 2026-09-08 sync: the user-facing pre-approval
 request on ServiceOntario, and the MTO clerk lookup ending on a big green or a
@@ -34,27 +34,30 @@ are rows under "Recent lookups" on the portal.
 > **A secure ledger of vehicle ownership.**
 > FVBL
 
-Hold 4 s.
+Hold 4.3 s, then the mission rises in behind it (one 10 s opening).
 
 ## Card 2 — Mission
 
 > FVBL safeguards vehicle records with owner authentication before any
 > information is released.
 
-Hold 4 s.
+Hold 5 s. Purpose first, then straight into the story.
 
 ## Card 2b — Entry point
 
 > Customers can request a UVIP pre-approval from the ServiceOntario portal.
 
-Hold 5 s. Every actor change from here gets a card (2026-09-11 review).
+Hold 6 s. Every actor change from here gets a card (2026-09-11 review).
 
-## Flow 1a — ServiceOntario, the buyer (≈ 20 s)
+## Flow 1a — ServiceOntario, the buyer (36 s) · `flow-1a.mp4` · KEEP
+
+The 2026-09-09 take stays. Frank: a touch fast, not worth redoing. Its click
+pace is the reference for everything else.
 
 | # | Window | Action | On screen |
 | --- | --- | --- | --- |
-| 1.1 | ServiceOntario | Tiles already in view. Click **Get a Used Vehicle Information Package (UVIP)**. | UVIP intro: "The registered owner" / "Buying this vehicle". |
-| 1.2 | ServiceOntario | Click **Buying this vehicle**. | "Ask the owner to authorize a UVIP", stepper on step 1. |
+| 1.1 | ServiceOntario | Tiles already in view. Click **Get a Used Vehicle Information Package (UVIP)**. | UVIP intro: "I am… Selling my vehicle" / "Buying a vehicle" (Frank's wording, 2026-09-11). The kept flow-1a take shows the older labels for its first seconds. |
+| 1.2 | ServiceOntario | Click **Buying a vehicle**. | "Ask the owner to authorize a UVIP", stepper on step 1. |
 | 1.3 | ServiceOntario | Type the clean VIN, continue. | Vehicle resolves. Step 2 cross-fades in, prefilled (Fawaz Ahmed, licence, mobile ending 4410). |
 | 1.4 | ServiceOntario | **Continue**, then **Send request to owner**. | "Review and send", then "Request sent to the owner". Hold 3 s. |
 
@@ -62,67 +65,110 @@ Hold 5 s. Every actor change from here gets a card (2026-09-11 review).
 
 > Registered owners get a request for approval.
 
-Hold 5 s.
+Hold 5.5 s.
 
-## Flow 1b — Phone, the registered owner (≈ 15 s)
+## Flow 1b — Phone, the registered owner (≈ 18 s) · `flow-1b.mp4` · RE-RECORD
 
-| # | Window | Action | On screen |
-| --- | --- | --- | --- |
-| 1.5 | Phone | Nothing. | FVBL text arrives: requested online by Fawaz Ahmed, link, expires in 24 hours. Hold 4 s. Zoom. |
-| 1.6 | Phone | Tap the link. | Confirm page: vehicle, plate, "Requested by Fawaz Ahmed", expiry, Approve / Deny. Hold 2 s. |
-| 1.7 | Phone | Tap **Approve**. | Green check, "Authorization recorded", reference. Hold 4 s. Zoom on the check. |
-
-## Card 4 — Process
-
-> At the counter, the clerk sees the vehicle checked against historical
-> records and the owner's approval confirmed.
-
-Hold 6 s. Not "government records": we are talking to the government.
-
-## Flow 2a — Portal, the clerk, green (≈ 15 s)
+Re-record: the text now says FVBL, and the old take was too fast. Slower on
+the text message and on the confirm page.
 
 | # | Window | Action | On screen |
 | --- | --- | --- | --- |
-| 2.1 | Portal | Home. Click the CKXR 214 row. Start recording before the click. | Header: "Checks clear", three tiles (All 8 checks passed · Not yet requested · Blockchain certified), sources strip. Eight checks stagger in green under the Record checks tab. Panel: **Authorized by registered owner**, "Requested online by Fawaz Ahmed", reference. No request button. Hold 6 s. Zoom on the panel. |
+| 1.5 | Phone | Nothing. | FVBL text arrives: requested online by Fawaz Ahmed, link, expires in 24 hours. Hold 5 s. Zoom. |
+| 1.6 | Phone | Tap the link. | Confirm page: vehicle, plate, "Requested by Fawaz Ahmed", expiry, Approve / Deny. Hold 4 s. |
+| 1.7 | Phone | Tap **Approve**. | Green check, "Authorization recorded", reference. Hold 5 s. Zoom on the check. |
 
-Blockchain beat, per the 2026-09-11 sync: not inside the flow. After the last
-flow, one interstitial ("All of this is secured on the blockchain to prevent
-tampering."), then a short clip: the Ledger tile in the header ("no tampering
-detected · verified 3 minutes ago"), the Vehicle history tab with its
-"Blockchain certified" rows, and the certified events in the activity feed.
+## Card 4 — Clerk
+
+> At the counter, the clerk sees at a glance whether the package can be
+> released.
+
+Hold 7 s. We turn to the clerk's side. From here the portal is three paused
+beats (checks, timeline, authorization), each with its own card, instead of one
+scroll (2026-09-11 review). Once a beat is introduced it is never re-explained.
+
+## Flow 2a — Portal, the landing (≈ 10 s) · `flow-2a.mp4` · NEW
+
+| # | Window | Action | On screen |
+| --- | --- | --- | --- |
+| 2.1 | Portal | Home. Start recording, then click the **CKXR 214** row. | Summary header: identity, verdict pill **Checks clear**, three tiles (All 8 checks passed · Authorized by registered owner · Blockchain certified), facts row, **Sources consulted** strip with seven agencies. Eight checks stagger in green below. Hold on the header 5 s. No zoom, the header is the point: the group-level "everything checks out". |
+
+## Card 4b — Checks
+
+> The vehicle's history is validated for signs of tampering or risk.
+
+Hold 6 s.
+
+## Flow 2b — Portal, record checks (≈ 10 s) · `flow-2b.mp4` · NEW
+
+| # | Window | Action | On screen |
+| --- | --- | --- | --- |
+| 2.2 | Portal | Same page, **Record checks** tab already open. Scroll so the eight rows fill the frame. | Eight green rows with agency chips. Zoom on **Import and export record** (Transport Canada RIV · CBSA: "Entered Canada … no export on record") and **VIN decode match** (NHTSA vPIC · MTO). Hold 5 s. |
+
+## Card 4c — Timeline
+
+> Transport Canada and CBSA border records complete the vehicle's timeline.
+
+Hold 6 s.
+
+## Flow 2c — Portal, vehicle history (≈ 10 s) · `flow-2c.mp4` · NEW
+
+| # | Window | Action | On screen |
+| --- | --- | --- | --- |
+| 2.3 | Portal | Click the **Vehicle history** tab. Hold, then click **Show all … events**. | Milestones newest first: ownership transfers, First registration (MTO office), Cleared customs (CBSA), Entered Canada (Transport Canada), each with an agency chip and a ledger mark. Expanded: renewals and odometer readings slot in. Hold 4 s on the expanded list. Zoom on the two border rows. |
+
+## Card 4d — Authorization
+
+> Clerks see whether the registered owner has pre-approved the request, and
+> issue accordingly.
+
+Hold 6.5 s.
+
+## Flow 2d — Portal, authorization and issue (≈ 11 s) · `flow-2d.mp4` · NEW
+
+| # | Window | Action | On screen |
+| --- | --- | --- | --- |
+| 2.4 | Portal | Scroll back to the top. Hover the **Owner authorization** tile, then the right rail. | Panel: **Authorized by registered owner**, "Requested online by Fawaz Ahmed", reference, approved time. Zoom on the panel. Hold 4 s. |
+| 2.5 | Portal | Click **Issue Used Vehicle Information Package**. | Panel flips to "Package issued at …", verdict pill **Package issued**, the activity feed gains the issue event. Hold 4 s. |
 
 ## Card 5 — Failure
 
 > If a record check fails or approval is not given, the package cannot be
 > issued.
 
-Hold 6 s.
+Hold 6.5 s.
 
-## Flow 2b — Portal, the clerk, red (≈ 20 s)
+## Flow 3 — Portal, the clerk, red (≈ 21 s) · `flow-3.mp4` · RE-RECORD
+
+Re-record: new header and tabs, and about 50 percent slower than the old take.
 
 | # | Window | Action | On screen |
 | --- | --- | --- | --- |
-| 2.2 | Portal | **Home** in the sidebar. Click the BWTP 903 row. | Checks stagger in. Insurer write-off, duplicate identity, collision record are red at the top with "High risk" / "Low risk" badges. "3 of 8 checks failed · high risk". Panel: "Package cannot be issued", request disabled. Hold until all three rows are readable, about 6 s. Zoom on the rows. |
-| 2.3 | Portal | Click **Escalate to Insurance Hub / Law Enforcement**. | "Escalated for review", case reference `FVBL-2026-09-…`. Longest hold of the video, 6 s. Zoom on the reference. |
+| 3.1 | Portal | **Home** in the sidebar. Click the **BWTP 903** row. | Verdict pill **Cannot be issued**, record checks tile "3 high-risk flags". Checks stagger in: Insurer write-off, Duplicate identity, Collision record red at the top with High risk / Low risk badges. Panel: **Package cannot be issued**. Hold until all three rows are readable, about 7 s. Zoom on the rows. |
+| 3.2 | Portal | Click **Escalate to law enforcement**. | "Escalated for review", case reference `FVBL-2026-09-…`, verdict pill **Escalated**. Longest hold of the video, 7 s. Zoom on the reference. |
+
+Alternative take if the room is CBSA-minded: the exported Range Rover
+(`CPLR 482`) instead. One red row, plus the border alert under the header that
+tells the export-with-no-re-entry story in one sentence.
 
 ## Card 5b — Blockchain
 
 > All of this is secured on the blockchain to prevent tampering.
 
-Hold 6 s.
+Hold 6 s. Last and quiet: no dedicated page, just the marks already on screen.
 
-## Flow 3 — Portal, the ledger beat (≈ 8 s)
+## Flow 4 — Portal, the ledger beat (≈ 10 s) · `flow-4.mp4` · NEW
 
 | # | Window | Action | On screen |
 | --- | --- | --- | --- |
-| 3.1 | Portal | Back on the CKXR 214 record. Hover the **Ledger** tile, click it. | Tile: "Blockchain certified · no tampering detected · verified 3 minutes ago". Vehicle history tab opens; every row carries "Blockchain certified" and a certificate. Pan down to the activity feed: the approval and issue events carry one too. Hold 4 s. |
+| 4.1 | Portal | Back on the **CKXR 214** record. Hover the **Ledger** tile, click it. | Tile: "Blockchain certified · n events · no tampering detected · verified 3 minutes ago". Vehicle history tab opens; every row carries "Blockchain certified" and a certificate. Pan down to the activity feed: the approval and the issue event carry one too. Hold 4 s. |
 
 ## Card 6 — Close
 
 > **A secure ledger of vehicle ownership.**
 > FVBL
 
-Hold 5 s, fade to black.
+Hold 6 s, fade to black.
 
 ---
 
@@ -130,23 +176,29 @@ Hold 5 s, fade to black.
 
 Everything after the first section runs about 50 percent slower than the first
 cut (2026-09-11 review). Clips are re-recorded at the pace of flow 1a; if it
-feels slow to us, it is right for the room.
+feels slow to us, it is right for the room. Cards hold 5.5 to 7 s by length.
 
 | Section | Target |
 | --- | --- |
-| Cards 1 and 2 | 8 s |
-| Card 2b | 5 s |
-| Flow 1a | 20 s |
-| Card 3 | 5 s |
-| Flow 1b | 20 s |
-| Card 4 | 6 s |
-| Flow 2a | 25 s |
-| Card 5 | 6 s |
-| Flow 2b | 25 s |
+| Cards 1 and 2 | 10 s |
+| Card 2b | 6 s |
+| Flow 1a | 36 s (as recorded) |
+| Card 3 | 5.5 s |
+| Flow 1b | 18 s |
+| Card 4 | 7 s |
+| Flow 2a | 10 s |
+| Card 4b | 6 s |
+| Flow 2b | 10 s |
+| Card 4c | 6 s |
+| Flow 2c | 10 s |
+| Card 4d | 6.5 s |
+| Flow 2d | 11 s |
+| Card 5 | 6.5 s |
+| Flow 3 | 21 s |
 | Card 5b | 6 s |
-| Flow 3 | 8 s |
-| Card 6 | 5 s |
-| Total | about 2:20 |
+| Flow 4 | 10 s |
+| Card 6 | 6 s |
+| Total | about 3:00 |
 
 ## Left out on purpose
 
@@ -159,19 +211,25 @@ feels slow to us, it is right for the room.
 
 ## Recording notes
 
-- One CleanShot clip per numbered shot. Ten clips.
-- CleanShot zooms at five moments only: the text arriving, the green check on
-  the phone, the authorized panel, the three red rows, the case reference.
+- One CleanShot clip per flow, eight clips; flow 1a is already on disk. Flows
+  2a to 2d and 4 are one continuous portal take, split afterwards.
+- CleanShot zooms at eight moments only: the text arriving, the green check on
+  the phone, the two border checks, the two border rows in the history, the
+  authorized panel, the three red rows, the case reference.
 - Keep the cursor slow. Pause a beat on the thing that changed before cutting.
 - The check stagger is 0.7 s plus 8 × 0.08 s. Start the clip before clicking
   the row so the stagger is on tape.
-- Flow 2 can be one continuous take on the portal, split afterwards.
+- Between flow 2d and flow 3, Home in the sidebar is the cut point. Flow 4
+  needs the CKXR 214 record with the package issued, so record it right after
+  2d or force the state from the hub.
 - Cards are rendered by Remotion, not recorded. Copy lives in
   `video/src/Demo.tsx`.
 
 ## Assembly
 
-C1 · C2 · 1.1–1.4 · C3 · 1.5–1.7 · C4 · 2.1 · C5 · 2.2–2.3 · C6.
-`video/src/Demo.tsx` encodes this order with a 12-frame cross-fade on every
-card and straight cuts between clips. Drop the clips in, run `pnpm durations`,
-paste the frame counts, `pnpm render`.
+C1+C2 · C2b · 1a · C3 · 1b · C4 · 2a · C4b · 2b · C4c · 2c · C4d · 2d · C5 ·
+3 · C5b · 4 · C6.
+`video/src/Demo.tsx` encodes this order with a 16-frame `settle` hand-off
+between every scene. Unrecorded shots carry their target length, so the
+timeline previews at about 3:00 today. Drop the clips in, run `pnpm durations`,
+paste the frame counts and the total, `pnpm render`.

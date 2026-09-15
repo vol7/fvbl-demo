@@ -28,7 +28,10 @@ if (files.length === 0) {
 
 const demo = readFileSync(new URL("../src/Demo.tsx", import.meta.url), "utf8");
 const sequences = [...demo.matchAll(/<TransitionSeries\.Sequence[^>]*durationInFrames=\{(\d+)\}/g)].map((m) => Number(m[1]));
-const transitions = (demo.match(/<TransitionSeries\.Transition\b/g) ?? []).length;
+// Demo.tsx hoists the transition into a `handoff` constant; count its uses,
+// falling back to inline <TransitionSeries.Transition> elements.
+const handoffs = (demo.match(/\{handoff\}/g) ?? []).length;
+const transitions = handoffs > 0 ? handoffs : (demo.match(/<TransitionSeries\.Transition\b/g) ?? []).length;
 const total = sequences.reduce((a, b) => a + b, 0) - 16 * transitions;
 console.log(`\nDemo.tsx: ${sequences.length} sequences, ${transitions} transitions → ${total} frames (${(total / FPS).toFixed(1)} s)`);
 console.log("Set durationInFrames on the Demo composition in src/Root.tsx to that value.");

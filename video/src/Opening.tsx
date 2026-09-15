@@ -9,7 +9,8 @@ import { Slide } from "./Slide";
 
 /**
  * Hero and mission on one persistent backdrop. The lockup and first sentence
- * lift out at frame 100; the second sentence rises in behind them.
+ * hold until frame 130 and lift out over 12 frames; the second sentence rises
+ * in behind them and holds to the end of the 300-frame opening.
  */
 export const Opening: React.FC<{ hero: string; mission: string }> = ({
   hero,
@@ -22,17 +23,17 @@ export const Opening: React.FC<{ hero: string; mission: string }> = ({
       <AbsoluteFill
         name="Hero type"
         style={{
-          opacity: interpolate(frame, [100, 112], [1, 0], {
+          opacity: interpolate(frame, [130, 142], [1, 0], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
             easing: Easing.bezier(0.2, 0, 0, 1),
           }),
-          translate: interpolate(frame, [100, 112], ["0px 0px", "0px -14px"], {
+          translate: interpolate(frame, [130, 142], ["0px 0px", "0px -14px"], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
             easing: Easing.bezier(0.2, 0, 0, 1),
           }),
-          filter: `blur(${interpolate(frame, [100, 112], [0, 4], {
+          filter: `blur(${interpolate(frame, [130, 142], [0, 4], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           })}px)`,
@@ -46,17 +47,17 @@ export const Opening: React.FC<{ hero: string; mission: string }> = ({
         style={{
           position: "absolute",
           inset: 0,
-          opacity: interpolate(frame, [112, 132], [0, 1], {
+          opacity: interpolate(frame, [142, 162], [0, 1], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
             easing: Easing.bezier(0.2, 0, 0, 1),
           }),
-          translate: interpolate(frame, [112, 132], ["0px 20px", "0px 0px"], {
+          translate: interpolate(frame, [142, 162], ["0px 20px", "0px 0px"], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
             easing: Easing.bezier(0.2, 0, 0, 1),
           }),
-          filter: `blur(${interpolate(frame, [112, 132], [4, 0], {
+          filter: `blur(${interpolate(frame, [142, 162], [4, 0], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           })}px)`,
