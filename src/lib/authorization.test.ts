@@ -103,12 +103,12 @@ describe("authorizationReducer", () => {
   it("escalate moves blocked to escalated", () => {
     const state = authorizationReducer(initialState(false), {
       type: "escalate",
-      caseReference: "OVIL-2026-09-02-0417",
+      caseReference: "FVBL-2026-09-02-0417",
       at: T1,
     })
     expect(state).toEqual({
       status: "escalated",
-      caseReference: "OVIL-2026-09-02-0417",
+      caseReference: "FVBL-2026-09-02-0417",
       escalatedAt: T1,
     })
   })
@@ -157,7 +157,7 @@ describe("code generators", () => {
     expect(code).toMatch(/^OV-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/)
   })
   it("generateCaseReference embeds the date and a 4-digit sequence", () => {
-    expect(generateCaseReference(new Date(2026, 8, 2), () => 0.0417)).toBe("OVIL-2026-09-02-0417")
+    expect(generateCaseReference(new Date(2026, 8, 2), () => 0.0417)).toBe("FVBL-2026-09-02-0417")
   })
 })
 

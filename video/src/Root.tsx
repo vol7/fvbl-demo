@@ -28,7 +28,7 @@ export const RemotionRoot: React.FC = () => {
           defaultProps={{
             hero: "A secure ledger of vehicle ownership.",
             mission:
-              "OVIL safeguards vehicle records with owner authentication before any information is released.",
+              "FVBL safeguards vehicle records with owner authentication before any information is released.",
           }}
         />
         <Composition

@@ -1,11 +1,11 @@
-# OVIL demo prototype — design
+# FVBL demo prototype — design
 
 Date: 2026-09-02
 Status: approved (François Deguire)
 
 ## Purpose
 
-A clickable web prototype of the OVIL "VIN hub" clerk portal, built so it can be
+A clickable web prototype of the FVBL "VIN hub" clerk portal, built so it can be
 screen-recorded into two demo videos. The videos are a proof of concept to help
 Fawaz (police contact) and Francesco sell the idea to Ontario stakeholders.
 It is not a real product: no backend, no auth, invented data.
@@ -42,9 +42,9 @@ authorization step in the real product; the demo does not model that filter.
 | Flow assumption | Clerk-initiated at the MTO desk, as in the deck. Owner pre-authorization variant deferred until Francesco answers |
 | Owner side | Phone mock rendered in the same page beside the portal |
 | Visual direction | Neutral government-tool look, shadcn preset `bIpUBt2` |
-| Stack | Vite + React + TypeScript + Tailwind + shadcn, new repo `~/Documents/GitHub/ovil-demo` |
+| Stack | Vite + React + TypeScript + Tailwind + shadcn, new repo `~/Documents/GitHub/fvbl-demo` |
 | Blockchain | Not shown anywhere |
-| Branding | "OVIL" as plain text in the header, no logo |
+| Branding | "FVBL" as plain text in the header, no logo |
 
 ## Screens
 
@@ -56,7 +56,7 @@ Exists so the video can open on a credible first frame.
 - Single VIN input with a "Look up" button. Basic 17-character validation.
 - "Recent lookups" list containing the demo VINs so the presenter can click
   instead of typing on camera.
-- Header: "OVIL · Authorized User Portal", clerk name, office name, sign out.
+- Header: "FVBL · Authorized User Portal", clerk name, office name, sign out.
 
 ### 3. Vehicle profile (`/vehicle/:vin`)
 Header block:
@@ -82,13 +82,13 @@ Each check is `pass` or `fail` with a one-line detail on fail.
 - Status area, driven by the authorization state machine below.
 - Scenario 2 shows a "Transaction blocked" state instead, with an
   "Escalate to Insurance Hub / Law Enforcement" button that yields a case
-  reference like `OVIL-2026-09-02-0417`.
+  reference like `FVBL-2026-09-02-0417`.
 
 ### Phone mock
 When a request is sent, a phone frame animates in beside the portal showing an
 SMS thread:
 
-> OVIL: A used vehicle package was requested for your 2023 Mercedes-AMG GLE 63 S
+> FVBL: A used vehicle package was requested for your 2023 Mercedes-AMG GLE 63 S
 > (plate CKXR 214) at MTO Toronto Downtown. Approve with code 482 193 or deny.
 > Expires in 24 hours.
 

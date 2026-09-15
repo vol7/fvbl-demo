@@ -17,7 +17,7 @@ export function Sidebar() {
           <ShieldCheck className="size-4" aria-hidden />
         </span>
         <span className="flex flex-col leading-none">
-          <span className="text-sm font-semibold tracking-wide">OVIL</span>
+          <span className="text-sm font-semibold tracking-wide">FVBL</span>
           <span className="mt-0.5 text-[11px] text-muted-foreground">Authorized User Portal</span>
         </span>
       </Link>

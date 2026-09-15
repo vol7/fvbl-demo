@@ -1,7 +1,7 @@
 {
   "name": "video",
   "version": "1.0.0",
-  "description": "OVIL demo video: assembles CleanShot clips and title cards",
+  "description": "FVBL demo video: assembles CleanShot clips and title cards",
   "repository": {},
   "license": "UNLICENSED",
   "private": true,
@@ -25,7 +25,7 @@
   },
   "scripts": {
     "dev": "remotion studio --no-open",
-    "render": "remotion render Demo out/ovil-demo.mp4",
+    "render": "remotion render Demo out/fvbl-demo.mp4",
     "still": "remotion still Demo",
     "durations": "node scripts/durations.mjs",
     "lint": "eslint src && tsc"

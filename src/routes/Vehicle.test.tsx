@@ -141,7 +141,7 @@ describe("Vehicle route", () => {
     )
     const boxes = screen.getAllByRole("status")
     expect(boxes.some((b) => b.textContent?.includes("Escalated for review"))).toBe(true)
-    expect(await screen.findByText(/^OVIL-\d{4}-\d{2}-\d{2}-\d{4}$/)).toBeInTheDocument()
+    expect(await screen.findByText(/^FVBL-\d{4}-\d{2}-\d{2}-\d{4}$/)).toBeInTheDocument()
   })
 
   it("reflects an approval made from another surface, then issues the package", async () => {

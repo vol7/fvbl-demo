@@ -48,7 +48,7 @@ describe("PhoneScreen", () => {
     openPending()
     const router = renderPhone()
     expect(screen.getByText(/\(plate CKXR 214\) by Marcus Beaulieu/)).toBeInTheDocument()
-    const link = screen.getByRole("button", { name: `ovil.on.ca/c/${LINK}` })
+    const link = screen.getByRole("button", { name: `fvbl.on.ca/c/${LINK}` })
     await userEvent.click(link)
     expect(router.state.location.pathname).toBe("/phone/confirm")
   })

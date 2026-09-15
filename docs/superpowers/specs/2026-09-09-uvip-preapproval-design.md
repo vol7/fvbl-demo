@@ -1,4 +1,4 @@
-# OVIL demo — UVIP pre-approval flow and link-based owner confirmation
+# FVBL demo — UVIP pre-approval flow and link-based owner confirmation
 
 Date: 2026-09-09
 Status: approved (François Deguire)
@@ -23,7 +23,7 @@ reply codes to an SMS link that opens a one-page yes/no, used by every path.
 | Entry page | Saved copy of ontario.ca/page/serviceontario, scripts stripped, with a new UVIP card and link |
 | Theme | Scoped `.theme-so` override matching ontario.ca: Raleway/Open Sans, #0066CC, ServiceOntario green band |
 | Email to seller | Not shown; SMS only |
-| Integration story | Standalone; clerk Alt+Tabs to OVIL |
+| Integration story | Standalone; clerk Alt+Tabs to FVBL |
 
 ## Session model
 
@@ -56,8 +56,8 @@ open vehicle and `authorization` stays as-is when `open` matches the stored
 | `/uvip` | Public | Intro + role choice: "I am the registered owner" / "I am buying this vehicle". |
 | `/uvip/owner` | Public | Stepper: 1 Vehicle (VIN, plate) → 2 Identity (licence number, photo capture card) → 3 Review → Done (reference, valid until, "the clerk will see this"). |
 | `/uvip/buyer` | Public | Stepper: 1 Vehicle (VIN) → 2 Your details (full name, licence number, mobile) → 3 Review → Done ("We texted the registered owner. You will be notified when they respond."). |
-| `/phone` | Phone | Thread. Request bubble now ends with a tappable link `ovil.on.ca/c/XXXX`. |
-| `/phone/confirm` | Phone | One-page yes/no: OVIL header, vehicle title and plate, "Requested by {requester} at {where}", expiry, Approve / Deny. Result screen: green check "Authorization recorded · reference" or grey "Request declined", link back to Messages. Thread then shows a system line "You approved this request" / "You declined this request". |
+| `/phone` | Phone | Thread. Request bubble now ends with a tappable link `fvbl.on.ca/c/XXXX`. |
+| `/phone/confirm` | Phone | One-page yes/no: FVBL header, vehicle title and plate, "Requested by {requester} at {where}", expiry, Approve / Deny. Result screen: green check "Authorization recorded · reference" or grey "Request declined", link back to Messages. Thread then shows a system line "You approved this request" / "You declined this request". |
 
 Portal changes:
 

@@ -71,7 +71,7 @@ export function ConfirmPage() {
         </button>
         <div className="flex h-9 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl bg-white px-3 text-[13px] text-neutral-700 ring-1 ring-black/10">
           <Lock className="size-3 shrink-0" aria-hidden />
-          <span className="truncate">{thread ? smsLink(thread.state.link) : "ovil.on.ca"}</span>
+          <span className="truncate">{thread ? smsLink(thread.state.link) : "fvbl.on.ca"}</span>
         </div>
       </div>
 
@@ -80,7 +80,7 @@ export function ConfirmPage() {
           <span className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <ShieldCheck className="size-4" aria-hidden />
           </span>
-          <span className="text-sm font-semibold tracking-wide">OVIL</span>
+          <span className="text-sm font-semibold tracking-wide">FVBL</span>
           <span className="ml-auto text-xs text-neutral-500">Owner authorization</span>
         </header>
 
@@ -143,7 +143,7 @@ export function ConfirmPage() {
                 </Button>
               </div>
               <p className="text-center text-xs text-neutral-500">
-                Your response is recorded with the Ontario Vehicle Identification Ledger.
+                Your response is recorded with the Federal VIN Blockchain Ledger.
               </p>
             </motion.section>
           ) : (

@@ -229,7 +229,7 @@ function authorizationDrafts(
 }
 
 function chain(vin: string, drafts: Draft[]): LedgerEntry[] {
-  let prev = fingerprint(`ovil|${vin}`)
+  let prev = fingerprint(`fvbl|${vin}`)
   return drafts.map(({ payload, ...rest }, i) => {
     const hash = fingerprint(`${prev}|${rest.kind}|${payload}`)
     prev = hash

@@ -25,11 +25,11 @@ export const Demo: React.FC = () => {
       }}
     >
       <Backdrop />
-      <TransitionSeries name="OVIL demo">
+      <TransitionSeries name="FVBL demo">
         <TransitionSeries.Sequence name="Opening" durationInFrames={240}>
           <Opening
             hero="A secure ledger of vehicle ownership."
-            mission="OVIL safeguards vehicle records with owner authentication before any information is released."
+            mission="FVBL safeguards vehicle records with owner authentication before any information is released."
           />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition

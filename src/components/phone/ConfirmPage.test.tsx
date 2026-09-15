@@ -43,7 +43,7 @@ describe("ConfirmPage", () => {
     expect(screen.getByText("2023 Mercedes-AMG GLE 63 S 4MATIC+")).toBeInTheDocument()
     expect(screen.getByText("Marcus Beaulieu")).toBeInTheDocument()
     expect(screen.queryByText(/in person|online via/i)).not.toBeInTheDocument()
-    expect(screen.getByText(`ovil.on.ca/c/${LINK}`)).toBeInTheDocument()
+    expect(screen.getByText(`fvbl.on.ca/c/${LINK}`)).toBeInTheDocument()
     await userEvent.click(screen.getByRole("button", { name: "Approve" }))
     expect(store.getState().authorizations[CLEAN_VIN].status).toBe("authorized")
     expect(await screen.findByText("Authorization recorded")).toBeInTheDocument()

@@ -200,7 +200,7 @@ export function generatePackageNumber(date: Date, random: () => number = Math.ra
 }
 
 export function generateCaseReference(date: Date, random: () => number = Math.random): string {
-  return `OVIL-${stamp(date)}-${String(Math.floor(random() * 10000)).padStart(4, "0")}`
+  return `FVBL-${stamp(date)}-${String(Math.floor(random() * 10000)).padStart(4, "0")}`
 }
 
 function stamp(date: Date): string {

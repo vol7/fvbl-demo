@@ -1,9 +1,9 @@
-# OVIL demo — vehicle page: summary header, tabs, border story
+# FVBL demo — vehicle page: summary header, tabs, border story
 
 Date: 2026-09-12
 Status: approved and built (François Deguire)
 Amends `2026-09-10-integrations-timeline-ledger-design.md`. Review sources:
-Granola "OVIL — blockchain integration, video pacing, et handoff avec client",
+Granola "FVBL — blockchain integration, video pacing, et handoff avec client",
 2026-09-11 (Frank Marineau, François Deguire), plus François's layout notes.
 
 ## Why

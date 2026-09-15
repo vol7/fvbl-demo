@@ -95,7 +95,7 @@ describe("deriveActivity", () => {
 
   it("lists blocked then escalated for a cloned vehicle", () => {
     const events = deriveActivity(
-      { status: "escalated", caseReference: "OVIL-2026-09-04-0001", escalatedAt: T2 },
+      { status: "escalated", caseReference: "FVBL-2026-09-04-0001", escalatedAt: T2 },
       T0,
       "M. Chen"
     )

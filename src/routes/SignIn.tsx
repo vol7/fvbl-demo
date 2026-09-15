@@ -27,7 +27,7 @@ export function SignIn() {
           <span className="flex size-8 items-center justify-center rounded-md bg-white/15 ring-1 ring-white/25">
             <ShieldCheck className="size-4" aria-hidden />
           </span>
-          <span className="text-sm font-semibold tracking-wide">OVIL</span>
+          <span className="text-sm font-semibold tracking-wide">FVBL</span>
         </div>
         <div className="relative flex max-w-md flex-col gap-4">
           <h2 className="text-3xl font-semibold tracking-tight">
@@ -56,7 +56,7 @@ export function SignIn() {
           <div className="flex flex-col gap-1.5">
             <div className="mb-3 flex items-center gap-2 text-primary lg:hidden">
               <Lock className="size-4" aria-hidden />
-              <span className="text-xs font-semibold tracking-wide uppercase">OVIL</span>
+              <span className="text-xs font-semibold tracking-wide uppercase">FVBL</span>
             </div>
             <h1 className="text-2xl font-semibold tracking-tight">Authorized User Portal</h1>
             <p className="text-sm text-muted-foreground">

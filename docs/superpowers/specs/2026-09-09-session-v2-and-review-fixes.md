@@ -1,10 +1,10 @@
-# OVIL demo — session model v2 and video-review fixes
+# FVBL demo — session model v2 and video-review fixes
 
 Date: 2026-09-09
 Status: approved (François Deguire)
 Supersedes the session model in `2026-09-04-two-surface-demo-design.md` and
 `2026-09-09-uvip-preapproval-design.md`. Review source: Granola
-"Ontario Vehicle Identification Ledger — video review and product feedback",
+"Federal VIN Blockchain Ledger — video review and product feedback",
 2026-09-09.
 
 ## Why
@@ -39,12 +39,12 @@ type SessionState = {
 `dispatch` reads the current state from `localStorage`, applies the reducer,
 writes back, then notifies. Windows never apply the reducer to their own copy.
 Cross-window notification is a ping; receivers re-read storage. Storage key is
-`ovil-demo:session:v2`; v1 is ignored.
+`fvbl-demo:session:v2`; v1 is ignored.
 
 ## Loud illegal transitions
 
 When the reducer returns the same state, the store logs
-`[ovil] ignored <action> in <status>` in dev. A stuck flow becomes a one-line
+`[fvbl] ignored <action> in <status>` in dev. A stuck flow becomes a one-line
 diagnosis instead of a silent no-op.
 
 ## Review fixes (client, 2026-09-09)
@@ -54,7 +54,7 @@ diagnosis instead of a silent no-op.
 | Plate is too sensitive for the public tool | Removed from the public VIN result card, both review steps, and both done screens. Kept on the clerk portal and in the SMS (owner-side). |
 | Owner identity step | Full-name field removed. Licence number plus mobile plus photo. Review shows the registered owner masked from the record. |
 | Review screens | Driver's licence shown in full; the user typed it seconds earlier. |
-| SMS link | 16-character alphanumeric token stored on the authorization, shown as `ovil.on.ca/c/<token>`. |
+| SMS link | 16-character alphanumeric token stored on the authorization, shown as `fvbl.on.ca/c/<token>`. |
 | Confirm page | "Requested by" shows the name only, no source. "Back to Messages" removed; the browser back chevron remains. |
 | Clerk request form | Applicant name, driver's licence, mobile. Name becomes the requester in the SMS and tables. |
 | Clerk lookup hint | Removed. Clerks are in an office. |

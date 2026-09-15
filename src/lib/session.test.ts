@@ -63,7 +63,7 @@ describe("sessionReducer", () => {
       type: "escalate",
       vin: B,
       canRequest: false,
-      caseReference: "OVIL-2026-09-09-0001",
+      caseReference: "FVBL-2026-09-09-0001",
       at: T1,
     })
     expect(s.authorizations[A].status).toBe("pending")
@@ -188,6 +188,6 @@ describe("createSessionStore", () => {
       warn: (m) => warnings.push(m),
     })
     store.dispatch({ type: "approve", vin: A, authorizationCode: "X", at: T1 })
-    expect(warnings).toEqual(["[ovil] ignored approve in no record"])
+    expect(warnings).toEqual(["[fvbl] ignored approve in no record"])
   })
 })

@@ -63,11 +63,11 @@ describe("PackagePanel", () => {
 
   it("escalated: tells the clerk not to issue the package", () => {
     renderPanel(
-      { status: "escalated", caseReference: "OVIL-2026-09-09-0417", escalatedAt: T1 },
+      { status: "escalated", caseReference: "FVBL-2026-09-09-0417", escalatedAt: T1 },
       cloned
     )
     expect(screen.getByText(/do not issue the package/i)).toBeInTheDocument()
-    expect(screen.getByText("OVIL-2026-09-09-0417")).toBeInTheDocument()
+    expect(screen.getByText("FVBL-2026-09-09-0417")).toBeInTheDocument()
   })
 
   it("pending: locks the applicant to the requester and shows the countdown", () => {

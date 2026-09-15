@@ -1,6 +1,6 @@
-# OVIL demo prototype
+# FVBL demo prototype
 
-Clickable prototype of OVIL: a ServiceOntario pre-approval flow, the clerk
+Clickable prototype of FVBL: a ServiceOntario pre-approval flow, the clerk
 portal, and the registered owner's phone. Built for a screen-recorded demo video
 and for a live walkthrough. No backend, no persistence beyond the browser,
 invented data. Specs and plans live in `docs/superpowers/`.
@@ -27,7 +27,7 @@ keyed by VIN, and windows only ping each other to re-read it, so browsing never
 changes state and several vehicles can hold state at once. The phone follows the
 most recent request. Use the hub's **Reset session** between takes, or **Force
 state** to jump straight to one beat. Illegal transitions are logged to the
-console in dev as `[ovil] ignored …`.
+console in dev as `[fvbl] ignored …`.
 
 The shot list is `docs/screenplay.md`. Title cards and the final cut are a
 Remotion project in `video/` (see `video/README.md`): drop CleanShot exports

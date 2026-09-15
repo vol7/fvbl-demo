@@ -118,7 +118,7 @@ export function forcedSession(key: ForceKey, now: Date = new Date()): SessionSta
     case "escalated":
       return one(CLONED_VIN, {
         status: "escalated",
-        caseReference: "OVIL-2026-09-09-3631",
+        caseReference: "FVBL-2026-09-09-3631",
         escalatedAt: at,
       })
   }

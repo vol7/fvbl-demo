@@ -94,8 +94,8 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
   }
 }
 
-export const STORAGE_KEY = "ovil-demo:session:v2"
-export const CHANNEL_NAME = "ovil-demo"
+export const STORAGE_KEY = "fvbl-demo:session:v2"
+export const CHANNEL_NAME = "fvbl-demo"
 
 type Listener = () => void
 
@@ -202,7 +202,7 @@ export function createSessionStore(
       if (next === before) {
         const vin = "vin" in action ? action.vin : before.activeVin
         warn(
-          `[ovil] ignored ${action.type} in ${describe(vin ? before.authorizations[vin] : undefined)}`
+          `[fvbl] ignored ${action.type} in ${describe(vin ? before.authorizations[vin] : undefined)}`
         )
         setState(before)
         return

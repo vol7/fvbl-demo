@@ -42,7 +42,7 @@ function CopyButton({ value }: { value: string }) {
 }
 
 function open(path: string, w: number, h: number) {
-  window.open(path, `ovil-${path}`, `popup=yes,width=${w},height=${h}`)
+  window.open(path, `fvbl-${path}`, `popup=yes,width=${w},height=${h}`)
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -67,7 +67,7 @@ export function Hub() {
           <div className="text-sm text-muted-foreground">
             Recording hub · not part of the product
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight">OVIL demo</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">FVBL demo</h1>
           <p className="text-sm text-muted-foreground">
             Open each surface in its own window. All windows share one session, so a request from
             ServiceOntario or the counter shows up on the phone, and the owner&rsquo;s answer shows

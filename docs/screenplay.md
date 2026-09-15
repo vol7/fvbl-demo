@@ -1,4 +1,4 @@
-# OVIL demo — screenplay
+# FVBL demo — screenplay
 
 Proof-of-concept video for RCMP and Ontario government stakeholders, via
 Polycaro. Silent: no voiceover, no on-screen labels. Six cards carry the
@@ -32,13 +32,13 @@ are rows under "Recent lookups" on the portal.
 ## Card 1 — Hero
 
 > **A secure ledger of vehicle ownership.**
-> OVIL
+> FVBL
 
 Hold 4 s.
 
 ## Card 2 — Mission
 
-> OVIL safeguards vehicle records with owner authentication before any
+> FVBL safeguards vehicle records with owner authentication before any
 > information is released.
 
 Hold 4 s.
@@ -68,7 +68,7 @@ Hold 5 s.
 
 | # | Window | Action | On screen |
 | --- | --- | --- | --- |
-| 1.5 | Phone | Nothing. | OVIL text arrives: requested online by Fawaz Ahmed, link, expires in 24 hours. Hold 4 s. Zoom. |
+| 1.5 | Phone | Nothing. | FVBL text arrives: requested online by Fawaz Ahmed, link, expires in 24 hours. Hold 4 s. Zoom. |
 | 1.6 | Phone | Tap the link. | Confirm page: vehicle, plate, "Requested by Fawaz Ahmed", expiry, Approve / Deny. Hold 2 s. |
 | 1.7 | Phone | Tap **Approve**. | Green check, "Authorization recorded", reference. Hold 4 s. Zoom on the check. |
 
@@ -103,7 +103,7 @@ Hold 6 s.
 | # | Window | Action | On screen |
 | --- | --- | --- | --- |
 | 2.2 | Portal | **Home** in the sidebar. Click the BWTP 903 row. | Checks stagger in. Insurer write-off, duplicate identity, collision record are red at the top with "High risk" / "Low risk" badges. "3 of 8 checks failed · high risk". Panel: "Package cannot be issued", request disabled. Hold until all three rows are readable, about 6 s. Zoom on the rows. |
-| 2.3 | Portal | Click **Escalate to Insurance Hub / Law Enforcement**. | "Escalated for review", case reference `OVIL-2026-09-…`. Longest hold of the video, 6 s. Zoom on the reference. |
+| 2.3 | Portal | Click **Escalate to Insurance Hub / Law Enforcement**. | "Escalated for review", case reference `FVBL-2026-09-…`. Longest hold of the video, 6 s. Zoom on the reference. |
 
 ## Card 5b — Blockchain
 
@@ -120,7 +120,7 @@ Hold 6 s.
 ## Card 6 — Close
 
 > **A secure ledger of vehicle ownership.**
-> OVIL
+> FVBL
 
 Hold 5 s, fade to black.
 

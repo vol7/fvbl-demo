@@ -54,7 +54,7 @@ export const Backdrop: React.FC = () => {
 
 type Props = {
   title: string;
-  /** Shield + OVIL above the sentence. On for the hero and close. */
+  /** Shield + FVBL above the sentence. On for the hero and close. */
   lockup?: boolean;
   /** Own backdrop. Off in the cut, where one Backdrop sits under the whole timeline. */
   chrome?: boolean;
@@ -134,7 +134,7 @@ export const Slide: React.FC<Props> = ({
               lineHeight: 1,
             }}
           >
-            OVIL
+            FVBL
           </div>
         </Interactive.Div>
       ) : null}

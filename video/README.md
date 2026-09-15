@@ -1,4 +1,4 @@
-# OVIL demo video
+# FVBL demo video
 
 Remotion project that assembles the CleanShot recordings and the title cards
 into one 1920×1080, 30 fps video. The shot list is `docs/screenplay.md` at the
@@ -18,7 +18,7 @@ repo root; the cut is `src/Demo.tsx`.
 3. `pnpm dev` opens Remotion Studio (http://localhost:3000/Demo). Drag a
    sequence's right edge to trim it; Studio writes the number back to the
    file. The `Cards` folder previews each card on its own.
-4. `pnpm render` writes `out/ovil-demo.mp4`.
+4. `pnpm render` writes `out/fvbl-demo.mp4`.
 
 Shots that have no file yet render a grey slate with the shot number, so the
 whole timeline can be previewed before anything is recorded.

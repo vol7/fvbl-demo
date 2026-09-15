@@ -1,8 +1,8 @@
-# OVIL demo — two-surface layout and finished-product pass
+# FVBL demo — two-surface layout and finished-product pass
 
 Date: 2026-09-04
 Status: approved (François Deguire)
-Supersedes parts of `2026-09-02-ovil-demo-design.md` (phone mock placement, shell, screens).
+Supersedes parts of `2026-09-02-fvbl-demo-design.md` (phone mock placement, shell, screens).
 
 ## Why
 
@@ -52,8 +52,8 @@ type SessionAction =
 ```
 
 - `sessionReducer` is pure and unit tested.
-- `createSessionStore()` wraps it: reads `localStorage["ovil-demo:session:v1"]` on
-  start, writes on every dispatch, posts `{ state }` on `BroadcastChannel("ovil-demo")`,
+- `createSessionStore()` wraps it: reads `localStorage["fvbl-demo:session:v1"]` on
+  start, writes on every dispatch, posts `{ state }` on `BroadcastChannel("fvbl-demo")`,
   and also listens to the `storage` event as a fallback. Falls back to memory when
   storage is unavailable.
 - `useSession()` exposes `[state, dispatch]` via `useSyncExternalStore`.
@@ -68,7 +68,7 @@ type SessionAction =
 
 ## Portal shell
 
-- Sidebar (240px): OVIL wordmark + "Authorized User Portal"; nav group
+- Sidebar (240px): FVBL wordmark + "Authorized User Portal"; nav group
   "Workspace": Home, Vehicle lookup, Authorization requests, Cases; footer with
   clerk avatar (initials), name, office, and Sign out. Active item highlighted.
 - Top bar (56px): breadcrumb, global VIN search (submits to `/vehicle/:vin`),
@@ -78,7 +78,7 @@ type SessionAction =
 ## Pages
 
 ### Sign in
-Split layout: left 45% brand panel in primary blue with "OVIL" wordmark, one-line
+Split layout: left 45% brand panel in primary blue with "FVBL" wordmark, one-line
 description, small footer text. Right: card with username, password, Sign in,
 "Authorized users only. Access is logged." Accepts any input, navigates to `/home`.
 
@@ -116,19 +116,19 @@ session has a pending/authorized/frozen request or an escalated case.
 ### Phone
 - Full-viewport dark backdrop; a 390px-wide iOS Messages surface centered, full
   height when the window is that size.
-- Status bar (time, signal, battery), header with circular "O" avatar and "OVIL",
+- Status bar (time, signal, battery), header with circular "O" avatar and "FVBL",
   subtitle "Text message".
 - Thread: day separator "Earlier" with one older context bubble ("Your Ontario
   registration for plate {plate} was renewed…"), then "Today {time}" separator and
   the live request bubble when pending/authorized/frozen.
-- Owner reply and OVIL confirmation bubbles animate in staggered (owner reply,
-  then OVIL after ~400ms). "Delivered" caption under owner reply.
+- Owner reply and FVBL confirmation bubbles animate in staggered (owner reply,
+  then FVBL after ~400ms). "Delivered" caption under owner reply.
 - Quick-reply chips "YES {otp}" and "NO" while pending; disabled input bar below.
 - Idle: only the context bubble; footer hint "Waiting for a request…" is not
   shown (nothing on screen should look like a dev aid).
 
 ### Hub (`/demo`)
-Neutral page. Title "OVIL demo". Two cards: Clerk portal (opens `/` in a new
+Neutral page. Title "FVBL demo". Two cards: Clerk portal (opens `/` in a new
 window, note "record at 1440×900") and Registered owner phone (opens `/phone`,
 note "resize window to 390×844"). Scenario table with VIN copy buttons. Live
 status line (vehicle, authorization status). Buttons: Owner approves, Owner

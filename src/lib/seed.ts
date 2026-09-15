@@ -108,7 +108,7 @@ export type CaseRow = {
 
 export const CASE_ROWS: CaseRow[] = [
   {
-    reference: "OVIL-2026-09-03-1182",
+    reference: "FVBL-2026-09-03-1182",
     vehicle: "2023 BMW 530i xDrive",
     plate: "BKMP 480",
     reason: "Owner denied authorization",
@@ -117,7 +117,7 @@ export const CASE_ROWS: CaseRow[] = [
     when: "Yesterday, 11:12 a.m.",
   },
   {
-    reference: "OVIL-2026-08-29-0674",
+    reference: "FVBL-2026-08-29-0674",
     vehicle: "2022 Lexus RX 350",
     plate: "CJPN 552",
     reason: "Odometer rollback",
@@ -126,7 +126,7 @@ export const CASE_ROWS: CaseRow[] = [
     when: "Aug 29, 1:20 p.m.",
   },
   {
-    reference: "OVIL-2026-08-21-0417",
+    reference: "FVBL-2026-08-21-0417",
     vehicle: "2021 Ram 1500 Sport",
     plate: "BXAT 209",
     reason: "Duplicate identity",
@@ -135,7 +135,7 @@ export const CASE_ROWS: CaseRow[] = [
     when: "Aug 21, 10:04 a.m.",
   },
   {
-    reference: "OVIL-2026-08-14-0233",
+    reference: "FVBL-2026-08-14-0233",
     vehicle: "2024 Honda Civic Si",
     plate: "CMDA 660",
     reason: "Stolen vehicle report",

@@ -18,7 +18,7 @@ function Bubble({
   caption,
   delay = 0,
 }: {
-  from: "ovil" | "owner"
+  from: "fvbl" | "owner"
   children: React.ReactNode
   caption?: string
   delay?: number
@@ -66,7 +66,7 @@ function Header() {
         <span className="flex size-12 items-center justify-center rounded-full bg-gradient-to-b from-[#9a9ba0] to-[#7a7b80] text-[17px] font-semibold text-white">
           O
         </span>
-        <span className="text-[12px] text-black">OVIL ›</span>
+        <span className="text-[12px] text-black">FVBL ›</span>
       </div>
     </div>
   )
@@ -81,8 +81,8 @@ function ContextBubble({ vehicle }: { vehicle: Vehicle | undefined }) {
   return (
     <>
       <Separator>{formatDate(renewed)}</Separator>
-      <Bubble from="ovil">
-        OVIL: Your Ontario registration for plate {plate} was renewed on {formatDate(renewed)}. No
+      <Bubble from="fvbl">
+        FVBL: Your Ontario registration for plate {plate} was renewed on {formatDate(renewed)}. No
         action is needed. Reply STOP to opt out of service messages.
       </Bubble>
     </>
@@ -115,8 +115,8 @@ export function PhoneScreen() {
                 initial={false}
               >
                 <Separator>Today {formatTime(thread.state.sentAt)}</Separator>
-                <Bubble from="ovil">
-                  OVIL: A Used Vehicle Information Package was requested for your{" "}
+                <Bubble from="fvbl">
+                  FVBL: A Used Vehicle Information Package was requested for your{" "}
                   {vehicleTitle(thread.vehicle)} (plate {thread.vehicle.plate}) by{" "}
                   {thread.state.requester}. Review and approve or decline:{" "}
                   <button
@@ -130,7 +130,7 @@ export function PhoneScreen() {
                 </Bubble>
 
                 {thread.state.status === "authorized" ? (
-                  <Bubble from="ovil" delay={0.3}>
+                  <Bubble from="fvbl" delay={0.3}>
                     Thanks — your authorization has been recorded. Reference{" "}
                     <span className="font-semibold tracking-wide">
                       {thread.state.authorizationCode}
@@ -140,14 +140,14 @@ export function PhoneScreen() {
                 ) : null}
 
                 {thread.state.status === "frozen" && thread.state.reason === "denied" ? (
-                  <Bubble from="ovil" delay={0.3}>
+                  <Bubble from="fvbl" delay={0.3}>
                     Understood. The request was declined and the transaction has been flagged for
                     review. No package will be issued.
                   </Bubble>
                 ) : null}
 
                 {thread.state.status === "frozen" && thread.state.reason === "timeout" ? (
-                  <Bubble from="ovil" delay={0.2}>
+                  <Bubble from="fvbl" delay={0.2}>
                     This request expired with no response. The transaction has been frozen and
                     flagged for review.
                   </Bubble>
