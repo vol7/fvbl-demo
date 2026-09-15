@@ -2,6 +2,7 @@ import { ChevronLeft, Mic, Plus } from "lucide-react"
 import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 import { useNavigate } from "react-router"
 
+import { FvblMark } from "@/components/FvblMark"
 import { StatusBar } from "@/components/phone/PhoneChrome"
 import { formatDate, formatTime } from "@/lib/format"
 import { useSession } from "@/lib/session"
@@ -64,8 +65,9 @@ function Header() {
         <span className="w-14" />
       </div>
       <div className="-mt-5 flex flex-col items-center gap-1">
-        <span className="flex size-12 items-center justify-center rounded-full bg-gradient-to-b from-[#9a9ba0] to-[#7a7b80] text-[17px] font-semibold text-white">
-          O
+        {/* Business sender: iOS shows the company's app icon, not a contact initial. */}
+        <span className="flex size-12 items-center justify-center rounded-[11px] bg-gradient-to-b from-[#0b3a6b] to-[#081527] text-white shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.18)]">
+          <FvblMark tone="current" className="h-7 w-auto" />
         </span>
         <span className="text-[12px] text-black">FVBL ›</span>
       </div>

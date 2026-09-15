@@ -2,6 +2,7 @@ import { Lock, ShieldCheck } from "lucide-react"
 import { useState } from "react"
 import { useNavigate } from "react-router"
 
+import { FvblMark } from "@/components/FvblMark"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -50,9 +51,7 @@ export function SignIn({ variant = "clerk" }: { variant?: keyof typeof COPY }) {
           aria-hidden
         />
         <div className="relative flex items-center gap-2.5">
-          <span className="flex size-8 items-center justify-center rounded-md bg-white/15 ring-1 ring-white/25">
-            <ShieldCheck className="size-4" aria-hidden />
-          </span>
+          <FvblMark tone="current" className="h-8 w-auto" />
           <span className="text-sm font-semibold tracking-wide">FVBL</span>
         </div>
         <div className="relative flex max-w-md flex-col gap-4">
@@ -74,7 +73,7 @@ export function SignIn({ variant = "clerk" }: { variant?: keyof typeof COPY }) {
         <div className="flex w-full max-w-sm flex-col gap-8">
           <div className="flex flex-col gap-1.5">
             <div className="mb-3 flex items-center gap-2 text-primary lg:hidden">
-              <Lock className="size-4" aria-hidden />
+              <FvblMark className="h-5 w-auto" />
               <span className="text-xs font-semibold tracking-wide uppercase">FVBL</span>
             </div>
             <h1 className="text-2xl font-semibold tracking-tight">{copy.title}</h1>

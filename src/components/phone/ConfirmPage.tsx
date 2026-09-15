@@ -1,7 +1,8 @@
-import { Check, ChevronLeft, Lock, ShieldCheck, X } from "lucide-react"
+import { Check, ChevronLeft, Lock, X } from "lucide-react"
 import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 import { useNavigate } from "react-router"
 
+import { FvblMark } from "@/components/FvblMark"
 import { StatusBar } from "@/components/phone/PhoneChrome"
 import { Button } from "@/components/ui/button"
 import { generateAuthorizationCode } from "@/lib/authorization"
@@ -190,9 +191,7 @@ export function ConfirmPage() {
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
         <header className="flex items-center gap-2 border-b border-black/10 bg-white px-5 py-3">
-          <span className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <ShieldCheck className="size-4" aria-hidden />
-          </span>
+          <FvblMark className="h-6 w-auto" />
           <span className="text-sm font-semibold tracking-wide">FVBL</span>
           <span className="ml-auto text-xs text-neutral-500">
             {registration ? "Dealer confirmation" : "Owner authorization"}
