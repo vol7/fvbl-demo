@@ -61,7 +61,8 @@ export type Vehicle = {
   registeredOn: string | null
   odometerKm: number
   owner: { name: string; phoneLast4: string; city: string }
-  lastInspection: string
+  /** Null until the vehicle has been inspected once. */
+  lastInspection: string | null
   riskTier: "high-value" | "standard"
   records: VehicleRecords
   decoded: DecodedVin
@@ -279,7 +280,7 @@ export const DEMO_VEHICLES: Vehicle[] = [
     registeredOn: null,
     odometerKm: 0,
     owner: { name: FIRST_OWNER.name, phoneLast4: FIRST_OWNER.mobileLast4, city: "Toronto, ON" },
-    lastInspection: "",
+    lastInspection: null,
     riskTier: "high-value",
     records: {
       stolenReport: null,

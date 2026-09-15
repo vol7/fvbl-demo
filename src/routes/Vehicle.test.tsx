@@ -205,16 +205,21 @@ describe("Vehicle route for a brand-new VIN", () => {
     renderVehicle(NEW_VIN)
     expect(screen.getByText(/dealer submission is awaiting confirmation/i)).toBeInTheDocument()
 
+    // Confirmed now, as it is in the demo: the ledger tile must read "verified just now".
     store.dispatch({
       type: "confirmRegistration",
       vin: NEW_VIN,
       registrationRef: "FVBL-R-2026-09-15-0417",
-      at: "2026-09-15T14:05:30.000Z",
+      at: new Date().toISOString(),
     })
     expect(await screen.findByText("Checks clear")).toBeInTheDocument()
     expect(screen.getByText("All 8 checks passed")).toBeInTheDocument()
     expect(screen.getAllByText("Not yet plated").length).toBeGreaterThan(0)
     expect(screen.getByRole("tab", { name: /vehicle history/i })).toHaveTextContent("2")
+    // A vehicle born seconds ago has no inspection yet and was verified just now.
+    expect(screen.queryByText("Invalid Date")).not.toBeInTheDocument()
+    expect(screen.getByText("None yet")).toBeInTheDocument()
+    expect(screen.getByText(/verified just now/)).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole("tab", { name: /vehicle history/i }))
     expect(await screen.findByText("First registration")).toBeInTheDocument()

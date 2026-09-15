@@ -232,6 +232,7 @@ export function VehicleSummary({
   checks,
   state,
   openedAt,
+  verifiedAt,
   onOpenTab,
 }: {
   vehicle: Vehicle
@@ -239,13 +240,22 @@ export function VehicleSummary({
   state: AuthorizationState
   /** When the page opened; the ledger "verified … ago" counts from a few minutes before. */
   openedAt: string
+  /** When the record itself last changed on the ledger, if newer than the page. */
+  verifiedAt?: string
   onOpenTab: (tab: VehicleTab) => void
 }) {
   const now = useClock()
   const verdict = verdictLabel(state)
   const blocked = state.status === "blocked" || state.status === "escalated"
   const entries = ledgerEntries(vehicle, state)
-  const anchoredAt = new Date(new Date(openedAt).getTime() - 3 * 60_000)
+  // The last anchor is a few minutes before the page opened, unless the record itself is
+  // newer than that: a vehicle registered seconds ago was verified just now.
+  const anchoredAt = new Date(
+    Math.max(
+      new Date(openedAt).getTime() - 3 * 60_000,
+      verifiedAt ? new Date(verifiedAt).getTime() : 0
+    )
+  )
 
   return (
     <Card>
@@ -318,7 +328,10 @@ export function VehicleSummary({
           <Field label="Odometer at registration" value={formatOdometer(vehicle.odometerKm)} />
           <Field label="Registered owner" value={maskName(vehicle.owner.name)} />
           <Field label="Owner phone" value={`••• ••• ${vehicle.owner.phoneLast4}`} mono />
-          <Field label="Last inspection" value={formatDate(vehicle.lastInspection)} />
+          <Field
+            label="Last inspection"
+            value={vehicle.lastInspection ? formatDate(vehicle.lastInspection) : "None yet"}
+          />
           <Field
             label="Active lien"
             value={vehicle.records.lien ? vehicle.records.lien.holder : "None"}

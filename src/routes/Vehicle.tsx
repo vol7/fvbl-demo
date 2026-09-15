@@ -173,6 +173,7 @@ function VehicleView({
         checks={checks}
         state={state}
         openedAt={openedAt}
+        verifiedAt={registration.status === "registered" ? registration.registeredAt : undefined}
         onOpenTab={setTab}
       />
       <BorderAlert vehicle={vehicle} />
