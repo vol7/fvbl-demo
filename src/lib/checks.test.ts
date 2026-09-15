@@ -47,7 +47,7 @@ describe("evaluateChecks", () => {
     const checks = evaluateChecks(exported)
     expect(failingChecks(checks).map((c) => c.id)).toEqual(["border"])
     expect(checks[0]).toMatchObject({ id: "border", status: "fail", severity: "high" })
-    expect(checks[0].detail).toContain("Exported March 18, 2025")
+    expect(checks[0].detail).toContain("A vehicle carrying this VIN was exported March 18, 2025")
     expect(checks[0].detail).toContain("no re-entry")
   })
 

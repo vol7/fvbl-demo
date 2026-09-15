@@ -94,7 +94,7 @@ function historyDrafts(vehicle: Vehicle): Draft[] {
           title: HISTORY_TITLE[e.kind],
           vin,
           visibility: "public",
-          payload: `${e.date}|${e.agency}|${e.port}|${e.destination}`,
+          payload: `${e.date}|${e.agency}|${e.port}`,
         }
       case "firstRegistration":
       case "transfer":

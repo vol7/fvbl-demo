@@ -33,6 +33,6 @@ describe("RecordChecks", () => {
     expect(screen.getAllByText("Fail")).toHaveLength(1)
     expect(screen.getByText(/1 of 8 checks failed · high risk/i)).toBeInTheDocument()
     expect(screen.getAllByRole("listitem")[0]).toHaveTextContent("Import and export record")
-    expect(screen.getByText(/Lagos, Nigeria/)).toBeInTheDocument()
+    expect(screen.getByText(/A vehicle carrying this VIN was exported .* no re-entry on record/)).toBeInTheDocument()
   })
 })

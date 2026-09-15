@@ -12,7 +12,7 @@ export type Agency = "Transport Canada" | "CBSA" | "MTO" | "Insurer" | "Dealer"
 export type VehicleEvent =
   | { kind: "import"; date: string; agency: "Transport Canada"; port: string; detail: string }
   | { kind: "customsEntry"; date: string; agency: "CBSA"; port: string }
-  | { kind: "export"; date: string; agency: "CBSA"; port: string; destination: string }
+  | { kind: "export"; date: string; agency: "CBSA"; port: string }
   | { kind: "firstRegistration"; date: string; agency: "MTO"; office: string }
   | { kind: "transfer"; date: string; agency: "MTO"; office: string }
   | { kind: "renewal"; date: string; agency: "MTO"; office: string }
@@ -264,7 +264,6 @@ export const DEMO_VEHICLES: Vehicle[] = [
         date: "2025-03-18",
         agency: "CBSA",
         port: "Port of Montréal, QC",
-        destination: "Lagos, Nigeria",
       },
     ],
   },

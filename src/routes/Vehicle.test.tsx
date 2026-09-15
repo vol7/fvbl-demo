@@ -62,7 +62,7 @@ describe("Vehicle route", () => {
     renderVehicle(EXPORTED_VIN)
     expect(screen.getByText("Cannot be issued")).toBeInTheDocument()
     expect(screen.getByText("1 high-risk flag")).toBeInTheDocument()
-    expect(screen.getByRole("alert")).toHaveTextContent(/recorded as having left Canada/)
+    expect(screen.getByRole("alert")).toHaveTextContent(/A vehicle carrying this VIN has left Canada/)
     expect(screen.getByRole("alert")).toHaveTextContent(/CBSA recorded an export on March 18, 2025/)
     expect(screen.getByRole("alert")).toHaveTextContent(/Transport Canada has no re-entry/)
     expect(screen.queryByRole("button", { name: /request owner authorization/i })).toBeDisabled()

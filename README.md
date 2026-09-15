@@ -53,7 +53,7 @@ theme's fonts and colours so the hand-off feels continuous.
 | 1 · Clean vehicle | `4JGFB8KB5PA812634` | All checks pass. Request owner authorization; approve or deny from the phone. |
 | 2 · Cloned VIN | `5TDEBRCH7SS041927` | Write-off, duplicate identity and collision fail. Request disabled; escalate. |
 | 3 · Buyer pre-request | `4JGFB8KB5PA812634` | On ServiceOntario choose "Buying a vehicle", send the request; owner taps the SMS link and approves; clerk lookup shows the authorization on file. The owner can also pre-approve directly ("Selling my vehicle"). |
-| 4 · Exported vehicle | `SALWR2SE4NA209311` | Clean MTO record, but CBSA logged an export in March 2025 with no re-entry. One high-risk check fails and blocks the package. ServiceOntario refuses the pre-approval. |
+| 4 · Exported vehicle | `SALWR2SE4NA209311` | Clean MTO record, but CBSA logged a vehicle carrying this VIN leaving in March 2025 with no re-entry. The identity is in conflict: either the car at the counter is a clone, or the exported one was. One high-risk check fails and holds the package for investigation. ServiceOntario refuses the pre-approval. |
 | 5 · New vehicle · dealer first registration | `4JGFF5KE9SB412009` | The birth of the VIN. In the dealer portal the VIN decodes but has no registration on file; tick the NVIS check mark, submit to the ministry; the dealership's phone gets the text and confirms. The clerk portal's Unregistered VIN card resolves live into a record with two history rows, the first captioned "Ledger opened". |
 
 The three registered VINs are the first rows under "Recent lookups" so you can
@@ -92,8 +92,8 @@ Tabs (the tab is in the URL as `?tab=history` or `?tab=ownership`):
   failure still blocks the package.
 - **Vehicle history.** The chronology across Transport Canada, CBSA and the
   MTO: import, customs, first registration, transfers (office number only,
-  never a name), renewals and odometer readings. Milestones by default,
-  "Show all" for the rest.
+  never a name), renewals and odometer readings. Every event is listed, newest
+  first; milestones are set heavier so the record still scans.
 - **Ownership and registration.** The MTO record, owner masked.
 
 The right rail is the package panel and the activity feed, sticky, unchanged.

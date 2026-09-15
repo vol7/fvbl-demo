@@ -13,11 +13,11 @@ describe("BorderAlert", () => {
   it("tells the CBSA and Transport Canada story for an open export", () => {
     render(<BorderAlert vehicle={findVehicle(EXPORTED_VIN)!} />)
     const alert = screen.getByRole("alert")
-    expect(alert).toHaveTextContent("recorded as having left Canada")
-    expect(alert).toHaveTextContent(
-      "March 18, 2025 via Port of Montréal, QC, bound for Lagos, Nigeria"
-    )
+    expect(alert).toHaveTextContent("A vehicle carrying this VIN has left Canada")
+    expect(alert).toHaveTextContent("March 18, 2025 via Port of Montréal, QC")
     expect(alert).toHaveTextContent("Transport Canada has no re-entry on file")
+    expect(alert).toHaveTextContent("cloned identity")
     expect(alert).toHaveTextContent("cannot be overridden")
+    expect(alert).not.toHaveTextContent("bound for")
   })
 })

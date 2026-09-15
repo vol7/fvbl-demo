@@ -60,7 +60,7 @@ describe("openExport", () => {
     expect(openExport(findVehicle(CLEAN_VIN)!)).toBeNull()
     expect(openExport(findVehicle(EXPORTED_VIN)!)).toMatchObject({
       kind: "export",
-      destination: "Lagos, Nigeria",
+      port: "Port of Montréal, QC",
     })
   })
 })

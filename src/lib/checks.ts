@@ -110,7 +110,7 @@ function borderCheck(vehicle: Vehicle): Check {
     return check(
       "border",
       "fail",
-      `Exported ${formatDate(exported.date)} via ${exported.port} to ${exported.destination} · no re-entry on record`
+      `A vehicle carrying this VIN was exported ${formatDate(exported.date)} via ${exported.port} · no re-entry on record`
     )
   }
   const entry = vehicle.history.find((e) => e.kind === "import")
