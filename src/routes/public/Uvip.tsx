@@ -60,13 +60,13 @@ export function Uvip() {
           <RoleCard
             to="/uvip/owner"
             icon={<KeyRound className="size-5" aria-hidden />}
-            title="The registered owner"
+            title="Selling my vehicle"
             description="Verify your identity and pre-approve the package for your vehicle. Valid for 30 days."
           />
           <RoleCard
             to="/uvip/buyer"
             icon={<ShoppingCart className="size-5" aria-hidden />}
-            title="Buying this vehicle"
+            title="Buying a vehicle"
             description="Ask the registered owner to authorize the package. They will receive a text message."
           />
         </div>
