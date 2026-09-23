@@ -13,7 +13,14 @@ import { paths } from "@/lib/paths"
 export const INVALID_MESSAGE = "Enter a 17-character VIN (letters I, O and Q are not used)."
 export const NOT_FOUND_MESSAGE = "No record found for this VIN."
 
-export function LookupForm({ size = "default" }: { size?: "default" | "lg" }) {
+/** `hideLabel` keeps the label for screen readers when a heading above already names the field. */
+export function LookupForm({
+  size = "default",
+  hideLabel = false,
+}: {
+  size?: "default" | "lg"
+  hideLabel?: boolean
+}) {
   const navigate = useNavigate()
   const [vin, setVin] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -34,7 +41,9 @@ export function LookupForm({ size = "default" }: { size?: "default" | "lg" }) {
 
   return (
     <div className="flex flex-col gap-3">
-      <Label htmlFor="lookup-code">Vehicle Identification Number (VIN)</Label>
+      <Label htmlFor="lookup-code" className={hideLabel ? "sr-only" : undefined}>
+        Vehicle Identification Number (VIN)
+      </Label>
       <div className="flex gap-2">
         <Input
           id="lookup-code"
