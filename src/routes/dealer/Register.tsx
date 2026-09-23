@@ -1,21 +1,31 @@
-import { Check, MessageSquareText, ShieldCheck } from "lucide-react"
+import { CircleCheck, Clock, Undo2, type LucideIcon } from "lucide-react"
 import { motion, useReducedMotion } from "motion/react"
 import { useState } from "react"
 import { Link } from "react-router"
 
+import { LedgerMark } from "@/components/LedgerMark"
 import { StepHeader, StepPanel } from "@/components/public/Stepper"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { generateLinkToken, generateOtp } from "@/lib/authorization"
 import { formatOdometer, formatTime, isValidVin, normalizeVin } from "@/lib/format"
+import { historyCertificates } from "@/lib/ledger"
 import { paths } from "@/lib/paths"
 import { DEALER, FIRST_OWNER, maskLicence } from "@/lib/people"
 import { NO_REGISTRATION, type Submission } from "@/lib/registration"
 import { registrationState, useSession } from "@/lib/session"
 import { smsLink } from "@/lib/sms"
+import { cn } from "@/lib/utils"
 import { submitOnEnter } from "@/lib/submitOnEnter"
-import { findVehicle, NEW_VIN, vehicleTitle, type Vehicle } from "@/lib/vehicles"
+import {
+  bornVehicle,
+  countryOfOrigin,
+  findVehicle,
+  NEW_VIN,
+  vehicleTitle,
+  type Vehicle,
+} from "@/lib/vehicles"
 import { ReviewRow } from "@/routes/public/UvipOwner"
 
 const STEPS = ["Vehicle", "NVIS and delivery", "Review"]
@@ -31,6 +41,58 @@ const SUBMISSION: Submission = {
   nvis: DEALER.nvis,
   deliveryKm: 12,
   firstOwner: FIRST_OWNER.name,
+}
+
+const TONE = {
+  info: { card: "border-primary/25 bg-primary/[0.04]", label: "text-primary" },
+  success: {
+    card: "border-emerald-600/25 bg-emerald-50/70 dark:bg-emerald-950/30",
+    label: "text-emerald-700 dark:text-emerald-400",
+  },
+  neutral: { card: "border-border bg-muted/40", label: "text-muted-foreground" },
+} as const
+
+/** The submission's state, in the same card as the clerk portal's decision. */
+function StatusCard({
+  tone,
+  icon: Icon,
+  label,
+  title,
+  text,
+  reference,
+  children,
+}: {
+  tone: keyof typeof TONE
+  icon: LucideIcon
+  label: string
+  title: string
+  text: React.ReactNode
+  reference?: string
+  children?: React.ReactNode
+}) {
+  const reduceMotion = useReducedMotion()
+  return (
+    <motion.section
+      role="status"
+      className={cn("overflow-hidden rounded-xl border", TONE[tone].card)}
+      initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.22, ease: "easeOut" }}
+    >
+      <div className="p-5 sm:px-6">
+        <p className={cn("flex items-center gap-2 text-sm font-semibold", TONE[tone].label)}>
+          <Icon className="size-[18px]" strokeWidth={2} aria-hidden />
+          {label}
+        </p>
+        <h2 className="mt-2 text-lg leading-snug font-semibold tracking-tight">{title}</h2>
+        <p className="mt-1.5 text-sm text-foreground/80">{text}</p>
+        {reference ? (
+          <p className="mt-2.5 font-mono text-[15px] font-medium tracking-wider">{reference}</p>
+        ) : null}
+      </div>
+      {children ? <div className="border-t bg-background/70 px-5 sm:px-6">{children}</div> : null}
+    </motion.section>
+  )
 }
 
 /** First registration of a brand-new vehicle: the birth of the VIN, from the dealer's side. */
@@ -80,43 +142,24 @@ export function Register() {
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1.5">
         <h1 className="text-2xl font-semibold tracking-tight">Register a new vehicle</h1>
-        <p className="text-base text-muted-foreground">
-          First registration with the ministry, from the New Vehicle Information Statement. The
-          submission is confirmed from the dealership's registered mobile.
+        <p className="text-sm text-muted-foreground">
+          First registration with the ministry, from the New Vehicle Information Statement. You
+          confirm the submission from the dealership's registered mobile.
         </p>
       </div>
 
       {submitted && vehicle && registration.status !== "none" ? (
-        <motion.section
-          role="status"
-          className="flex flex-col gap-5 rounded-xl border bg-card p-6"
-          initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
-        >
+        <>
           {registration.status === "pending" ? (
-            <>
-              <div className="flex items-center gap-3">
-                <motion.span
-                  className="flex size-10 items-center justify-center rounded-full bg-primary text-primary-foreground"
-                  initial={reduceMotion ? false : { scale: 0.25, filter: "blur(4px)" }}
-                  animate={{ scale: 1, filter: "blur(0px)" }}
-                  transition={{ type: "spring", duration: 0.3, bounce: 0 }}
-                >
-                  <MessageSquareText className="size-5" aria-hidden />
-                </motion.span>
-                <div className="flex flex-col">
-                  <h2 className="text-xl font-semibold tracking-tight">
-                    Submitted to the ministry
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    Awaiting confirmation from the dealership's registered mobile ending{" "}
-                    {registration.dealerMobileLast4}.
-                  </p>
-                </div>
-              </div>
+            <StatusCard
+              tone="info"
+              icon={Clock}
+              label="Awaiting confirmation"
+              title="Submitted to the ministry"
+              text={`A text went to the dealership's registered mobile ending ${registration.dealerMobileLast4}. The registration is recorded once it is confirmed there; the link expires in 24 hours.`}
+            >
               <dl className="divide-y">
                 <ReviewRow label="Vehicle" value={vehicleTitle(vehicle)} />
                 <ReviewRow
@@ -125,43 +168,23 @@ export function Register() {
                 />
                 <ReviewRow label="Submitted as" value={registration.dealer} />
                 <ReviewRow
-                  label="Text sent to"
-                  value={`Mobile ending ${registration.dealerMobileLast4}`}
-                />
-                <ReviewRow
                   label="Link"
                   value={<span className="font-mono">{smsLink(registration.link)}</span>}
                 />
-                <ReviewRow label="Expires" value="24 hours" />
               </dl>
-            </>
+            </StatusCard>
           ) : null}
 
           {registration.status === "registered" ? (
-            <>
-              <div className="flex items-center gap-3">
-                <motion.span
-                  className="flex size-10 items-center justify-center rounded-full bg-emerald-600 text-white"
-                  initial={reduceMotion ? false : { scale: 0.25, filter: "blur(4px)" }}
-                  animate={{ scale: 1, filter: "blur(0px)" }}
-                  transition={{ type: "spring", duration: 0.3, bounce: 0 }}
-                >
-                  <Check className="size-5" strokeWidth={3} aria-hidden />
-                </motion.span>
-                <div className="flex flex-col">
-                  <h2 className="text-xl font-semibold tracking-tight">Registration recorded</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Confirmed from the dealership's mobile. The vehicle's ledger is open.
-                  </p>
-                </div>
-              </div>
+            <StatusCard
+              tone="success"
+              icon={CircleCheck}
+              label="Confirmed from the dealership's mobile"
+              title="Registration recorded"
+              text="The ministry has the first registration and the vehicle's ledger is open."
+              reference={registration.registrationRef}
+            >
               <dl className="divide-y">
-                <ReviewRow
-                  label="Reference"
-                  value={
-                    <span className="font-mono tracking-wider">{registration.registrationRef}</span>
-                  }
-                />
                 <ReviewRow label="Vehicle" value={vehicleTitle(vehicle)} />
                 <ReviewRow
                   label="VIN"
@@ -171,13 +194,23 @@ export function Register() {
                   label="Registered"
                   value={`Today, ${formatTime(registration.registeredAt)}`}
                 />
-                <ReviewRow label="Office" value={registration.office} />
+                <ReviewRow label="Office" value={registration.office.split(" · ").at(-1)} />
+                <ReviewRow
+                  label="Ledger"
+                  value={
+                    <span className="inline-flex items-center gap-1.5">
+                      First registration and delivery odometer
+                      <LedgerMark
+                        hash={historyCertificates(bornVehicle(vehicle, registration))[0]}
+                        event="First registration"
+                        source="MTO"
+                        recordedAt={registration.registeredAt}
+                      />
+                    </span>
+                  }
+                />
               </dl>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <ShieldCheck className="size-4 text-emerald-600" aria-hidden />
-                First registration and delivery odometer are on the ledger, Blockchain certified.
-              </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 border-t py-4">
                 <Link to={paths.portal.vehicle(vehicle.vin)} className={buttonVariants()}>
                   View in FVBL
                 </Link>
@@ -185,31 +218,25 @@ export function Register() {
                   Register another
                 </Button>
               </div>
-            </>
+            </StatusCard>
           ) : null}
 
           {registration.status === "declined" ? (
-            <>
-              <div className="flex items-center gap-3">
-                <span className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                  <MessageSquareText className="size-5" aria-hidden />
-                </span>
-                <div className="flex flex-col">
-                  <h2 className="text-xl font-semibold tracking-tight">Submission withdrawn</h2>
-                  <p className="text-sm text-muted-foreground">
-                    The confirmation was declined from the dealership's mobile. Nothing was
-                    recorded.
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-2">
+            <StatusCard
+              tone="neutral"
+              icon={Undo2}
+              label="Declined from the dealership's mobile"
+              title="Submission withdrawn"
+              text="Nothing was recorded with the ministry."
+            >
+              <div className="py-4">
                 <Button type="button" variant="outline" onClick={startOver}>
                   Start over
                 </Button>
               </div>
-            </>
+            </StatusCard>
           ) : null}
-        </motion.section>
+        </>
       ) : (
         <>
           <StepHeader steps={STEPS} current={step} />
@@ -249,21 +276,27 @@ export function Register() {
                 {vehicle ? (
                   <motion.div
                     role="status"
-                    className="flex flex-col gap-3 rounded-lg border bg-muted/40 p-4"
+                    className="overflow-hidden rounded-xl border bg-card shadow-xs"
                     initial={reduceMotion ? false : { opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
                   >
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-1 p-5">
                       <span className="text-xs text-muted-foreground">VIN decodes to</span>
-                      <span className="text-base font-medium">{vehicleTitle(vehicle)}</span>
+                      <span className="text-lg leading-snug font-semibold tracking-tight">
+                        {vehicleTitle(vehicle)}
+                      </span>
                       <span className="text-sm text-muted-foreground">
-                        {vehicle.colour} · {vehicle.bodyStyle} · built {vehicle.decoded.plant}
+                        {vehicle.colour} {vehicle.bodyStyle}, built in {countryOfOrigin(vehicle)} (
+                        {vehicle.decoded.plant.split(",")[0]})
                       </span>
                     </div>
-                    <p className="border-t pt-3 text-sm text-muted-foreground">
-                      <span className="font-medium text-foreground">No registration on file.</span>{" "}
-                      This VIN has not been registered in any jurisdiction.
+                    <p className="flex items-center gap-2 border-t bg-emerald-50/60 px-5 py-3 text-sm dark:bg-emerald-950/20">
+                      <CircleCheck className="size-4 shrink-0 text-emerald-600" aria-hidden />
+                      <span>
+                        <span className="font-medium">No registration on file.</span> This VIN has
+                        not been registered in any jurisdiction.
+                      </span>
                     </p>
                   </motion.div>
                 ) : null}
@@ -333,7 +366,7 @@ export function Register() {
                   />
                   <ReviewRow
                     label="Submitting as"
-                    value={`${DEALER.name} · Dealer no. ${DEALER.number}`}
+                    value={`${DEALER.name}, dealer no. ${DEALER.number}`}
                   />
                 </dl>
 

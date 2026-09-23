@@ -132,8 +132,9 @@ digest in `src/lib/ledger.ts` is a deterministic stand-in, not a real hash.
   sibling of the clerk portal: decode a VIN, confirm the New Vehicle Information
   Statement with one check mark, review, **Submit to ministry**. The page then
   witnesses the session: awaiting confirmation, then *Registration recorded* with
-  an `FVBL-R-…` reference. Generic look for now; the client is sending reference
-  for the real dealer portal, and the reskin lands in
+  an `FVBL-R-…` reference and a certificate for the ledger's first entry. It
+  shares the clerk portal's inset frame and status cards; the client is sending
+  reference for the real dealer portal, and that reskin lands in
   `src/components/dealer/DealerShell.tsx`.
 - **ServiceOntario** (`/serviceontario/` → `/uvip`). The owner verifies with a
   licence number and a photo and puts a 30-day authorization on file, or a buyer
