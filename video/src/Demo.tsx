@@ -77,7 +77,7 @@ export const Demo: React.FC = () => {
           />
         </TransitionSeries.Sequence>
         {handoff}
-        <TransitionSeries.Sequence name="Flow 1b Phone" durationInFrames={540}>
+        <TransitionSeries.Sequence name="Flow 1b Phone" durationInFrames={571}>
           <Clip shot="1b" surface="Phone" file="flow-1b.mp4" />
         </TransitionSeries.Sequence>
         {handoff}
@@ -92,7 +92,7 @@ export const Demo: React.FC = () => {
         {handoff}
         <TransitionSeries.Sequence
           name="Flow 2a Portal landing"
-          durationInFrames={300}
+          durationInFrames={565}
         >
           <Clip shot="2a" surface="Portal" file="flow-2a.mp4" />
         </TransitionSeries.Sequence>
@@ -107,7 +107,7 @@ export const Demo: React.FC = () => {
         {handoff}
         <TransitionSeries.Sequence
           name="Flow 2b Portal checks"
-          durationInFrames={300}
+          durationInFrames={270}
         >
           <Clip shot="2b" surface="Portal" file="flow-2b.mp4" />
         </TransitionSeries.Sequence>
@@ -122,7 +122,7 @@ export const Demo: React.FC = () => {
         {handoff}
         <TransitionSeries.Sequence
           name="Flow 2c Portal timeline"
-          durationInFrames={300}
+          durationInFrames={349}
         >
           <Clip shot="2c" surface="Portal" file="flow-2c.mp4" />
         </TransitionSeries.Sequence>
@@ -137,7 +137,7 @@ export const Demo: React.FC = () => {
         {handoff}
         <TransitionSeries.Sequence
           name="Flow 2d Portal authorization"
-          durationInFrames={330}
+          durationInFrames={453}
         >
           <Clip shot="2d" surface="Portal" file="flow-2d.mp4" />
         </TransitionSeries.Sequence>
@@ -153,7 +153,7 @@ export const Demo: React.FC = () => {
         {handoff}
         <TransitionSeries.Sequence
           name="Flow 3 Portal red"
-          durationInFrames={630}
+          durationInFrames={634}
         >
           <Clip shot="3" surface="Portal" file="flow-3.mp4" />
         </TransitionSeries.Sequence>
@@ -167,7 +167,7 @@ export const Demo: React.FC = () => {
           />
         </TransitionSeries.Sequence>
         {handoff}
-        <TransitionSeries.Sequence name="Flow 4 Ledger" durationInFrames={300}>
+        <TransitionSeries.Sequence name="Flow 4 Ledger" durationInFrames={331}>
           <Clip shot="4" surface="Portal" file="flow-4.mp4" />
         </TransitionSeries.Sequence>
         {handoff}
