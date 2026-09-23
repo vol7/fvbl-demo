@@ -18,8 +18,10 @@ cards. It was supplied for the demo only.
 - The app component, the favicon and the video copy share one path, kept in sync
   by hand. If you change one, change all three.
 - The mark appears in the clerk sidebar, the dealer sidebar, the phone confirm
-  header, the phone thread's app icon and the sign-in page. Use `FvblMark` there
-  rather than pasting the path again. `tone="current"` is for dark grounds.
+  header and the sign-in page. Use `FvblMark` there rather than pasting the path
+  again. `tone="current"` is for dark grounds.
+- The phone's SMS thread is deliberately not FVBL-branded: its sender is "MTO"
+  (2026-09-18 review), since an unfamiliar sender name reads as phishing.
 - The "Blockchain certified" indicator (`LedgerMark.tsx`) deliberately keeps its
   generic check-shield icon. It is a certificate marker, not the brand.
 - When the licensed FVBL mark arrives, replace the path and gradient in all three

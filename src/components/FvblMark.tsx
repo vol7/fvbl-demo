@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils"
  *
  * `tone="gradient"` is the brand fill, dark to light blue along the diagonal, for
  * light grounds. `tone="current"` fills with `currentColor` for dark grounds where
- * the gradient would sink (the sign-in hero, the phone's app icon).
+ * the gradient would sink (the sign-in hero).
  */
 export function FvblMark({
   tone = "gradient",

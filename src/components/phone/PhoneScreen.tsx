@@ -2,7 +2,6 @@ import { ChevronLeft, Mic, Plus } from "lucide-react"
 import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 import { useNavigate } from "react-router"
 
-import { FvblMark } from "@/components/FvblMark"
 import { StatusBar } from "@/components/phone/PhoneChrome"
 import { formatDate, formatTime } from "@/lib/format"
 import { useSession } from "@/lib/session"
@@ -19,8 +18,8 @@ function Bubble({
   caption,
   delay = 0,
 }: {
-  /** FVBL's messages sit left; whoever holds the phone (owner or dealership) sits right. */
-  from: "fvbl" | "them"
+  /** The ministry's messages sit left; whoever holds the phone (owner or dealership) sits right. */
+  from: "mto" | "them"
   children: React.ReactNode
   caption?: string
   delay?: number
@@ -65,11 +64,12 @@ function Header() {
         <span className="w-14" />
       </div>
       <div className="-mt-5 flex flex-col items-center gap-1">
-        {/* Business sender: iOS shows the company's app icon, not a contact initial. */}
-        <span className="flex size-12 items-center justify-center rounded-[11px] bg-gradient-to-b from-[#0b3a6b] to-[#081527] text-white shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.18)]">
-          <FvblMark tone="current" className="h-7 w-auto" />
+        {/* Business sender: iOS shows the sender's icon, not a contact initial. The texts come
+            from MTO, a name the owner already trusts; an unfamiliar "FVBL" reads as phishing. */}
+        <span className="flex size-12 items-center justify-center rounded-[11px] bg-gradient-to-b from-[#0b3a6b] to-[#081527] text-[15px] font-bold tracking-wide text-white shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.18)]">
+          MTO
         </span>
-        <span className="text-[12px] text-black">FVBL ›</span>
+        <span className="text-[12px] text-black">MTO ›</span>
       </div>
     </div>
   )
@@ -82,8 +82,8 @@ function ContextBubble({ thread }: { thread: Thread | null }) {
     return (
       <>
         <Separator>{formatDate("2026-09-08")}</Separator>
-        <Bubble from="fvbl">
-          FVBL: Registration FVBL-R-2026-09-08-2291 for a 2026 Mercedes-Benz GLC 300 4MATIC was
+        <Bubble from="mto">
+          MTO: Registration FVBL-R-2026-09-08-2291 for a 2026 Mercedes-Benz GLC 300 4MATIC was
           recorded on {formatDate("2026-09-08")}. Reply STOP to opt out of service messages.
         </Bubble>
       </>
@@ -98,8 +98,8 @@ function ContextBubble({ thread }: { thread: Thread | null }) {
   return (
     <>
       <Separator>{formatDate(renewed)}</Separator>
-      <Bubble from="fvbl">
-        FVBL: Your Ontario registration for plate {plate} was renewed on {formatDate(renewed)}. No
+      <Bubble from="mto">
+        MTO: Your Ontario registration for plate {plate} was renewed on {formatDate(renewed)}. No
         action is needed. Reply STOP to opt out of service messages.
       </Bubble>
     </>
@@ -118,8 +118,8 @@ function RegistrationThread({
   return (
     <>
       <Separator>Today {formatTime(state.sentAt)}</Separator>
-      <Bubble from="fvbl">
-        FVBL: {state.dealer} submitted the first registration of a {vehicleTitle(vehicle)} (VIN …
+      <Bubble from="mto">
+        MTO: {state.dealer} submitted the first registration of a {vehicleTitle(vehicle)} (VIN …
         {vehicle.vin.slice(-4)}) to the ministry. Confirm this submission:{" "}
         <button
           type="button"
@@ -132,7 +132,7 @@ function RegistrationThread({
       </Bubble>
 
       {state.status === "registered" ? (
-        <Bubble from="fvbl" delay={0.3}>
+        <Bubble from="mto" delay={0.3}>
           Confirmed. Registration{" "}
           <span className="font-semibold tracking-wide">{state.registrationRef}</span> is recorded
           and the vehicle's ledger has been opened.
@@ -140,7 +140,7 @@ function RegistrationThread({
       ) : null}
 
       {state.status === "declined" ? (
-        <Bubble from="fvbl" delay={0.3}>
+        <Bubble from="mto" delay={0.3}>
           Understood. The submission has been withdrawn. Nothing was recorded.
         </Bubble>
       ) : null}
@@ -184,8 +184,8 @@ export function PhoneScreen() {
                 initial={false}
               >
                 <Separator>Today {formatTime(thread.state.sentAt)}</Separator>
-                <Bubble from="fvbl">
-                  FVBL: A Used Vehicle Information Package was requested for your{" "}
+                <Bubble from="mto">
+                  MTO: A Used Vehicle Information Package was requested for your{" "}
                   {vehicleTitle(thread.vehicle)} (plate {thread.vehicle.plate}) by{" "}
                   {thread.state.requester}. Review and approve or decline:{" "}
                   <button
@@ -199,7 +199,7 @@ export function PhoneScreen() {
                 </Bubble>
 
                 {thread.state.status === "authorized" ? (
-                  <Bubble from="fvbl" delay={0.3}>
+                  <Bubble from="mto" delay={0.3}>
                     Thanks — your authorization has been recorded. Reference{" "}
                     <span className="font-semibold tracking-wide">
                       {thread.state.authorizationCode}
@@ -209,14 +209,14 @@ export function PhoneScreen() {
                 ) : null}
 
                 {thread.state.status === "frozen" && thread.state.reason === "denied" ? (
-                  <Bubble from="fvbl" delay={0.3}>
+                  <Bubble from="mto" delay={0.3}>
                     Understood. The request was declined and the transaction has been flagged for
                     review. No package will be issued.
                   </Bubble>
                 ) : null}
 
                 {thread.state.status === "frozen" && thread.state.reason === "timeout" ? (
-                  <Bubble from="fvbl" delay={0.2}>
+                  <Bubble from="mto" delay={0.2}>
                     This request expired with no response. The transaction has been frozen and
                     flagged for review.
                   </Bubble>
