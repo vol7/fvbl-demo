@@ -2,7 +2,15 @@ import { formatDate, formatOdometer } from "./format"
 import { odometerEvents, openExport, type OdometerEvent, type Vehicle } from "./vehicles"
 
 export type CheckId =
-  "border" | "decode" | "stolen" | "writeOff" | "duplicate" | "collision" | "odometer" | "lien"
+  | "border"
+  | "decode"
+  | "stolen"
+  | "writeOff"
+  | "duplicate"
+  | "usTitle"
+  | "collision"
+  | "odometer"
+  | "lien"
 
 export type CheckStatus = "pass" | "fail"
 
@@ -18,6 +26,9 @@ export type Check = {
   label: string
   status: CheckStatus
   severity: Severity
+  /** The condition in a few words ("No export on record"), set heavier than the detail. */
+  result: string
+  /** The evidence behind the result. Empty when the result says it all. */
   detail: string
   source: string
   /** Short agency names shown as chips on the row. */
@@ -30,6 +41,7 @@ const LABELS: Record<CheckId, string> = {
   stolen: "Stolen vehicle report",
   writeOff: "Insurer write-off",
   duplicate: "Duplicate identity",
+  usTitle: "US title record",
   collision: "Collision record",
   odometer: "Odometer consistency",
   lien: "Active lien",
@@ -39,9 +51,10 @@ export const SOURCES: Record<CheckId, string> = {
   border: "Transport Canada RIV · CBSA",
   decode: "NHTSA vPIC · MTO vehicle registry",
   stolen: "CPIC · Canadian Police Information Centre",
-  writeOff: "Insurance Bureau of Canada",
+  writeOff: "Insurance Bureau of Canada · Carfax Canada",
   duplicate: "MTO vehicle registry",
-  collision: "Ontario collision reporting",
+  usTitle: "NMVTIS · US National Motor Vehicle Title Information System",
+  collision: "Ontario collision reporting · Carfax Canada",
   odometer: "MTO registration history",
   lien: "Ontario PPSR",
 }
@@ -51,9 +64,10 @@ export const AGENCIES: Record<CheckId, string[]> = {
   border: ["Transport Canada", "CBSA"],
   decode: ["NHTSA", "MTO"],
   stolen: ["CPIC"],
-  writeOff: ["IBC"],
+  writeOff: ["IBC", "Carfax"],
   duplicate: ["MTO"],
-  collision: ["MTO"],
+  usTitle: ["NMVTIS"],
+  collision: ["MTO", "Carfax"],
   odometer: ["MTO"],
   lien: ["PPSR"],
 }
@@ -65,7 +79,9 @@ export const INTEGRATIONS: { name: string; detail: string }[] = [
   { name: "MTO", detail: "Ontario vehicle registry" },
   { name: "CPIC", detail: "Canadian Police Information Centre" },
   { name: "IBC", detail: "Insurance Bureau of Canada" },
+  { name: "Carfax", detail: "Carfax Canada vehicle history reports" },
   { name: "NHTSA", detail: "VIN decoder (vPIC)" },
+  { name: "NMVTIS", detail: "US federal title records, all states" },
   { name: "PPSR", detail: "Ontario Personal Property Security Registration" },
 ]
 
@@ -75,6 +91,7 @@ export const SEVERITY: Record<CheckId, Severity> = {
   stolen: "high",
   writeOff: "high",
   duplicate: "high",
+  usTitle: "high",
   collision: "low",
   odometer: "low",
   lien: "low",
@@ -87,17 +104,19 @@ const ORDER: CheckId[] = [
   "stolen",
   "writeOff",
   "duplicate",
+  "usTitle",
   "collision",
   "odometer",
   "lien",
 ]
 
-function check(id: CheckId, status: CheckStatus, detail: string): Check {
+function check(id: CheckId, status: CheckStatus, result: string, detail = ""): Check {
   return {
     id,
     label: LABELS[id],
     status,
     severity: SEVERITY[id],
+    result,
     detail,
     source: SOURCES[id],
     agencies: AGENCIES[id],
@@ -110,17 +129,19 @@ function borderCheck(vehicle: Vehicle): Check {
     return check(
       "border",
       "fail",
-      `A vehicle carrying this VIN was exported ${formatDate(exported.date)} via ${exported.port} · no re-entry on record`
+      "Exported, no re-entry",
+      `Left through ${exported.port} on ${formatDate(exported.date)}`
     )
   }
-  const entry = vehicle.history.find((e) => e.kind === "import")
-  return check(
-    "border",
-    "pass",
-    entry
-      ? `Entered Canada ${formatDate(entry.date)} via ${entry.port} · no export on record`
-      : "No border activity on record"
-  )
+  const entry = vehicle.history.filter((e) => e.kind === "import").at(-1)
+  return entry
+    ? check(
+        "border",
+        "pass",
+        "No export on record",
+        `Entered Canada ${formatDate(entry.date)} via ${entry.port}`
+      )
+    : check("border", "pass", "No border activity")
 }
 
 function describe(v: { year: number; make: string; model: string; bodyStyle: string }): string {
@@ -135,8 +156,13 @@ function decodeCheck(vehicle: Vehicle): Check {
     d.model === vehicle.model &&
     d.bodyStyle === vehicle.bodyStyle
   return matches
-    ? check("decode", "pass", `Decodes to ${describe(d)} · matches MTO record`)
-    : check("decode", "fail", `Decodes to ${describe(d)} · MTO record says ${describe(vehicle)}`)
+    ? check("decode", "pass", "Matches MTO record", `Decodes to ${describe(d)}`)
+    : check(
+        "decode",
+        "fail",
+        "Does not match MTO record",
+        `Decodes to ${describe(d)}, MTO record says ${describe(vehicle)}`
+      )
 }
 
 function odometerCheck(readings: OdometerEvent[]): Check {
@@ -147,7 +173,8 @@ function odometerCheck(readings: OdometerEvent[]): Check {
       return check(
         "odometer",
         "fail",
-        `Rollback: ${formatOdometer(prev.km)} on ${formatDate(prev.date)}, then ${formatOdometer(curr.km)} on ${formatDate(curr.date)}`
+        "Rolled back",
+        `${formatOdometer(prev.km)} on ${formatDate(prev.date)}, then ${formatOdometer(curr.km)} on ${formatDate(curr.date)}`
       )
     }
   }
@@ -156,7 +183,8 @@ function odometerCheck(readings: OdometerEvent[]): Check {
   return check(
     "odometer",
     "pass",
-    `${readings.length} readings, consistent · last ${formatOdometer(last.km)} on ${formatDate(last.date)}`
+    "Consistent",
+    `${readings.length} ${readings.length === 1 ? "reading" : "readings"}, last ${formatOdometer(last.km)} on ${formatDate(last.date)}`
   )
 }
 
@@ -172,34 +200,56 @@ function evaluateOne(id: CheckId, vehicle: Vehicle): Check {
         ? check(
             "stolen",
             "fail",
-            `Reported stolen ${formatDate(r.stolenReport.reportedOn)} · ${r.stolenReport.agency}`
+            "Reported stolen",
+            `${r.stolenReport.agency}, ${formatDate(r.stolenReport.reportedOn)}`
           )
-        : check("stolen", "pass", "No active report on CPIC")
+        : check("stolen", "pass", "No stolen report")
     case "writeOff":
       return r.writeOff
         ? check(
             "writeOff",
             "fail",
-            `${r.writeOff.reason} · ${r.writeOff.insurer}, ${formatDate(r.writeOff.declaredOn)}`
+            "Declared a total loss",
+            `${r.writeOff.insurer}, ${formatDate(r.writeOff.declaredOn)}`
           )
-        : check("writeOff", "pass", "No total-loss declaration on file")
+        : check("writeOff", "pass", "No total loss on file")
     case "duplicate":
       return r.duplicateIdentity
-        ? check("duplicate", "fail", r.duplicateIdentity.detail)
-        : check("duplicate", "pass", "VIN and plate match a single registration")
+        ? check(
+            "duplicate",
+            "fail",
+            "VIN on a second plate",
+            `Also on Ontario plate ${r.duplicateIdentity.plate} since ${formatDate(r.duplicateIdentity.since)}`
+          )
+        : check("duplicate", "pass", "Single registration", "VIN and plate match one record")
+    case "usTitle":
+      return r.usTitle
+        ? check(
+            "usTitle",
+            "fail",
+            "Active US title",
+            `Active ${r.usTitle.state} title, issued ${formatDate(r.usTitle.issuedOn)}`
+          )
+        : check("usTitle", "pass", "No US title", "No active title in any state")
     case "collision":
       return r.collision
         ? check(
             "collision",
             "fail",
-            `${r.collision.severity} · ${r.collision.location}, ${formatDate(r.collision.occurredOn)}`
+            "Collision reported",
+            `${r.collision.severity} on ${r.collision.location}, ${formatDate(r.collision.occurredOn)}`
           )
         : check("collision", "pass", "No collision reported")
     case "odometer":
       return odometerCheck(odometerEvents(vehicle))
     case "lien":
       return r.lien
-        ? check("lien", "fail", `${r.lien.holder} · registered ${formatDate(r.lien.registeredOn)}`)
+        ? check(
+            "lien",
+            "fail",
+            "Active lien",
+            `${r.lien.holder}, registered ${formatDate(r.lien.registeredOn)}`
+          )
         : check("lien", "pass", "No lien registered")
   }
 }

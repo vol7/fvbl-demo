@@ -28,6 +28,7 @@ export const DEALER = {
 export const FIRST_OWNER = {
   name: "Léa Tremblay",
   licence: "T4418-22067-90315",
+  mobile: "(438) 555-7731",
   mobileLast4: "7731",
 } as const
 

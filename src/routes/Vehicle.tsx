@@ -2,14 +2,16 @@ import { useMemo, useState } from "react"
 import { Link, useParams, useSearchParams } from "react-router"
 
 import { ActivityTimeline } from "@/components/ActivityTimeline"
-import { BorderAlert } from "@/components/BorderAlert"
 import { DemoControls } from "@/components/DemoControls"
-import { OwnershipCard } from "@/components/OwnershipCard"
-import { PackagePanel, type ApplicantDetails } from "@/components/PackagePanel"
+import { LedgerCheckedAt } from "@/components/ledgerClock"
+import { OwnershipHistory } from "@/components/OwnershipHistory"
 import { RecordChecks } from "@/components/RecordChecks"
+import type { ApplicantDetails } from "@/components/RequestDialog"
 import { TabPanel, Tabs } from "@/components/Tabs"
+import { VehicleDetails } from "@/components/VehicleDetails"
 import { VehicleSummary, type VehicleTab } from "@/components/VehicleSummary"
 import { VehicleTimeline } from "@/components/VehicleTimeline"
+import { useClock } from "@/hooks/useClock"
 import { buttonVariants } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { deriveActivity, registrationActivity } from "@/lib/activity"
@@ -20,6 +22,7 @@ import {
   generatePackageNumber,
 } from "@/lib/authorization"
 import { allPass, evaluateChecks } from "@/lib/checks"
+import { ledgerEntries } from "@/lib/ledger"
 import { OFFICE } from "@/lib/office"
 import type { RegistrationState } from "@/lib/registration"
 import { registrationState, useSession, vehicleState } from "@/lib/session"
@@ -116,15 +119,19 @@ function VehicleView({
   const checks = useMemo(() => evaluateChecks(vehicle), [vehicle])
   const canRequest = allPass(checks)
   const [session, dispatch] = useSession()
-  // Presentational only: when this page was opened, for the timeline caption.
+  const now = useClock()
+  // Presentational only: when this page was opened, for the activity feed and the ledger.
   const [openedAt] = useState(() => new Date().toISOString())
+  // The record checks play once per record; until then the decision card holds its verdict.
   const [settled, setSettled] = useState(false)
 
   // The tab lives in the URL so deep links and the hub's shortcuts land on it.
   const [params, setParams] = useSearchParams()
   const tabParam = params.get("tab")
   const tab: VehicleTab = isTab(tabParam) ? tabParam : "checks"
-  const setTab = (next: VehicleTab) =>
+  const [direction, setDirection] = useState(1)
+  const setTab = (next: VehicleTab) => {
+    setDirection(TABS.indexOf(next) >= TABS.indexOf(tab) ? 1 : -1)
     setParams(
       (prev) => {
         const p = new URLSearchParams(prev)
@@ -134,12 +141,13 @@ function VehicleView({
       },
       { replace: true }
     )
+  }
 
   // Browsing is read-only. Nothing here writes to the session until the clerk acts.
   const vin = vehicle.vin
   const state = vehicleState(session, vin, canRequest)
 
-  const now = () => new Date().toISOString()
+  const stamp = () => new Date().toISOString()
   const onRequest = (applicant: ApplicantDetails) =>
     dispatch({
       type: "request",
@@ -148,69 +156,97 @@ function VehicleView({
       otp: generateOtp(),
       link: generateLinkToken(),
       requester: applicant.name,
-      at: now(),
+      at: stamp(),
     })
   const onIssue = () =>
-    dispatch({ type: "issue", vin, packageNumber: generatePackageNumber(new Date()), at: now() })
+    dispatch({ type: "issue", vin, packageNumber: generatePackageNumber(new Date()), at: stamp() })
   const onEscalate = () =>
     dispatch({
       type: "escalate",
       vin,
       canRequest,
       caseReference: generateCaseReference(new Date()),
-      at: now(),
+      at: stamp(),
     })
 
+  const checked = settled || tab !== "checks"
   const events = [
     ...registrationActivity(vehicle, registration),
     ...deriveActivity(state, openedAt, OFFICE.clerk, vehicle),
-  ].sort((a, b) => a.at.localeCompare(b.at))
+  ]
+    // The feed does not give the verdict away while the checks are still coming in.
+    .filter((event) => checked || event.id !== "blocked")
+    .sort((a, b) => a.at.localeCompare(b.at))
+
+  // The ledger last verified this record a few minutes before the page opened, unless
+  // the record itself is newer: a vehicle registered seconds ago was verified just now.
+  const verifiedAt = useMemo(
+    () =>
+      new Date(
+        Math.max(
+          new Date(openedAt).getTime() - 3 * 60_000,
+          registration.status === "registered" ? new Date(registration.registeredAt).getTime() : 0
+        )
+      ),
+    [openedAt, registration]
+  )
 
   return (
-    <div className="flex flex-col gap-6">
-      <VehicleSummary
-        vehicle={vehicle}
-        checks={checks}
-        state={state}
-        openedAt={openedAt}
-        verifiedAt={registration.status === "registered" ? registration.registeredAt : undefined}
-        onOpenTab={setTab}
-      />
-      <BorderAlert vehicle={vehicle} />
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
-        <div className="flex min-w-0 flex-col gap-5">
-          <Tabs
-            idPrefix="vehicle-tab"
-            value={tab}
-            onChange={setTab}
-            tabs={[
-              { key: "checks", label: "Record checks", count: checks.length },
-              { key: "history", label: "Vehicle history", count: vehicle.history.length },
-              { key: "ownership", label: "Ownership and registration" },
-            ]}
-          />
-          <TabPanel id="vehicle-tab" active={tab}>
-            {tab === "checks" ? (
-              <RecordChecks checks={checks} onSettled={() => setSettled(true)} />
-            ) : null}
-            {tab === "history" ? <VehicleTimeline vehicle={vehicle} /> : null}
-            {tab === "ownership" ? <OwnershipCard vehicle={vehicle} /> : null}
-          </TabPanel>
-        </div>
-        <div className="flex min-w-0 flex-col gap-6 lg:sticky lg:top-0">
-          <PackagePanel
+    <LedgerCheckedAt.Provider value={verifiedAt}>
+      <div className="grid items-start gap-x-12 gap-y-8 lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <div className="flex min-w-0 flex-col gap-8">
+          <VehicleSummary
             vehicle={vehicle}
             checks={checks}
             state={state}
+            settled={checked}
             onRequest={onRequest}
-            onEscalate={onEscalate}
             onIssue={onIssue}
-            settled={settled || tab !== "checks"}
+            onEscalate={onEscalate}
+            onOpenTab={setTab}
+          />
+          <div className="flex flex-col gap-5">
+            <Tabs
+              idPrefix="vehicle-tab"
+              value={tab}
+              onChange={setTab}
+              tabs={[
+                { key: "checks", label: "Record checks", count: checks.length },
+                { key: "history", label: "Vehicle history", count: vehicle.history.length },
+                {
+                  key: "ownership",
+                  label: "Ownership",
+                  count: vehicle.history.filter(
+                    (e) => e.kind === "firstRegistration" || e.kind === "transfer"
+                  ).length,
+                },
+              ]}
+            />
+            <TabPanel id="vehicle-tab" active={tab} direction={direction}>
+              {tab === "checks" ? (
+                <RecordChecks checks={checks} boot={!settled} onSettled={() => setSettled(true)} />
+              ) : null}
+              {tab === "history" ? <VehicleTimeline vehicle={vehicle} /> : null}
+              {tab === "ownership" ? (
+                <OwnershipHistory vehicle={vehicle} today={openedAt.slice(0, 10)} />
+              ) : null}
+            </TabPanel>
+          </div>
+        </div>
+        <aside
+          aria-label="Record details"
+          className="flex min-w-0 flex-col gap-6 lg:sticky lg:top-0"
+        >
+          <VehicleDetails
+            vehicle={vehicle}
+            ledgerEvents={ledgerEntries(vehicle, state).length}
+            verifiedAt={verifiedAt}
+            now={now}
           />
           <ActivityTimeline events={events} />
-        </div>
+        </aside>
       </div>
       <DemoControls />
-    </div>
+    </LedgerCheckedAt.Provider>
   )
 }

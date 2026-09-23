@@ -22,6 +22,7 @@ import {
   EXPORTED_VIN,
   findVehicle,
   NEW_VIN,
+  US_TITLE_VIN,
   vehicleTitle,
 } from "@/lib/vehicles"
 import { paths } from "@/lib/paths"
@@ -46,6 +47,13 @@ const SCENARIOS: { n: number; title: string; vin: string; route: string; outcome
   { n: 4, title: "Exported vehicle", vin: EXPORTED_VIN, route: "Clerk lookup", outcome: "Blocked" },
   {
     n: 5,
+    title: "US title conflict",
+    vin: US_TITLE_VIN,
+    route: "Clerk lookup",
+    outcome: "Blocked",
+  },
+  {
+    n: 6,
     title: "New vehicle · dealer first registration",
     vin: NEW_VIN,
     route: "Dealer portal → dealership confirms on phone → clerk lookup",

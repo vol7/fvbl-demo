@@ -2,30 +2,51 @@ import { LogOut } from "lucide-react"
 import { Link, NavLink, useLocation } from "react-router"
 
 import { FvblMark } from "@/components/FvblMark"
+import { VinSearch } from "@/components/shell/VinSearch"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { buttonVariants } from "@/components/ui/button"
 import { NAV_ITEMS, isActive } from "@/lib/nav"
 import { OFFICE } from "@/lib/office"
+import { recentRows } from "@/lib/seed"
+import { useSession } from "@/lib/session"
 import { cn } from "@/lib/utils"
 import { paths } from "@/lib/paths"
 
+const itemClass = (active: boolean) =>
+  cn(
+    "flex h-8 min-w-0 items-center gap-2.5 rounded-md px-2 text-sm transition-[color,background-color] duration-150",
+    active
+      ? "bg-foreground/[0.06] font-medium text-foreground"
+      : "text-foreground/75 hover:bg-foreground/[0.04] hover:text-foreground"
+  )
+
+/**
+ * Sits on the canvas, not on a card: the page is the raised surface. The office is the
+ * workspace, search lives here, and the demo vehicles are one click away under Recent.
+ */
 export function Sidebar() {
   const { pathname } = useLocation()
+  const [session] = useSession()
+  const recent = recentRows(session).filter((row) => row.live)
+
   return (
-    <aside className="flex h-svh w-60 shrink-0 flex-col border-r bg-background">
-      <Link to={paths.portal.home} className="flex h-14 items-center gap-2.5 border-b px-5">
+    <aside className="flex h-svh w-60 shrink-0 flex-col px-2 py-2.5">
+      <Link
+        to={paths.portal.home}
+        className="flex items-center gap-2.5 rounded-md px-2 py-1.5 hover:bg-foreground/[0.04]"
+      >
         <FvblMark className="h-7 w-auto" />
-        <span className="flex flex-col leading-none">
-          <span className="text-sm font-semibold tracking-wide">FVBL</span>
-          <span className="mt-0.5 text-[11px] text-muted-foreground">Authorized User Portal</span>
+        <span className="flex min-w-0 flex-col leading-tight">
+          <span className="text-sm font-semibold">FVBL</span>
+          <span className="truncate text-xs text-muted-foreground">{OFFICE.name}</span>
         </span>
       </Link>
 
-      <nav aria-label="Primary" className="flex flex-1 flex-col gap-6 overflow-y-auto px-3 py-4">
-        <div className="flex flex-col gap-1">
-          <div className="px-2 pb-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-            Workspace
-          </div>
+      <div className="mt-3 px-1">
+        <VinSearch />
+      </div>
+
+      <nav aria-label="Primary" className="mt-3 flex flex-1 flex-col gap-5 overflow-y-auto">
+        <div className="flex flex-col gap-0.5">
           {NAV_ITEMS.map((item) => {
             const active = isActive(item, pathname)
             return (
@@ -33,16 +54,14 @@ export function Sidebar() {
                 key={item.to}
                 to={item.to}
                 aria-current={active ? "page" : undefined}
-                className={cn(
-                  "flex h-8 items-center gap-2.5 rounded-md px-2 text-sm transition-[color,background-color] duration-150",
-                  active
-                    ? "bg-primary/10 font-medium text-primary"
-                    : "text-foreground/80 hover:bg-muted hover:text-foreground"
-                )}
+                className={itemClass(active)}
               >
                 <item.icon
-                  className="size-4 shrink-0"
-                  strokeWidth={active ? 2 : 1.75}
+                  className={cn(
+                    "size-4 shrink-0",
+                    active ? "text-foreground" : "text-muted-foreground"
+                  )}
+                  strokeWidth={1.75}
                   aria-hidden
                 />
                 {item.label}
@@ -50,31 +69,46 @@ export function Sidebar() {
             )
           })}
         </div>
+
+        <div className="flex flex-col gap-0.5">
+          <div className="px-2 pb-1 text-xs text-muted-foreground">Recent</div>
+          {recent.map((row) => {
+            const to = paths.portal.vehicle(row.vin)
+            const active = pathname === to
+            return (
+              <Link
+                key={row.vin}
+                to={to}
+                aria-current={active ? "page" : undefined}
+                className={itemClass(active)}
+              >
+                <span className="shrink-0 font-mono text-xs tracking-wider text-muted-foreground">
+                  {row.plate}
+                </span>
+                <span className="truncate">{row.vehicle.replace(/^\d{4} /, "")}</span>
+              </Link>
+            )
+          })}
+        </div>
       </nav>
 
-      <div className="flex flex-col gap-3 border-t p-3">
-        <div className="flex items-center gap-2.5 px-1">
-          <Avatar>
-            <AvatarFallback className="bg-primary/10 text-xs font-medium text-primary">
-              {OFFICE.initials}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex min-w-0 flex-col leading-tight">
-            <span className="truncate text-sm font-medium">{OFFICE.clerkFullName}</span>
-            <span className="truncate text-xs text-muted-foreground">
-              {OFFICE.role} · {OFFICE.counter}
-            </span>
-          </div>
+      <div className="flex items-center gap-2.5 px-2 pt-2">
+        <Avatar>
+          <AvatarFallback className="bg-primary/10 text-xs font-medium text-primary">
+            {OFFICE.initials}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex min-w-0 flex-1 flex-col leading-tight">
+          <span className="truncate text-sm font-medium">{OFFICE.clerkFullName}</span>
+          <span className="truncate text-xs text-muted-foreground">{OFFICE.counter}</span>
         </div>
         <Link
           to={paths.portal.signIn}
-          className={cn(
-            buttonVariants({ variant: "outline", size: "sm" }),
-            "w-full justify-center"
-          )}
+          aria-label="Sign out"
+          title="Sign out"
+          className="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground"
         >
-          <LogOut data-icon="inline-start" aria-hidden />
-          Sign out
+          <LogOut className="size-4" aria-hidden />
         </Link>
       </div>
     </aside>

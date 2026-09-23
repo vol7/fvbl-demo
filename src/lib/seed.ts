@@ -178,7 +178,11 @@ export function recentRows(session: SessionState): (RecentLookup & { live: boole
   DEMO_VEHICLES.forEach((v, i) => {
     if (v.history.length > 0) {
       authored.push(
-        row(v, ["Today, 9:41 a.m.", "Today, 9:12 a.m.", "Today, 8:56 a.m."][i] ?? "Today")
+        row(
+          v,
+          ["Today, 9:41 a.m.", "Today, 9:12 a.m.", "Today, 8:56 a.m.", "Today, 8:33 a.m."][i] ??
+            "Today"
+        )
       )
       return
     }

@@ -32,9 +32,10 @@ function useCrumbs(): Crumb[] {
 export function PortalShell() {
   const crumbs = useCrumbs()
   return (
-    <div className="flex h-svh overflow-hidden bg-muted/40">
+    // Inset frame: the sidebar sits on the canvas and the page is the one raised surface.
+    <div className="flex h-svh overflow-hidden bg-muted/70">
       <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="my-2 mr-2 flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl bg-background shadow-sm ring-1 ring-foreground/[0.06]">
         <TopBar crumbs={crumbs} />
         <main className="min-h-0 flex-1 overflow-y-auto">
           <div className="mx-auto w-full max-w-[1200px] px-8 py-8">

@@ -87,11 +87,11 @@ Hold 7 s. We turn to the clerk's side. From here the portal is three paused
 beats (checks, timeline, authorization), each with its own card, instead of one
 scroll (2026-09-11 review). Once a beat is introduced it is never re-explained.
 
-## Flow 2a — Portal, the landing (≈ 10 s) · `flow-2a.mp4` · NEW
+## Flow 2a — Portal, the landing (≈ 12 s) · `flow-2a.mp4` · RE-RECORD
 
 | # | Window | Action | On screen |
 | --- | --- | --- | --- |
-| 2.1 | Portal | Home. Start recording, then click the **CKXR 214** row. | Summary header: identity, verdict pill **Checks clear**, three tiles (All 8 checks passed · Authorized by registered owner · Blockchain certified), facts row, **Sources consulted** strip with seven agencies. Eight checks stagger in green below. Hold on the header 5 s. No zoom, the header is the point: the group-level "everything checks out". |
+| 2.1 | Portal | Home. Start recording, then click the **CKXR 214** row. | Identity, then the decision card reading **Running record checks** while the nine source pills answer one by one. It turns green: **Authorized to issue**, "The registered owner approved this request", the reference, **Issue package**. The strip: All 9 passed, Approved at … with a certificate, Last recorded event. Nine checks come in below. Hold on the card 5 s. No zoom, the card is the point: the group-level "everything checks out". |
 
 ## Card 4b — Checks
 
@@ -99,11 +99,11 @@ scroll (2026-09-11 review). Once a beat is introduced it is never re-explained.
 
 Hold 6 s.
 
-## Flow 2b — Portal, record checks (≈ 10 s) · `flow-2b.mp4` · NEW
+## Flow 2b — Portal, record checks (≈ 10 s) · `flow-2b.mp4` · RE-RECORD
 
 | # | Window | Action | On screen |
 | --- | --- | --- | --- |
-| 2.2 | Portal | Same page, **Record checks** tab already open. Scroll so the eight rows fill the frame. | Eight green rows with agency chips. Zoom on **Import and export record** (Transport Canada RIV · CBSA: "Entered Canada … no export on record") and **VIN decode match** (NHTSA vPIC · MTO). Hold 5 s. |
+| 2.2 | Portal | Same page, **Record checks** tab already open. Scroll so the sources and the nine rows fill the frame. | "All 9 sources answered in 1.8 s" over the nine pills, then nine rows under **Passed**. Zoom on **Import and export record** ("No export on record", entered Canada via Windsor, Transport Canada and CBSA) and **VIN decode match** ("Matches MTO record", NHTSA and MTO). Hold 5 s. |
 
 ## Card 4c — Timeline
 
@@ -111,11 +111,11 @@ Hold 6 s.
 
 Hold 6 s.
 
-## Flow 2c — Portal, vehicle history (≈ 10 s) · `flow-2c.mp4` · NEW
+## Flow 2c — Portal, vehicle history (≈ 10 s) · `flow-2c.mp4` · RE-RECORD
 
 | # | Window | Action | On screen |
 | --- | --- | --- | --- |
-| 2.3 | Portal | Click the **Vehicle history** tab. Hold. | Every event newest first: ownership transfers, renewals and odometer readings, First registration (MTO office), Cleared customs (CBSA), Entered Canada (Transport Canada), each with an agency chip and a ledger mark. Milestones set heavier. Hold 4 s on the list. Zoom on the two border rows. |
+| 2.3 | Portal | Click the **Vehicle history** tab. Hold. | The panel slides in. The lifecycle strip: Built in the United States, Entered Canada (Windsor), First registration (Toronto), Renewed. Under it every event newest first by year, each with its agency and a ledger shield: renewals and readings, First registration, Cleared customs (CBSA), Entered Canada (Transport Canada). Hold 4 s on the strip. Zoom on the two border rows. |
 
 ## Card 4d — Authorization
 
@@ -124,12 +124,12 @@ Hold 6 s.
 
 Hold 6.5 s.
 
-## Flow 2d — Portal, authorization and issue (≈ 11 s) · `flow-2d.mp4` · NEW
+## Flow 2d — Portal, authorization and issue (≈ 11 s) · `flow-2d.mp4` · RE-RECORD
 
 | # | Window | Action | On screen |
 | --- | --- | --- | --- |
-| 2.4 | Portal | Scroll back to the top. Hover the **Owner authorization** tile, then the right rail. | Panel: **Authorized by registered owner**, "Requested online by Fawaz Ahmed", reference, approved time. Zoom on the panel. Hold 4 s. |
-| 2.5 | Portal | Click **Issue Used Vehicle Information Package**. | Panel flips to "Package issued at …", verdict pill **Package issued**, the activity feed gains the issue event. Hold 4 s. |
+| 2.4 | Portal | Scroll back to the top. Hover the decision card. | **Authorized to issue**: "Fawaz Ahmed requested it online through ServiceOntario. The owner approved it at … from the link in the text message.", the reference, and the strip's **Owner authorization** cell. Zoom on the card. Hold 4 s. |
+| 2.5 | Portal | Click **Issue package**. | The card flips to **Package issued** with the package number; the activity feed gains the issue event with its certificate. Hold 4 s. |
 
 ## Card 5 — Failure
 
@@ -144,12 +144,13 @@ Re-record: new header and tabs, and about 50 percent slower than the old take.
 
 | # | Window | Action | On screen |
 | --- | --- | --- | --- |
-| 3.1 | Portal | **Home** in the sidebar. Click the **BWTP 903** row. | Verdict pill **Cannot be issued**, record checks tile "3 high-risk flags". Checks stagger in: Insurer write-off, Duplicate identity, Collision record red at the top with High risk / Low risk badges. Panel: **Package cannot be issued**. Hold until all three rows are readable, about 7 s. Zoom on the rows. |
-| 3.2 | Portal | Click **Escalate to law enforcement**. | "Escalated for review", case reference `FVBL-2026-09-…`, verdict pill **Escalated**. Longest hold of the video, 7 s. Zoom on the reference. |
+| 3.1 | Portal | **Home** in the sidebar, or **BWTP 903** under Recent. Click the **BWTP 903** row. | **Running record checks** while the sources answer, then the card turns red: **Package cannot be issued**, "This vehicle was declared a total loss", **Escalate to law enforcement**, strip "3 of 9 failed, 2 high risk". Under **Flagged**: Insurer write-off, Duplicate identity, Collision record, with High risk and Low risk badges. Hold until all three rows are readable, about 7 s. Zoom on the rows. |
+| 3.2 | Portal | Click **Escalate to law enforcement**. | **Escalated, do not issue**: "Sent to law enforcement for review", case reference `FVBL-2026-09-…`, and "Shared with Ontario Provincial Police" with what went with the case (record and history, 9 check results, ledger certificates, the clerk). Longest hold of the video, 7 s. Zoom on the reference and the list. |
 
 Alternative take if the room is CBSA-minded: the exported Range Rover
-(`CPLR 482`) instead. One red row, plus the border alert under the header that
-tells the export-with-no-re-entry story in one sentence.
+(`CPLR 482`) instead. One red row, a decision card that tells the
+export-with-no-re-entry story, and "Shared with RCMP and CBSA" on escalation. Its
+history strip ends on a dashed "No re-entry" stop.
 
 ## Card 5b — Blockchain
 
@@ -157,11 +158,11 @@ tells the export-with-no-re-entry story in one sentence.
 
 Hold 6 s. Last and quiet: no dedicated page, just the marks already on screen.
 
-## Flow 4 — Portal, the ledger beat (≈ 10 s) · `flow-4.mp4` · NEW
+## Flow 4 — Portal, the ledger beat (≈ 10 s) · `flow-4.mp4` · RE-RECORD
 
 | # | Window | Action | On screen |
 | --- | --- | --- | --- |
-| 4.1 | Portal | Back on the **CKXR 214** record. Hover the **Ledger** tile, click it. | Tile: "Blockchain certified · n events · no tampering detected · verified 3 minutes ago". Vehicle history tab opens; every row carries "Blockchain certified" and a certificate. Pan down to the activity feed: the approval and the issue event carry one too. Hold 4 s. |
+| 4.1 | Portal | Back on the **CKXR 214** record. Click the **Last recorded event** cell, then a row's shield. | Vehicle history opens: "All n events match their ledger certificates" under the strip, a shield on every row. The shield opens the certificate: source, recorded date, the certificate, "Matches the record. No changes since it was recorded." Then the rail: the ledger line and the activity feed, where the approval and the issue carry "Blockchain certified" too. Hold 4 s. |
 
 ## Card 6 — Close
 
@@ -184,21 +185,21 @@ feels slow to us, it is right for the room. Cards hold 5.5 to 7 s by length.
 | Card 2b | 6 s |
 | Flow 1a | 36 s (as recorded) |
 | Card 3 | 5.5 s |
-| Flow 1b | 18 s |
+| Flow 1b | 19 s (as recorded) |
 | Card 4 | 7 s |
-| Flow 2a | 10 s |
+| Flow 2a | 19 s (as recorded, opens on sign-in) |
 | Card 4b | 6 s |
-| Flow 2b | 10 s |
+| Flow 2b | 9 s (as recorded) |
 | Card 4c | 6 s |
-| Flow 2c | 10 s |
+| Flow 2c | 12 s (as recorded) |
 | Card 4d | 6.5 s |
-| Flow 2d | 11 s |
+| Flow 2d | 15 s (as recorded) |
 | Card 5 | 6.5 s |
-| Flow 3 | 21 s |
+| Flow 3 | 21 s (as recorded) |
 | Card 5b | 6 s |
-| Flow 4 | 10 s |
+| Flow 4 | 11 s (as recorded) |
 | Card 6 | 6 s |
-| Total | about 3:00 |
+| Total | 3:18 (5940 frames, 2026-09-15 clips) |
 
 ## Left out on purpose
 
@@ -217,8 +218,10 @@ feels slow to us, it is right for the room. Cards hold 5.5 to 7 s by length.
   the phone, the two border checks, the two border rows in the history, the
   authorized panel, the three red rows, the case reference.
 - Keep the cursor slow. Pause a beat on the thing that changed before cutting.
-- The check stagger is 0.7 s plus 8 × 0.08 s. Start the clip before clicking
-  the row so the stagger is on tape.
+- The record opening is about 2 s of sources answering, then 9 × 0.08 s of rows,
+  with the decision card holding "Running record checks" until the last source
+  answers. It plays once per record. Start the clip before clicking the row so it
+  is on tape. Record in the foreground window: a hidden tab pauses it.
 - Between flow 2d and flow 3, Home in the sidebar is the cut point. Flow 4
   needs the CKXR 214 record with the package issued, so record it right after
   2d or force the state from the hub.
@@ -230,6 +233,6 @@ feels slow to us, it is right for the room. Cards hold 5.5 to 7 s by length.
 C1+C2 · C2b · 1a · C3 · 1b · C4 · 2a · C4b · 2b · C4c · 2c · C4d · 2d · C5 ·
 3 · C5b · 4 · C6.
 `video/src/Demo.tsx` encodes this order with a 16-frame `settle` hand-off
-between every scene. Unrecorded shots carry their target length, so the
-timeline previews at about 3:00 today. Drop the clips in, run `pnpm durations`,
+between every scene. All eight clips are on disk as of 2026-09-15; the cut
+runs 3:18. Drop the clips in, run `pnpm durations`,
 paste the frame counts and the total, `pnpm render`.

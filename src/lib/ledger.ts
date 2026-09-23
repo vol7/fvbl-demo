@@ -50,7 +50,7 @@ export function shortHash(hash: string): string {
   return `${hash.slice(0, 4)}…${hash.slice(-4)}`
 }
 
-const HISTORY_TITLE: Record<Vehicle["history"][number]["kind"], string> = {
+export const HISTORY_TITLE: Record<Vehicle["history"][number]["kind"], string> = {
   import: "Entered Canada",
   customsEntry: "Cleared customs",
   export: "Exported",
@@ -63,6 +63,13 @@ const HISTORY_TITLE: Record<Vehicle["history"][number]["kind"], string> = {
 /** A registration that came through a dealer rather than a counter. */
 export function isDealerChannel(office: string): boolean {
   return office.startsWith("Dealer channel")
+}
+
+/** "4412 · Toronto" reads "Toronto office 4412"; a dealer channel gives the dealer's name. */
+export function officeLabel(office: string): string {
+  if (isDealerChannel(office)) return office.split(" · ").at(-1) ?? office
+  const [number, city] = office.split(" · ")
+  return city ? `${city} office ${number}` : office
 }
 
 function historyDrafts(vehicle: Vehicle): Draft[] {

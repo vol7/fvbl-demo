@@ -52,3 +52,40 @@ export function formatRelative(from: Date | string, now: Date = new Date()): str
 export function plateLabel(plate: string | null): string {
   return plate ?? "Not yet plated"
 }
+
+/** "Feb 2023" */
+export function formatMonth(isoDate: string): string {
+  const [year, month] = isoDate.split("-").map(Number)
+  return new Date(year, month - 1, 1).toLocaleDateString("en-CA", {
+    year: "numeric",
+    month: "short",
+  })
+}
+
+/** "A, B and C". With `capitalize`, the first name starts upper case. */
+export function joinNames(names: string[], capitalize = false): string {
+  const list =
+    names.length < 2 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`
+  return capitalize ? list.charAt(0).toUpperCase() + list.slice(1) : list
+}
+
+/** Whole days from one ISO date to another. */
+export function daysBetween(from: string, to: string): number {
+  const day = (iso: string) => {
+    const [year, month, date] = iso.slice(0, 10).split("-").map(Number)
+    return Date.UTC(year, month - 1, date)
+  }
+  return Math.round((day(to) - day(from)) / 86_400_000)
+}
+
+/** "3 yr 5 mo", "6 mo", "Under a month". */
+export function formatDuration(from: string, to: string): string {
+  const [y1, m1, d1] = from.slice(0, 10).split("-").map(Number)
+  const [y2, m2, d2] = to.slice(0, 10).split("-").map(Number)
+  const months = (y2 - y1) * 12 + (m2 - m1) - (d2 < d1 ? 1 : 0)
+  if (months < 1) return "Under a month"
+  const years = Math.floor(months / 12)
+  const rest = months % 12
+  if (years === 0) return `${rest} mo`
+  return rest === 0 ? `${years} yr` : `${years} yr ${rest} mo`
+}

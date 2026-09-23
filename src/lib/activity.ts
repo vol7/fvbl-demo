@@ -75,7 +75,7 @@ export function deriveActivity(
           id: "preapproved",
           at: state.approvedAt,
           title: "Pre-approved by registered owner",
-          detail: `Online via ServiceOntario · Reference ${state.authorizationCode}`,
+          detail: `Online through ServiceOntario, reference ${state.authorizationCode}`,
           tone: "success",
         })
         break
@@ -131,7 +131,7 @@ export function registrationActivity(
       id: "registered",
       at: registration.registeredAt,
       title: "First registration recorded",
-      detail: `Submitted by ${registration.dealer} · confirmed from dealership mobile ending ${registration.dealerMobileLast4} · ${registration.registrationRef}`,
+      detail: `Submitted by ${registration.dealer}, confirmed from the dealership mobile ending ${registration.dealerMobileLast4}. Reference ${registration.registrationRef}`,
       tone: "success",
       certificate: historyCertificates(vehicle)[0],
     },
@@ -148,7 +148,7 @@ function sentEvent(state: {
         id: "sent",
         at: state.sentAt,
         title: "Pre-approval requested online",
-        detail: `By ${state.requester} · owner texted`,
+        detail: `By ${state.requester}, owner texted`,
         tone: "info",
       }
     : {

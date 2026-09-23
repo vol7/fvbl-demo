@@ -7,7 +7,9 @@ import {
   DEMO_VEHICLES,
   EXPORTED_VIN,
   NEW_VIN,
+  US_TITLE_VIN,
   bornVehicle,
+  countryOfOrigin,
   findVehicle,
   odometerEvents,
   openExport,
@@ -15,10 +17,10 @@ import {
 } from "./vehicles"
 
 describe("DEMO_VEHICLES", () => {
-  it("contains four vehicles with valid, unique VINs", () => {
-    expect(DEMO_VEHICLES).toHaveLength(4)
+  it("contains five vehicles with valid, unique VINs", () => {
+    expect(DEMO_VEHICLES).toHaveLength(5)
     const vins = DEMO_VEHICLES.map((v) => v.vin)
-    expect(new Set(vins).size).toBe(4)
+    expect(new Set(vins).size).toBe(5)
     for (const vin of vins) expect(isValidVin(vin)).toBe(true)
   })
 
@@ -36,6 +38,14 @@ describe("DEMO_VEHICLES", () => {
     expect(cloned.records.lien).toBeNull()
     expect(exported.model).toBe("Range Rover Sport")
     expect(Object.values(exported.records).every((r) => r === null)).toBe(true)
+  })
+
+  it("has a Lexus whose only flag is an active Pennsylvania title", () => {
+    const lexus = findVehicle(US_TITLE_VIN)!
+    expect(lexus.make).toBe("Lexus")
+    const { usTitle, ...rest } = lexus.records
+    expect(usTitle).toEqual({ state: "Pennsylvania", issuedOn: "2025-07-22" })
+    expect(Object.values(rest).every((r) => r === null)).toBe(true)
   })
 
   it("carries no names in history", () => {
@@ -69,6 +79,14 @@ describe("odometerEvents", () => {
   it("returns readings oldest first", () => {
     const km = odometerEvents(findVehicle(CLEAN_VIN)!).map((e) => e.km)
     expect(km).toEqual([42, 14880, 31240])
+  })
+})
+
+describe("countryOfOrigin", () => {
+  it("names the country the VIN decode says the vehicle was built in", () => {
+    expect(countryOfOrigin(findVehicle(CLEAN_VIN)!)).toBe("United States")
+    expect(countryOfOrigin(findVehicle(EXPORTED_VIN)!)).toBe("United Kingdom")
+    expect(countryOfOrigin(findVehicle(US_TITLE_VIN)!)).toBe("Japan")
   })
 })
 

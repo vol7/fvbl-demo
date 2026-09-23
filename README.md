@@ -54,9 +54,10 @@ theme's fonts and colours so the hand-off feels continuous.
 | 2 · Cloned VIN | `5TDEBRCH7SS041927` | Write-off, duplicate identity and collision fail. Request disabled; escalate. |
 | 3 · Buyer pre-request | `4JGFB8KB5PA812634` | On ServiceOntario choose "Buying a vehicle", send the request; owner taps the SMS link and approves; clerk lookup shows the authorization on file. The owner can also pre-approve directly ("Selling my vehicle"). |
 | 4 · Exported vehicle | `SALWR2SE4NA209311` | Clean MTO record, but CBSA logged a vehicle carrying this VIN leaving in March 2025 with no re-entry. The identity is in conflict: either the car at the counter is a clone, or the exported one was. One high-risk check fails and holds the package for investigation. ServiceOntario refuses the pre-approval. |
-| 5 · New vehicle · dealer first registration | `4JGFF5KE9SB412009` | The birth of the VIN. In the dealer portal the VIN decodes but has no registration on file; tick the NVIS check mark, submit to the ministry; the dealership's phone gets the text and confirms. The clerk portal's Unregistered VIN card resolves live into a record with two history rows, the first captioned "Ledger opened". |
+| 5 · US title conflict | `JTJTABGX9R4027418` | Clean Ontario record and border history (imported new from Japan), but NMVTIS, the US federal title database, shows the same VIN with an active Pennsylvania title. One high-risk check fails. One federal query covers every state. |
+| 6 · New vehicle · dealer first registration | `4JGFF5KE9SB412009` | The birth of the VIN. In the dealer portal the VIN decodes but has no registration on file; tick the NVIS check mark, submit to the ministry; the dealership's phone gets the text and confirms. The clerk portal's Unregistered VIN card resolves live into a record with two history rows, the first captioned "Ledger opened". |
 
-The three registered VINs are the first rows under "Recent lookups" so you can
+The four registered VINs are the first rows under "Recent lookups" so you can
 click instead of typing; the new one joins them once the dealer's submission is
 confirmed. The video covers scenario 3 and scenario 2; the others are
 there for the live walkthrough.
@@ -68,42 +69,62 @@ A VIN with no registration on file (scenario 5 before the dealer submits) gets a
 dealer submission is mentioned. The card resolves into the full page the moment
 the dealership confirms.
 
-The clerk lands on a summary header, then tabs. The header carries the vehicle
-identity, one verdict pill for the whole record ("Checks clear", "Cannot be
-issued", "Awaiting owner", "Authorized to issue", "Package issued"), and three
-tiles that each summarise one concern and open its tab: record checks, owner
-authorization, ledger. A "Sources consulted" strip lists every agency the portal
-queries: Transport Canada, CBSA, MTO, CPIC, IBC, NHTSA, PPSR.
+The page sits in an inset frame: the sidebar is on the canvas (office, VIN
+search with ⌘K, navigation, the demo vehicles under Recent) and the page is the
+one raised surface. The clerk lands on the vehicle's identity (plate, title,
+colour and body, VIN), then the **decision card**, then tabs, with a details
+rail on the right.
 
-When CBSA's last border event is an export with no re-entry, a border alert
-sits under the header and tells that story in one sentence. It names an
-identity conflict, not a verdict on the person at the counter: the exported
-vehicle may have been the clone. No destination is shown; the port of exit and
-the missing re-entry are the whole signal. This is the demo's clearest
-federal-integration moment: the MTO record alone would show the vehicle as
-clear.
+The decision card answers "can this package be issued?" in one place: a status
+label ("Checks clear", "Awaiting owner", "Authorized to issue", "Package issued",
+"Package cannot be issued", "Escalated, do not issue", "Owner denied", "Request
+expired"), a headline, one or two sentences, a reference when there is one, and
+the one action the clerk takes next (request, issue, escalate). While the record
+checks are still coming in, it holds its verdict as "Running record checks". The
+strip under it names what the platform checked: record checks, owner
+authorization (with its certificate once approved), and the last recorded event
+on the vehicle's own history. The first and last cells open their tab.
 
-Tabs (the tab is in the URL as `?tab=history` or `?tab=ownership`):
+When a check fails, the card tells the worst flag's story (`src/lib/story.ts`),
+names the agencies that reported it and the other flags after it. Identity
+conflicts (an export with no re-entry, an active US title, a duplicate
+registration) name the conflict, not a verdict on the person at the counter:
+either vehicle may be the clone. For the export and the US title, the card adds
+that the Ontario record alone would have shown the vehicle as clear. Escalating
+lists what went with the case and who received it (RCMP and CBSA for federal
+conflicts, the OPP otherwise).
 
-- **Record checks** (default). Eight checks, failures first, high before low.
-  Two are federal: "Import and export record" (Transport Canada RIV and CBSA)
-  and "VIN decode match" (NHTSA vPIC against the MTO record). Each row shows
-  its agencies as chips. High-risk failures say "Cannot be overridden"; any
-  failure still blocks the package.
-- **Vehicle history.** The chronology across Transport Canada, CBSA and the
-  MTO: import, customs, first registration, transfers (office number only,
-  never a name), renewals and odometer readings. Every event is listed, newest
-  first; milestones are set heavier so the record still scans.
-- **Ownership and registration.** The MTO record, owner masked.
+Tabs (the tab is in the URL as `?tab=history` or `?tab=ownership`); panels slide
+toward their place in the tab order:
 
-The right rail is the package panel and the activity feed, sticky, unchanged.
+- **Record checks** (default). The nine sources answer one by one as pills,
+  then nine checks, flagged first under "Flagged", the rest under "Passed". Each
+  row reads check, result in bold ("No export on record"), the evidence under it,
+  and its agencies on the right. One severity badge on a failure. Two checks are
+  federal: "Import and export record" (Transport Canada RIV and CBSA) and "VIN
+  decode match" (NHTSA vPIC against the MTO record). "US title record" asks
+  NMVTIS once for every state. The sequence plays once per record, about 2 s.
+- **Vehicle history.** A lifecycle strip first (`src/lib/lifecycle.ts`): built,
+  border crossings, registration, renewals folded together, transfers, and the
+  records that flag the vehicle (write-off, a second plate, a US title). An open
+  export ends on a dashed "No re-entry" stop. Under it, every event newest
+  first, grouped by year, milestones in an icon tile, renewals and readings
+  lighter, ending on "Built in …" from the VIN decode, which carries no
+  certificate.
+- **Ownership.** The same chronology told per owner (`src/lib/owners.ts`), newest
+  first: period, how the vehicle was acquired, office, odometer at the start, and
+  what happened on that owner's watch. Only the current owner can be revealed;
+  previous owners are never shown.
 
-Every history event and every live authorization event carries a
-**Blockchain certified** mark with a short certificate. The header tile reads
-"no tampering detected · verified 3 minutes ago". There is no ledger page on
-purpose: the client asked for the blockchain to stay quiet. Certificates are
-derived from the data on every render, so all windows agree; the digest in
-`src/lib/ledger.ts` is a deterministic stand-in, not a real hash.
+The rail holds the record's details (owner name and phone behind a show/hide
+bar, "FVBL logs each reveal against your badge"), the ledger line, and the
+activity feed.
+
+Every history event and every live authorization event carries a **Blockchain
+certified** mark. Clicking it opens the certificate: event, source, when it was
+recorded, the short certificate with a copy button, and "Matches the record".
+Certificates are derived from the data on every render, so all windows agree; the
+digest in `src/lib/ledger.ts` is a deterministic stand-in, not a real hash.
 
 ## What each surface does
 

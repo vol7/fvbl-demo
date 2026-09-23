@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { useState } from "react"
 import { describe, expect, it } from "vitest"
@@ -36,7 +36,8 @@ describe("Tabs", () => {
     expect(alpha).toHaveTextContent("8")
     expect(screen.getByRole("tabpanel")).toHaveAttribute("aria-labelledby", "t-a")
     await userEvent.click(screen.getByRole("tab", { name: /beta/i }))
-    expect(screen.getByRole("tabpanel")).toHaveTextContent("panel b")
+    // The old panel slides out before it leaves the DOM.
+    await waitFor(() => expect(screen.getByRole("tabpanel")).toHaveTextContent("panel b"))
     expect(alpha).toHaveAttribute("aria-selected", "false")
   })
 

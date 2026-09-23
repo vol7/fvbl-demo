@@ -10,7 +10,15 @@ export type Agency = "Transport Canada" | "CBSA" | "MTO" | "Insurer" | "Dealer"
  * transfers carry the office, never the people.
  */
 export type VehicleEvent =
-  | { kind: "import"; date: string; agency: "Transport Canada"; port: string; detail: string }
+  | {
+      kind: "import"
+      date: string
+      agency: "Transport Canada"
+      port: string
+      /** The country the vehicle arrived from. */
+      from: string
+      detail: string
+    }
   | { kind: "customsEntry"; date: string; agency: "CBSA"; port: string }
   | { kind: "export"; date: string; agency: "CBSA"; port: string }
   | { kind: "firstRegistration"; date: string; agency: "MTO"; office: string }
@@ -35,7 +43,10 @@ export type VehicleRecords = {
   stolenReport: { reportedOn: string; agency: string } | null
   writeOff: { insurer: string; declaredOn: string; reason: string } | null
   collision: { occurredOn: string; location: string; severity: string } | null
-  duplicateIdentity: { detail: string } | null
+  /** The same VIN active on another Ontario plate. */
+  duplicateIdentity: { plate: string; since: string } | null
+  /** An active title for the same VIN in a US state, reported through NMVTIS. */
+  usTitle: { state: string; issuedOn: string } | null
   lien: { holder: string; registeredOn: string } | null
 }
 
@@ -60,7 +71,8 @@ export type Vehicle = {
   plate: string | null
   registeredOn: string | null
   odometerKm: number
-  owner: { name: string; phoneLast4: string; city: string }
+  /** The full phone shows only when the clerk reveals it; the last four are for copy. */
+  owner: { name: string; phone: string; phoneLast4: string; city: string }
   /** Null until the vehicle has been inspected once. */
   lastInspection: string | null
   riskTier: "high-value" | "standard"
@@ -72,6 +84,8 @@ export type Vehicle = {
 export const CLEAN_VIN = "4JGFB8KB5PA812634"
 export const CLONED_VIN = "5TDEBRCH7SS041927"
 export const EXPORTED_VIN = "SALWR2SE4NA209311"
+/** Registered in Ontario while the same VIN holds an active Pennsylvania title. */
+export const US_TITLE_VIN = "JTJTABGX9R4027418"
 /** Brand new: decodes, but has no registration until a dealer submits one. */
 export const NEW_VIN = "4JGFF5KE9SB412009"
 
@@ -87,7 +101,12 @@ export const DEMO_VEHICLES: Vehicle[] = [
     plate: "CKXR 214",
     registeredOn: "2023-04-18",
     odometerKm: 31240,
-    owner: { name: "Daniel Okafor", phoneLast4: "0917", city: "Toronto, ON" },
+    owner: {
+      name: "Daniel Okafor",
+      phone: "(416) 555-0917",
+      phoneLast4: "0917",
+      city: "Toronto, ON",
+    },
     lastInspection: "2025-04-11",
     riskTier: "high-value",
     records: {
@@ -95,6 +114,7 @@ export const DEMO_VEHICLES: Vehicle[] = [
       writeOff: null,
       collision: null,
       duplicateIdentity: null,
+      usTitle: null,
       lien: null,
     },
     decoded: {
@@ -110,6 +130,7 @@ export const DEMO_VEHICLES: Vehicle[] = [
         date: "2023-02-27",
         agency: "Transport Canada",
         port: "Windsor, ON",
+        from: "United States",
         detail: "Registrar of Imported Vehicles · new vehicle",
       },
       { kind: "customsEntry", date: "2023-02-27", agency: "CBSA", port: "Windsor, ON" },
@@ -143,7 +164,12 @@ export const DEMO_VEHICLES: Vehicle[] = [
     plate: "BWTP 903",
     registeredOn: "2025-02-03",
     odometerKm: 8410,
-    owner: { name: "Priya Raghunathan", phoneLast4: "5528", city: "Whitby, ON" },
+    owner: {
+      name: "Priya Raghunathan",
+      phone: "(905) 555-5528",
+      phoneLast4: "5528",
+      city: "Whitby, ON",
+    },
     lastInspection: "2025-08-20",
     riskTier: "high-value",
     records: {
@@ -156,11 +182,13 @@ export const DEMO_VEHICLES: Vehicle[] = [
       collision: {
         occurredOn: "2025-06-12",
         location: "Hwy 401 near Whitby, ON",
-        severity: "Severe — airbag deployment",
+        severity: "Severe, airbags deployed",
       },
       duplicateIdentity: {
-        detail: "Same VIN active on Ontario plate CRHM 118 since August 20, 2025",
+        plate: "CRHM 118",
+        since: "2025-08-20",
       },
+      usTitle: null,
       lien: null,
     },
     decoded: {
@@ -176,6 +204,7 @@ export const DEMO_VEHICLES: Vehicle[] = [
         date: "2025-01-16",
         agency: "Transport Canada",
         port: "Sarnia, ON",
+        from: "United States",
         detail: "Registrar of Imported Vehicles · new vehicle",
       },
       { kind: "customsEntry", date: "2025-01-16", agency: "CBSA", port: "Sarnia, ON" },
@@ -203,7 +232,12 @@ export const DEMO_VEHICLES: Vehicle[] = [
     plate: "CPLR 482",
     registeredOn: "2022-01-14",
     odometerKm: 47310,
-    owner: { name: "Amara Chen", phoneLast4: "2286", city: "Mississauga, ON" },
+    owner: {
+      name: "Amara Chen",
+      phone: "(905) 555-2286",
+      phoneLast4: "2286",
+      city: "Mississauga, ON",
+    },
     lastInspection: "2025-01-09",
     riskTier: "high-value",
     records: {
@@ -211,6 +245,7 @@ export const DEMO_VEHICLES: Vehicle[] = [
       writeOff: null,
       collision: null,
       duplicateIdentity: null,
+      usTitle: null,
       lien: null,
     },
     decoded: {
@@ -226,6 +261,7 @@ export const DEMO_VEHICLES: Vehicle[] = [
         date: "2021-11-22",
         agency: "Transport Canada",
         port: "Halifax, NS",
+        from: "United Kingdom",
         detail: "Registrar of Imported Vehicles · new vehicle",
       },
       { kind: "customsEntry", date: "2021-11-22", agency: "CBSA", port: "Halifax, NS" },
@@ -268,6 +304,62 @@ export const DEMO_VEHICLES: Vehicle[] = [
     ],
   },
   {
+    vin: US_TITLE_VIN,
+    year: 2024,
+    make: "Lexus",
+    model: "GX 550",
+    trim: "Overtrail+",
+    colour: "Earth",
+    bodyStyle: "SUV",
+    plate: "CTRV 657",
+    registeredOn: "2024-05-09",
+    odometerKm: 22860,
+    owner: {
+      name: "Marc-André Gagnon",
+      phone: "(905) 555-7731",
+      phoneLast4: "7731",
+      city: "Vaughan, ON",
+    },
+    lastInspection: "2025-05-06",
+    riskTier: "high-value",
+    records: {
+      stolenReport: null,
+      writeOff: null,
+      collision: null,
+      duplicateIdentity: null,
+      usTitle: { state: "Pennsylvania", issuedOn: "2025-07-22" },
+      lien: null,
+    },
+    decoded: {
+      year: 2024,
+      make: "Lexus",
+      model: "GX 550",
+      bodyStyle: "SUV",
+      plant: "Tahara, Aichi, Japan",
+    },
+    history: [
+      {
+        kind: "import",
+        date: "2024-04-02",
+        agency: "Transport Canada",
+        port: "Port of Vancouver, BC",
+        from: "Japan",
+        detail: "Registrar of Imported Vehicles · new vehicle",
+      },
+      { kind: "customsEntry", date: "2024-04-02", agency: "CBSA", port: "Port of Vancouver, BC" },
+      { kind: "firstRegistration", date: "2024-05-09", agency: "MTO", office: "4588 · Vaughan" },
+      { kind: "odometer", date: "2024-05-09", agency: "Dealer", km: 18, source: "Dealer delivery" },
+      { kind: "renewal", date: "2025-05-06", agency: "MTO", office: "4588 · Vaughan" },
+      {
+        kind: "odometer",
+        date: "2025-05-06",
+        agency: "MTO",
+        km: 22860,
+        source: "Registration renewal",
+      },
+    ],
+  },
+  {
     vin: NEW_VIN,
     year: 2026,
     make: "Mercedes-Benz",
@@ -278,7 +370,12 @@ export const DEMO_VEHICLES: Vehicle[] = [
     plate: null,
     registeredOn: null,
     odometerKm: 0,
-    owner: { name: FIRST_OWNER.name, phoneLast4: FIRST_OWNER.mobileLast4, city: "Toronto, ON" },
+    owner: {
+      name: FIRST_OWNER.name,
+      phone: FIRST_OWNER.mobile,
+      phoneLast4: FIRST_OWNER.mobileLast4,
+      city: "Toronto, ON",
+    },
     lastInspection: null,
     riskTier: "high-value",
     records: {
@@ -286,6 +383,7 @@ export const DEMO_VEHICLES: Vehicle[] = [
       writeOff: null,
       collision: null,
       duplicateIdentity: null,
+      usTitle: null,
       lien: null,
     },
     decoded: {
@@ -329,6 +427,18 @@ export function bornVehicle(vehicle: Vehicle, registration: RegistrationState): 
   }
 }
 
+const COUNTRY_NAMES: Record<string, string> = { USA: "United States", UK: "United Kingdom" }
+
+/** Where the vehicle was built, from the plant in its VIN decode. */
+export function countryOfOrigin(vehicle: Vehicle): string {
+  const country = vehicle.decoded.plant.split(",").at(-1)!.trim()
+  return COUNTRY_NAMES[country] ?? country
+}
+
+export function isBorderEvent(event: VehicleEvent): event is BorderEvent {
+  return event.kind === "import" || event.kind === "customsEntry" || event.kind === "export"
+}
+
 export function vehicleTitle(vehicle: Vehicle): string {
   return `${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.trim}`
 }
@@ -343,9 +453,7 @@ export function odometerEvents(vehicle: Vehicle): OdometerEvent[] {
 }
 
 export function borderEvents(vehicle: Vehicle): BorderEvent[] {
-  return sortedHistory(vehicle).filter(
-    (e): e is BorderEvent => e.kind === "import" || e.kind === "customsEntry" || e.kind === "export"
-  )
+  return sortedHistory(vehicle).filter(isBorderEvent)
 }
 
 /** The export that has not been followed by a re-entry, if any. */
