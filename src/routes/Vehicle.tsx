@@ -181,14 +181,10 @@ function VehicleView({
       requester: applicant.name,
       at: stamp(),
     })
-  // Canada issues only once the owner approved. In the US the clerk issues from any
-  // state but a hold or a referral (the reducer decides).
   const onIssue = () =>
     dispatch({
       type: "issue",
       vin,
-      canRequest,
-      policy: pack.policy,
       reference: generateIssuedNumber(pack.references.issued, new Date()),
       at: stamp(),
     })
@@ -197,7 +193,6 @@ function VehicleView({
       type: "escalate",
       vin,
       canRequest,
-      policy: pack.policy,
       caseReference: generateCaseReference(new Date()),
       at: stamp(),
     })

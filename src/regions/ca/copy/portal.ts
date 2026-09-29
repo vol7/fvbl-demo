@@ -1,6 +1,7 @@
 import type { PortalCopy } from "@/regions/types"
 
 export const PORTAL: PortalCopy = {
+  outcomes: { clear: "Clear", blocked: "Blocked", pending: "Pending", frozen: "Frozen" },
   homeLede: (sources) =>
     `Every lookup checks the VIN with ${sources} sources, including Transport Canada, CBSA and NMVTIS, before a package can be issued.`,
   casesDescription: "Transactions referred to MTO Investigations from this office.",
@@ -31,6 +32,7 @@ export const PORTAL: PortalCopy = {
   ownersExported: (date, noTransfer) =>
     `CBSA recorded a vehicle with this VIN leaving Canada on ${date}, while it was registered to this owner.${noTransfer ? " The MTO has no sale or transfer on file." : ""}`,
   activity: {
+    requested: { buyer: "Pre-approval requested online", clerk: "Authorization requested" },
     preapprovedDetail: (code) => `Online through ServiceOntario, reference ${code}`,
     issuedTitle: "Package issued",
     approvedTitle: "Owner approved",

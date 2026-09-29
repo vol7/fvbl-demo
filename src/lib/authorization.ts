@@ -1,21 +1,12 @@
 /** Who started the authorization. */
 export type Origin = "clerk" | "owner" | "buyer"
 
-/**
- * Whether issuing waits for the owner. Canada needs the owner's approval before
- * the package is issued; in the US the owner's confirmation is evidence the clerk
- * weighs, and the clerk issues the title (US plan, Task 5).
- */
-export type Policy = { ownerConfirmation: "required" | "optional" }
-
-export const REQUIRED: Policy = { ownerConfirmation: "required" }
-
 /** The issued document. */
 export type Issued = { at: string; reference: string }
 
 export type AuthorizationState =
-  | { status: "idle"; issued?: Issued }
-  | { status: "blocked"; issued?: Issued }
+  | { status: "idle" }
+  | { status: "blocked" }
   | {
       status: "pending"
       origin: Origin
@@ -25,7 +16,6 @@ export type AuthorizationState =
       link: string
       sentAt: string
       expiresAt: string
-      issued?: Issued
     }
   | {
       status: "authorized"
@@ -49,7 +39,6 @@ export type AuthorizationState =
       link: string
       sentAt: string
       frozenAt: string
-      issued?: Issued
     }
   | { status: "escalated"; caseReference: string; escalatedAt: string }
 
@@ -110,25 +99,10 @@ export function buyerPendingState(input: {
   }
 }
 
-/**
- * Where the clerk may issue. Canada: only once the owner approved. US: anywhere
- * but a hold (failed checks or the owner's "Not me") or a referral.
- */
-function canIssue(state: AuthorizationState, policy: Policy) {
-  if (state.status === "escalated" || state.issued) return false
-  if (policy.ownerConfirmation === "required") return state.status === "authorized"
-  const held =
-    state.status === "blocked" || (state.status === "frozen" && state.reason === "denied")
-  return !held
-}
-
 export function authorizationReducer(
   state: AuthorizationState,
-  action: AuthorizationAction,
-  policy: Policy = REQUIRED
+  action: AuthorizationAction
 ): AuthorizationState {
-  // Once issued, the record is closed: a late approval or denial changes nothing.
-  if (state.status !== "escalated" && state.issued && action.type !== "reset") return state
   switch (action.type) {
     case "request": {
       if (state.status !== "idle") return state
@@ -183,17 +157,11 @@ export function authorizationReducer(
       }
     }
     case "issue": {
-      if (state.status === "escalated" || !canIssue(state, policy)) return state
-      const issued: Issued = { at: action.at, reference: action.reference }
-      return { ...state, issued }
+      if (state.status !== "authorized" || state.issued) return state
+      return { ...state, issued: { at: action.at, reference: action.reference } }
     }
     case "escalate": {
-      // A US clerk may also refer the owner's "Not me"; in Canada that stays frozen.
-      const notMe =
-        policy.ownerConfirmation === "optional" &&
-        state.status === "frozen" &&
-        state.reason === "denied"
-      if (state.status !== "blocked" && !notMe) return state
+      if (state.status !== "blocked") return state
       return {
         status: "escalated",
         caseReference: action.caseReference,

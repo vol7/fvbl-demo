@@ -67,19 +67,15 @@ export type RegionPack = {
     integrations: { name: string; detail: string }[]
   }
 
-  policy: {
-    /**
-     * Canada needs the owner's approval before the package is issued. In the US
-     * the owner's confirmation is evidence, not a gate (US plan, Task 5).
-     */
-    ownerConfirmation: "required" | "optional"
-  }
-
   odometerUnit: OdometerUnit
   plate: {
     /** Read out for the plate chip: "Ontario plate". */
     label: string
     style: "ontario" | "ohio"
+    /** The issuing state, on the plate and before it in text ("OH JKR 4821"). Null in Canada. */
+    state: string | null
+    /** What stands in for a plate the vehicle doesn't have yet. */
+    missing: string
   }
   sms: {
     /** Owner-facing link shown in the text and the confirm page's address bar. */
@@ -186,15 +182,14 @@ export type VerdictLabels = {
   escalated: string
 }
 
-export type DecisionCopy = {
-  /** The card's accessible name: "Package decision". */
-  ariaLabel: string
-  verdict: VerdictLabels
-  /** Beside the plate for a high-value model. */
-  highValueNote: string
-  /** The clerk's button that hands over the document: "Issue package", "Issue title". */
-  issueAction: string
-  idle: { label: string; title: string; text: (checks: number, last4: string) => string }
+/**
+ * What the clerk does from the card: request the owner's approval, issue, refer.
+ * Canada's clerk acts in FVBL; the US card only informs, and the county clerk
+ * issues or refers in their own office's system.
+ */
+export type DecisionActionsCopy = {
+  /** The clerk's button that hands over the document: "Issue package". */
+  issue: string
   /** The dialog that texts the owner from the counter. */
   request: {
     action: string
@@ -203,18 +198,42 @@ export type DecisionCopy = {
     applicantLabel: string
     send: string
   }
+  issued: {
+    label: string
+    title: string
+    text: (p: { clerk: string; time: string; authorizationCode: string }) => string
+  }
+  refer: string
+  escalated: {
+    label: string
+    title: string
+    text: (p: {
+      story: string
+      clerk: string
+      time: string
+      counter: string
+      notifyAfterReview: string | null
+    }) => string
+    customerNote: string
+    sentWith: (checks: number, certificates: number) => string
+  }
+}
+
+export type DecisionCopy = {
+  /** The card's accessible name: "Package decision". */
+  ariaLabel: string
+  verdict: VerdictLabels
+  /** Beside the plate for a high-value model. */
+  highValueNote: string
+  /** Null where the card only informs (US). */
+  actions: DecisionActionsCopy | null
+  idle: { label: string; title: string; text: (checks: number, last4: string) => string }
   pending: {
     label: string
     title: string
     /** Before "The link expires in …". */
     fromBuyer: (requester: string, time: string) => string
     fromCounter: (last4: string, time: string) => string
-  }
-  issued: {
-    label: string
-    title: string
-    /** `authorizationCode` is null when the clerk issued without an owner's approval (US). */
-    text: (p: { clerk: string; time: string; authorizationCode: string | null }) => string
   }
   authorized: {
     label: string
@@ -234,20 +253,6 @@ export type DecisionCopy = {
   blocked: {
     label: string
     fallbackTitle: string
-    referAction: string
-  }
-  escalated: {
-    label: string
-    title: string
-    text: (p: {
-      story: string
-      clerk: string
-      time: string
-      counter: string
-      notifyAfterReview: string | null
-    }) => string
-    customerNote: string
-    sentWith: (checks: number, certificates: number) => string
   }
   strip: {
     checks: string
@@ -423,6 +428,8 @@ export type HubCopy = {
 
 export type PortalCopy = {
   homeLede: (sources: number) => string
+  /** A lookup's outcome in recent lookups: "Blocked" in Canada, "Held for review" in the US. */
+  outcomes: Record<RecentLookup["outcome"], string>
   casesDescription: string
   /** The live row a referral adds to Cases. */
   liveCase: { reason: string; routedTo: string }
@@ -433,6 +440,8 @@ export type PortalCopy = {
   timeline: { entered: (from: string) => string; exported: string; notBackSince: string }
   ownersExported: (date: string, noTransfer: boolean) => string
   activity: {
+    /** The request going out: from the buyer online, or from the counter. */
+    requested: { buyer: string; clerk: string }
     preapprovedDetail: (code: string) => string
     issuedTitle: string
     approvedTitle: string

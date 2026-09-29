@@ -13,7 +13,6 @@ import {
   generateIssuedNumber,
   initialState,
   type AuthorizationState,
-  type Policy,
 } from "./authorization"
 
 const T0 = "2026-09-02T18:14:00.000Z"
@@ -257,80 +256,11 @@ describe("generateIssuedNumber", () => {
   })
 })
 
-describe("issue under the US policy", () => {
-  const OPTIONAL: Policy = { ownerConfirmation: "optional" }
-  const issue = (state: AuthorizationState) =>
-    authorizationReducer(state, { type: "issue", reference: "OH-T-1", at: T1 }, OPTIONAL)
-
-  it("issues from idle: no confirmation needed", () => {
-    expect(issue(initialState(true))).toEqual({
-      status: "idle",
-      issued: { at: T1, reference: "OH-T-1" },
-    })
-  })
-
-  it("issues while the owner has not answered, and after the request timed out", () => {
-    expect(issue(pending())).toMatchObject({ status: "pending", issued: { reference: "OH-T-1" } })
-    const expired = authorizationReducer(pending(), { type: "timeout", at: T1 })
-    expect(issue(expired)).toMatchObject({ status: "frozen", reason: "timeout", issued: {} })
-  })
-
-  it("issues after the owner confirmed", () => {
-    const confirmed = authorizationReducer(pending(), {
-      type: "approve",
-      authorizationCode: "OV-7K2M-9Q3F",
-      at: T1,
-    })
-    expect(issue(confirmed)).toMatchObject({ status: "authorized", issued: {} })
-  })
-
-  it("holds after the owner said Not me", () => {
-    const denied = authorizationReducer(pending(), { type: "deny", at: T1 })
-    expect(issue(denied)).toBe(denied)
-  })
-
-  it("holds when checks fail", () => {
-    const blocked = initialState(false)
-    expect(issue(blocked)).toBe(blocked)
-  })
-
-  it("never issues a referred record", () => {
-    const escalated = authorizationReducer(initialState(false), {
-      type: "escalate",
-      caseReference: "FVBL-1",
-      at: T1,
-    })
-    expect(issue(escalated)).toBe(escalated)
-  })
-
-  it("closes the record: a late approval, denial or second issue is ignored", () => {
-    const issued = issue(pending())
-    expect(authorizationReducer(issued, { type: "approve", authorizationCode: "X", at: T1 })).toBe(
-      issued
-    )
-    expect(authorizationReducer(issued, { type: "deny", at: T1 })).toBe(issued)
-    expect(issue(issued)).toBe(issued)
-  })
-
-  it("leaves Canada's rule alone: the default policy issues only once authorized", () => {
-    const idle = initialState(true)
-    expect(
-      authorizationReducer(idle, { type: "issue", reference: "X", at: T1 })
-    ).toBe(idle)
-  })
-})
-
-describe("escalate after the owner's Not me", () => {
+describe("escalate after the owner's denial", () => {
   const denied = () => authorizationReducer(pending(), { type: "deny", at: T1 })
   const escalate = { type: "escalate", caseReference: "FVBL-1", at: T1 } as const
 
-  it("refers it in the US, where the clerk reviews it like a failed check", () => {
-    expect(
-      authorizationReducer(denied(), escalate, { ownerConfirmation: "optional" })
-    ).toMatchObject({ status: "escalated", caseReference: "FVBL-1" })
-  })
-
-  it("leaves it frozen in Canada", () => {
+  it("leaves it frozen", () => {
     const state = denied()
     expect(authorizationReducer(state, escalate)).toBe(state)
   })

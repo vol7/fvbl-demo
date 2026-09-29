@@ -25,7 +25,7 @@ export function Cases() {
       {
         reference: auth.caseReference,
         vehicle: vehicleTitle(vehicle),
-        plate: plateLabel(vehicle.plate),
+        plate: vehicle.plate,
         ...pack.copy.portal.liveCase,
         status: "Open" as const,
         when: `Today, ${formatTime(auth.escalatedAt)}`,
@@ -61,7 +61,9 @@ export function Cases() {
                     {row.reference}
                   </TableCell>
                   <TableCell className="font-medium">{row.vehicle}</TableCell>
-                  <TableCell className="font-mono tracking-wider">{row.plate}</TableCell>
+                  <TableCell className="font-mono tracking-wider">
+                    {plateLabel(pack.plate, row.plate)}
+                  </TableCell>
                   <TableCell>{row.reason}</TableCell>
                   <TableCell className="text-muted-foreground">{row.routedTo}</TableCell>
                   <TableCell>

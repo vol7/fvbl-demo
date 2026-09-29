@@ -31,6 +31,16 @@ export function VehicleDetails({
     ],
     ["Registered", vehicle.registeredOn ? formatDate(vehicle.registeredOn) : "Not registered"],
     ["Office", registration ? officeLabel(registration.office) : "None"],
+    // US only: the state on the vehicle's current title, which for an out-of-state
+    // title presented here is the other state, not Ohio.
+    ...(pack.plate.state
+      ? [
+          [
+            "State",
+            registration && "state" in registration ? registration.state : pack.plate.missing,
+          ] as [string, React.ReactNode],
+        ]
+      : []),
     ["Odometer", formatOdometer(vehicle.odometer, pack.odometerUnit)],
     ["Last inspection", vehicle.lastInspection ? formatDate(vehicle.lastInspection) : "None yet"],
     ["Active lien", vehicle.records.lien ? vehicle.records.lien.holder : "None"],

@@ -43,7 +43,15 @@ export const routes: RouteObject[] = [
           { path: r.portal.lookup, element: <Lookup /> },
           { path: r.portal.vehicle, element: <Vehicle /> },
           { path: r.portal.requests, element: <Requests /> },
-          { path: r.portal.cases, element: <Cases /> },
+          {
+            // Referrals from the card; the US card only informs.
+            path: r.portal.cases,
+            element: (
+              <OnlyIn region="ca">
+                <Cases />
+              </OnlyIn>
+            ),
+          },
         ],
       },
 

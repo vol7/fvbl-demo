@@ -4,6 +4,7 @@ import { Link, NavLink, useLocation } from "react-router"
 import { FvblMark } from "@/components/FvblMark"
 import { VinSearch } from "@/components/shell/VinSearch"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { plateLabel } from "@/lib/format"
 import { isActive, navItems } from "@/lib/nav"
 import { recentRows } from "@/lib/seed"
 import { useSession } from "@/lib/session"
@@ -49,7 +50,11 @@ export function Sidebar() {
 
       <nav aria-label="Primary" className="mt-3 flex flex-1 flex-col gap-5 overflow-y-auto">
         <div className="flex flex-col gap-0.5">
-          {navItems(paths, pack.copy.portal.requests.title).map((item) => {
+          {navItems(
+            paths,
+            pack.copy.portal.requests.title,
+            pack.copy.decision.actions !== null
+          ).map((item) => {
             const active = isActive(item, pathname)
             return (
               <NavLink
@@ -85,7 +90,7 @@ export function Sidebar() {
                 className={itemClass(active)}
               >
                 <span className="shrink-0 font-mono text-xs tracking-wider text-muted-foreground">
-                  {row.plate}
+                  {plateLabel(pack.plate, row.plate)}
                 </span>
                 <span className="truncate">{row.vehicle.replace(/^\d{4} /, "")}</span>
               </Link>

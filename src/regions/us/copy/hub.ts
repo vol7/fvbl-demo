@@ -13,7 +13,7 @@ export const HUB: HubCopy = {
       n: 1,
       title: "Owner confirms the sale",
       vin: CLEAN_VIN,
-      route: "Ohio title search → owner approves on phone → clerk issues the title",
+      route: "Ohio title search → owner approves on phone → clerk sees the confirmation",
       outcome: "Clear",
     },
     {
@@ -27,7 +27,7 @@ export const HUB: HubCopy = {
       n: 3,
       title: "Exported, no re-entry",
       vin: EXPORTED_VIN,
-      route: "Clerk lookup → refer to investigators",
+      route: "Clerk lookup",
       outcome: "Held for review",
     },
     {

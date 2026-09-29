@@ -214,7 +214,7 @@ export function Hub() {
               {vehicle ? (
                 <>
                   {vehicleTitle(vehicle)} ·{" "}
-                  <span className="font-mono tracking-wider">{plateLabel(vehicle.plate)}</span>
+                  <span className="font-mono tracking-wider">{plateLabel(pack.plate, vehicle.plate)}</span>
                 </>
               ) : (
                 "No request in flight."

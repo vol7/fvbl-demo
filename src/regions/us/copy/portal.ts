@@ -1,8 +1,9 @@
 import type { PortalCopy } from "@/regions/types"
 
 export const PORTAL: PortalCopy = {
+  outcomes: { clear: "Clear", blocked: "Held for review", pending: "Pending", frozen: "Not me" },
   homeLede: (sources) =>
-    `Every lookup checks the VIN with ${sources} sources, alongside the NMVTIS check your office already runs, before you issue a title.`,
+    `Every lookup checks the VIN with ${sources} sources, alongside the NMVTIS check your office already runs.`,
   casesDescription: "Title applications this office referred to state investigators.",
   liveCase: {
     reason: "Record held in another jurisdiction",
@@ -33,6 +34,7 @@ export const PORTAL: PortalCopy = {
   ownersExported: (date, noTransfer) =>
     `CBP recorded a vehicle with this VIN leaving the US on ${date}, while it was titled to this owner.${noTransfer ? " No sale or transfer is on file." : ""}`,
   activity: {
+    requested: { buyer: "Buyer asked the owner to confirm", clerk: "Owner confirmation requested" },
     preapprovedDetail: (code) => `From the owner's title alert, reference ${code}`,
     issuedTitle: "Title issued",
     approvedTitle: "Owner confirmed the sale",

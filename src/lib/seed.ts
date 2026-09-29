@@ -1,7 +1,6 @@
 import type { RegionPack } from "@/regions/types"
 
 import { allPass, evaluateChecks } from "./checks"
-import { plateLabel } from "./format"
 import { registrationState, type SessionState } from "./session"
 import { bornVehicle, type Vehicle, vehicleTitle } from "./vehicles"
 
@@ -11,7 +10,8 @@ export type Outcome = "clear" | "blocked" | "pending" | "frozen"
 
 export type RecentLookup = {
   vin: string
-  plate: string
+  /** Null for a vehicle not plated yet; shown with `plateLabel`. */
+  plate: string | null
   vehicle: string
   outcome: Outcome
   when: string // human label
@@ -20,7 +20,7 @@ export type RecentLookup = {
 export type RequestRow = {
   reference: string
   vehicle: string
-  plate: string
+  plate: string | null
   applicant: string
   /** As the region labels it: `pack.copy.portal.requests.status`. */
   status: string
@@ -30,18 +30,11 @@ export type RequestRow = {
 export type CaseRow = {
   reference: string
   vehicle: string
-  plate: string
+  plate: string | null
   reason: string
   routedTo: string
   status: "Open" | "Under review" | "Closed"
   when: string
-}
-
-export const OUTCOME_LABEL: Record<RecentLookup["outcome"], string> = {
-  clear: "Clear",
-  blocked: "Blocked",
-  pending: "Pending",
-  frozen: "Frozen",
 }
 
 /**
@@ -55,7 +48,7 @@ export function recentRows(
 ): (RecentLookup & { live: boolean })[] {
   const row = (v: Vehicle, when: string) => ({
     vin: v.vin,
-    plate: plateLabel(v.plate),
+    plate: v.plate,
     vehicle: vehicleTitle(v),
     outcome: (allPass(evaluateChecks(pack, v)) ? "clear" : "blocked") as RecentLookup["outcome"],
     when,

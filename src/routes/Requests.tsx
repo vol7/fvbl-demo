@@ -27,16 +27,16 @@ function liveRow(pack: RegionPack, vin: string, auth: AuthorizationState): Reque
       return {
         reference: "—",
         vehicle: vehicleTitle(vehicle),
-        plate: plateLabel(vehicle.plate),
+        plate: vehicle.plate,
         applicant: online(auth.requester, auth.origin),
-        status: auth.issued ? copy.status.issued : copy.status.pending,
+        status: copy.status.pending,
         when: `Today, ${formatTime(auth.sentAt)}`,
       }
     case "authorized":
       return {
         reference: auth.authorizationCode,
         vehicle: vehicleTitle(vehicle),
-        plate: plateLabel(vehicle.plate),
+        plate: vehicle.plate,
         applicant: auth.origin === "owner" ? copy.preapproval : online(auth.requester, auth.origin),
         status: auth.issued ? copy.status.issued : copy.status.authorized,
         when: `Today, ${formatTime(auth.approvedAt)}`,
@@ -45,13 +45,9 @@ function liveRow(pack: RegionPack, vin: string, auth: AuthorizationState): Reque
       return {
         reference: "—",
         vehicle: vehicleTitle(vehicle),
-        plate: plateLabel(vehicle.plate),
+        plate: vehicle.plate,
         applicant: online(auth.requester, auth.origin),
-        status: auth.issued
-          ? copy.status.issued
-          : auth.reason === "timeout"
-            ? copy.status.expired
-            : copy.status.frozen,
+        status: auth.reason === "timeout" ? copy.status.expired : copy.status.frozen,
         when: `Today, ${formatTime(auth.frozenAt)}`,
       }
     default:
@@ -97,7 +93,9 @@ export function Requests() {
                     {row.reference}
                   </TableCell>
                   <TableCell className="font-medium">{row.vehicle}</TableCell>
-                  <TableCell className="font-mono tracking-wider">{row.plate}</TableCell>
+                  <TableCell className="font-mono tracking-wider">
+                    {plateLabel(pack.plate, row.plate)}
+                  </TableCell>
                   <TableCell>{row.applicant}</TableCell>
                   <TableCell>
                     <OutcomeBadge label={row.status} />

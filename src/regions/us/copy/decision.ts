@@ -4,7 +4,8 @@ import type { DecisionCopy } from "@/regions/types"
 /**
  * The county title clerk's card. FVBL informs; the clerk decides (docs/us-version.md):
  * green is "Checks clear", never an approval; red is a hold the clerk reviews, never
- * a block. The owner's confirmation is evidence, not a gate.
+ * a block. The owner's confirmation is evidence, not a gate. The card has no buttons:
+ * the clerk issues or refers in their own office's system.
  */
 export const DECISION: DecisionCopy = {
   ariaLabel: "Title decision",
@@ -20,20 +21,13 @@ export const DECISION: DecisionCopy = {
   },
   // The US confirmation is optional, so the note claims nothing about it.
   highValueNote: "High-value model",
-  issueAction: "Issue title",
+  // The county clerk issues or refers in their own office's system.
+  actions: null,
   idle: {
     label: "Checks clear",
     title: "No conflicts found for this VIN",
     text: (checks) =>
       `All ${checks} record checks passed. No owner confirmation is on file, which is usual for most sales.`,
-  },
-  request: {
-    action: "Ask the owner to confirm",
-    title: "Ask the owner to confirm",
-    description: (last4) =>
-      `The registered owner gets a title alert at the phone ending in ${last4} and decides. You can issue the title without it.`,
-    applicantLabel: "Buyer",
-    send: "Send title alert",
   },
   pending: {
     label: "Awaiting owner",
@@ -42,12 +36,6 @@ export const DECISION: DecisionCopy = {
       `${requester} asked the owner to confirm through the Ohio title search at ${at(time)}`,
     fromCounter: (last4, time) =>
       `A title alert went to the phone ending in ${last4} at ${at(time)}`,
-  },
-  issued: {
-    label: "Title issued",
-    title: "Ohio title issued",
-    text: ({ clerk, time, authorizationCode }) =>
-      `${clerk} issued the title at ${at(time)}${authorizationCode ? ` The owner's confirmation ${authorizationCode} is on file.` : ""}`,
   },
   authorized: {
     label: "Owner confirmed",
@@ -71,16 +59,6 @@ export const DECISION: DecisionCopy = {
   blocked: {
     label: "Hold for review",
     fallbackTitle: "A record check needs review",
-    referAction: "Refer to investigators",
-  },
-  escalated: {
-    label: "Referred to investigators",
-    title: "Referred to state investigators",
-    text: ({ story, clerk, time, counter, notifyAfterReview }) =>
-      `${story}. ${clerk} referred it at ${time} from ${counter}.${notifyAfterReview ? ` State investigators contact ${notifyAfterReview} after review.` : ""}`,
-    customerNote: "Tell the customer the record needs verifying. Don't share the reason.",
-    sentWith: (checks, certificates) =>
-      `Sent with the file: the vehicle record and history, ${checks} record check results and ${certificates} ledger certificates.`,
   },
   strip: {
     checks: "Record checks",

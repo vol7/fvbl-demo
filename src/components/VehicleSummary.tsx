@@ -67,7 +67,7 @@ export function VehicleSummary({
           {vehicle.plate ? (
             <Plate plate={vehicle.plate} />
           ) : (
-            <span className="text-sm font-medium">{plateLabel(vehicle.plate)}</span>
+            <span className="text-sm font-medium">{plateLabel(pack.plate, vehicle.plate)}</span>
           )}
           {vehicle.riskTier === "high-value" ? (
             <span className="text-[13px] text-muted-foreground">

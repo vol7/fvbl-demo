@@ -1,4 +1,4 @@
-import type { CaseRow, RecentLookup, RequestRow } from "@/lib/seed"
+import type { RecentLookup, RequestRow } from "@/lib/seed"
 import type { Seed } from "@/regions/types"
 
 /** Static rows that make the county title office look in use. Invented data. */
@@ -69,40 +69,11 @@ const REQUEST_ROWS: RequestRow[] = [
   },
 ]
 
-const CASE_ROWS: CaseRow[] = [
-  {
-    reference: "FVBL-2026-09-28-0931",
-    vehicle: "2023 BMW X3 xDrive30i",
-    plate: "HRL 8830",
-    reason: "Owner said the sale isn't theirs",
-    routedTo: "State investigators",
-    status: "Under review",
-    when: "Yesterday, 11:05 a.m.",
-  },
-  {
-    reference: "FVBL-2026-09-17-0512",
-    vehicle: "2020 Ram 1500 Big Horn",
-    plate: "—",
-    reason: "Salvage brand in another state",
-    routedTo: "State investigators",
-    status: "Open",
-    when: "Sep 17, 1:44 p.m.",
-  },
-  {
-    reference: "FVBL-2026-09-03-0288",
-    vehicle: "2022 Dodge Durango R/T",
-    plate: "—",
-    reason: "Export with no re-entry",
-    routedTo: "State investigators",
-    status: "Closed",
-    when: "Sep 3, 10:20 a.m.",
-  },
-]
-
 export const SEED: Seed = {
   recentLookups: RECENT_LOOKUPS,
   requestRows: REQUEST_ROWS,
-  caseRows: CASE_ROWS,
+  // No Cases page in the US: the county clerk refers in their own system.
+  caseRows: [],
   todayStats: { lookups: 11, casesOpened: 0 },
   demoLookupTimes: ["Today, 9:38 a.m.", "Today, 9:15 a.m.", "Today, 8:52 a.m.", "Today, 8:30 a.m."],
 }

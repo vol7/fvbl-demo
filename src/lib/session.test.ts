@@ -246,26 +246,6 @@ describe("one session per region", () => {
     expect(store.getState().authorizations[A]).not.toHaveProperty("issued.packageNumber")
   })
 
-  it("lets the US clerk issue on a vehicle nobody has acted on", () => {
-    const issue = {
-      type: "issue" as const,
-      vin: A,
-      reference: "OH-T-1",
-      at: T1,
-      canRequest: true,
-    }
-    expect(sessionReducer(EMPTY_SESSION, issue), "Canada's rule").toBe(EMPTY_SESSION)
-    const us = sessionReducer(EMPTY_SESSION, {
-      ...issue,
-      policy: { ownerConfirmation: "optional" },
-    })
-    expect(us.authorizations[A]).toEqual({
-      status: "idle",
-      issued: { at: T1, reference: "OH-T-1" },
-    })
-    expect(us.activeVin, "issuing texts nobody").toBeNull()
-  })
-
   it("moves the pre-region session to Canada once", () => {
     const storage = memoryStorage()
     const legacy = sessionReducer(EMPTY_SESSION, request(A))

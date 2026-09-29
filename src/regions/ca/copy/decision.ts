@@ -14,33 +14,47 @@ export const DECISION: DecisionCopy = {
     escalated: "Escalated",
   },
   highValueNote: "High-value model, owner authorization required",
-  issueAction: "Issue package",
+  actions: {
+    issue: "Issue package",
+    request: {
+      action: "Request owner authorization",
+      title: "Request owner authorization",
+      description: (last4) =>
+        `The registered owner gets a text at the phone ending in ${last4} with a link to approve or decline.`,
+      applicantLabel: "Applicant",
+      send: "Send request",
+    },
+    issued: {
+      label: "Package issued",
+      title: "Used Vehicle Information Package issued",
+      text: ({ clerk, time, authorizationCode }) =>
+        `${clerk} issued the package at ${time} under authorization ${authorizationCode}.`,
+    },
+    refer: "Refer for investigation",
+    escalated: {
+      label: "Referred, do not issue",
+      title: "Referred to MTO Investigations",
+      // Who and when once, what happens next once.
+      text: ({ story, clerk, time, counter, notifyAfterReview }) =>
+        `${story}. ${clerk} referred it at ${time} from ${counter}.${notifyAfterReview ? ` MTO Investigations notifies ${notifyAfterReview} after review.` : ""}`,
+      customerNote: "Tell the customer the record needs verifying. Do not share the reason.",
+      sentWith: (checks, certificates) =>
+        `Sent with the file: the vehicle record and history, ${checks} record check results and ${certificates} ledger certificates.`,
+    },
+  },
   idle: {
     label: "Checks clear",
     title: "Ready to request owner authorization",
     text: (checks, last4) =>
       `All ${checks} record checks passed. The registered owner gets a text at the phone ending in ${last4} with a link to approve or decline.`,
   },
-  request: {
-    action: "Request owner authorization",
-    title: "Request owner authorization",
-    description: (last4) =>
-      `The registered owner gets a text at the phone ending in ${last4} with a link to approve or decline.`,
-    applicantLabel: "Applicant",
-    send: "Send request",
-  },
   pending: {
     label: "Awaiting owner",
     title: "Waiting for the registered owner",
     fromBuyer: (requester, time) =>
       `${requester} requested it online through ServiceOntario at ${endsSentence(time)}`,
-    fromCounter: (last4, time) => `A text went to the phone ending in ${last4} at ${endsSentence(time)}`,
-  },
-  issued: {
-    label: "Package issued",
-    title: "Used Vehicle Information Package issued",
-    text: ({ clerk, time, authorizationCode }) =>
-      `${clerk} issued the package at ${time} under authorization ${authorizationCode}.`,
+    fromCounter: (last4, time) =>
+      `A text went to the phone ending in ${last4} at ${endsSentence(time)}`,
   },
   authorized: {
     label: "Authorized to issue",
@@ -63,17 +77,6 @@ export const DECISION: DecisionCopy = {
   blocked: {
     label: "Hold, do not issue",
     fallbackTitle: "A record check failed",
-    referAction: "Refer for investigation",
-  },
-  escalated: {
-    label: "Referred, do not issue",
-    title: "Referred to MTO Investigations",
-    // Who and when once, what happens next once.
-    text: ({ story, clerk, time, counter, notifyAfterReview }) =>
-      `${story}. ${clerk} referred it at ${time} from ${counter}.${notifyAfterReview ? ` MTO Investigations notifies ${notifyAfterReview} after review.` : ""}`,
-    customerNote: "Tell the customer the record needs verifying. Do not share the reason.",
-    sentWith: (checks, certificates) =>
-      `Sent with the file: the vehicle record and history, ${checks} record check results and ${certificates} ledger certificates.`,
   },
   strip: {
     checks: "Record checks",

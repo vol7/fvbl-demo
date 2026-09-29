@@ -46,7 +46,7 @@ describe("recentRows", () => {
     const [first] = recentRows(ca, s)
     expect(first).toMatchObject({
       vin: NEW_VIN,
-      plate: "Not yet plated",
+      plate: null,
       outcome: "clear",
       live: true,
     })

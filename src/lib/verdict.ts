@@ -4,7 +4,6 @@ import type { AuthorizationState } from "./authorization"
 
 /** The verdict pill: one label for the whole record, in the region's words. */
 export function verdictLabel(state: AuthorizationState, labels: VerdictLabels): string {
-  if (state.status !== "escalated" && state.issued) return labels.issued
   switch (state.status) {
     case "escalated":
       return labels.escalated
@@ -15,7 +14,7 @@ export function verdictLabel(state: AuthorizationState, labels: VerdictLabels): 
     case "pending":
       return labels.pending
     case "authorized":
-      return labels.authorized
+      return state.issued ? labels.issued : labels.authorized
     case "idle":
       return labels.idle
   }

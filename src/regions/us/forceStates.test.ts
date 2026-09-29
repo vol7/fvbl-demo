@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest"
 
-import { authorizationReducer } from "@/lib/authorization"
 import {
   activeAuthorization,
   createSessionStore,
@@ -63,25 +62,18 @@ describe("US forcedSession", () => {
     }
   })
 
-  it("issues an Ohio title reference", () => {
-    expect(activeAuthorization(forcedSession("titleIssued", NOW))?.state).toMatchObject({
-      issued: { reference: expect.stringMatching(/^OH-T-/) },
-    })
-  })
-
-  it("holds and refers the exported vehicle", () => {
+  it("holds the exported vehicle", () => {
     expect(forcedSession("held", NOW).activeVin).toBe(EXPORTED_VIN)
-    expect(activeAuthorization(forcedSession("referred", NOW))?.state).toMatchObject({
-      status: "escalated",
-    })
+    expect(activeAuthorization(forcedSession("held", NOW))?.state).toEqual({ status: "blocked" })
   })
 
-  it("leaves a title issuable after no reply but not after “Not me”", () => {
-    const issue = { type: "issue" as const, reference: "OH-T-X", at: NOW.toISOString() }
-    const noReply = activeAuthorization(forcedSession("noReply", NOW))!.state
-    const notMe = activeAuthorization(forcedSession("notMe", NOW))!.state
-    expect(authorizationReducer(noReply, issue, us.policy)).toMatchObject({ issued: {} })
-    expect(authorizationReducer(notMe, issue, us.policy)).not.toHaveProperty("issued")
+  it("never forces an issued or referred record: the US card only informs", () => {
+    for (const { key } of FORCE_STATES) {
+      for (const state of Object.values(forcedSession(key, NOW).authorizations)) {
+        expect(state.status, key).not.toBe("escalated")
+        expect(state, key).not.toHaveProperty("issued")
+      }
+    }
   })
 
   it("never touches the Canadian session", () => {

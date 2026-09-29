@@ -70,7 +70,7 @@ export function deriveActivity(
       })
       break
     case "pending":
-      events.push(sentEvent(state))
+      events.push(sentEvent(pack, state))
       break
     case "authorized":
       if (state.origin === "owner") {
@@ -83,7 +83,7 @@ export function deriveActivity(
         })
         break
       }
-      events.push(sentEvent(state), {
+      events.push(sentEvent(pack, state), {
         id: "approved",
         at: state.approvedAt,
         title: pack.copy.portal.activity.approvedTitle,
@@ -92,7 +92,7 @@ export function deriveActivity(
       })
       break
     case "frozen":
-      events.push(sentEvent(state), {
+      events.push(sentEvent(pack, state), {
         id: "frozen",
         at: state.frozenAt,
         title: pack.copy.portal.activity.frozen[state.reason],
@@ -101,9 +101,7 @@ export function deriveActivity(
       })
       break
   }
-  // Canada issues only once the owner approved; the US clerk may issue from any
-  // state but a hold or a referral.
-  if (state.status !== "escalated" && state.issued) {
+  if (state.status === "authorized" && state.issued) {
     events.push({
       id: "issued",
       at: state.issued.at,
@@ -155,23 +153,23 @@ export function registrationActivity(
   return events
 }
 
-function sentEvent(state: {
-  origin: "clerk" | "owner" | "buyer"
-  requester: string
-  sentAt: string
-}): ActivityEvent {
+function sentEvent(
+  pack: RegionPack,
+  state: { origin: "clerk" | "owner" | "buyer"; requester: string; sentAt: string }
+): ActivityEvent {
+  const { requested } = pack.copy.portal.activity
   return state.origin === "buyer"
     ? {
         id: "sent",
         at: state.sentAt,
-        title: "Pre-approval requested online",
+        title: requested.buyer,
         detail: `By ${state.requester}, owner texted`,
         tone: "info",
       }
     : {
         id: "sent",
         at: state.sentAt,
-        title: "Authorization requested",
+        title: requested.clerk,
         detail: "Confirmation link sent to registered owner",
         tone: "info",
       }

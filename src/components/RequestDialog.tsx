@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useRegion } from "@/regions"
+import type { DecisionActionsCopy } from "@/regions/types"
 
 /** What the clerk types before requesting owner authorization. */
 export type ApplicantDetails = { name: string; licence: string; mobile: string }
@@ -53,19 +54,17 @@ function Field({
 /**
  * The applicant at the counter, prefilled with the demo buyer. Opened from the
  * header card when the checks are clear; the request itself goes to the owner.
- * In the US it is the secondary action beside Issue title: asking is optional.
  */
 export function RequestDialog({
+  copy,
   ownerPhoneLast4,
   onRequest,
-  secondary = false,
 }: {
+  copy: DecisionActionsCopy["request"]
   ownerPhoneLast4: string
   onRequest: (applicant: ApplicantDetails) => void
-  secondary?: boolean
 }) {
   const pack = useRegion()
-  const copy = pack.copy.decision.request
   const [name, setName] = useState<string>(pack.people.buyer.name)
   const [licence, setLicence] = useState<string>(pack.people.buyer.licence)
   const [mobile, setMobile] = useState<string>(pack.people.buyer.mobile)
@@ -73,13 +72,7 @@ export function RequestDialog({
   return (
     <Dialog>
       <DialogTrigger
-        render={
-          <Button
-            size="lg"
-            variant={secondary ? "outline" : "default"}
-            className="px-4 has-data-[icon=inline-start]:pl-3.5"
-          />
-        }
+        render={<Button size="lg" className="px-4 has-data-[icon=inline-start]:pl-3.5" />}
       >
         <Send data-icon="inline-start" aria-hidden />
         {copy.action}

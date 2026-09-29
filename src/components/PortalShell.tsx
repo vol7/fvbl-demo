@@ -2,6 +2,7 @@ import { Outlet, useLocation, useMatches } from "react-router"
 
 import { Sidebar } from "@/components/shell/Sidebar"
 import { TopBar, type Crumb } from "@/components/shell/TopBar"
+import { plateLabel } from "@/lib/format"
 import { isActive, navItems } from "@/lib/nav"
 import { registrationState, useSession } from "@/lib/session"
 import { bornVehicle, findVehicle } from "@/lib/vehicles"
@@ -14,9 +15,11 @@ function useCrumbs(): Crumb[] {
   const matches = useMatches()
   const [session] = useSession()
   const paths = useRegionPaths()
-  const nav = navItems(paths, pack.copy.portal.requests.title).find((item) =>
-    isActive(item, pathname)
-  )
+  const nav = navItems(
+    paths,
+    pack.copy.portal.requests.title,
+    pack.copy.decision.actions !== null
+  ).find((item) => isActive(item, pathname))
   const crumbs: Crumb[] = nav ? [{ label: nav.label, to: nav.to }] : []
   const vehicleMatch = matches.find((m) => m.params.vin)
   if (vehicleMatch?.params.vin) {
@@ -27,10 +30,10 @@ function useCrumbs(): Crumb[] {
     crumbs.push({
       label: !vehicle
         ? "Not found"
-        : vehicle.plate
-          ? `Plate ${vehicle.plate}`
+        : vehicle.plate || (vehicle.history.length > 0 && pack.plate.state)
+          ? `Plate ${plateLabel(pack.plate, vehicle.plate)}`
           : vehicle.history.length > 0
-            ? "Not yet plated"
+            ? pack.plate.missing
             : "Unregistered VIN",
     })
   }

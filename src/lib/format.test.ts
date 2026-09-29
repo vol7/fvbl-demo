@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest"
 
+import { ca } from "@/regions/ca"
+import { us } from "@/regions/us"
+
 import {
   formatDate,
   plateLabel,
@@ -84,7 +87,12 @@ describe("formatRelative", () => {
 
 describe("plateLabel", () => {
   it("prints the plate, or says the vehicle is not yet plated", () => {
-    expect(plateLabel("CKXR 214")).toBe("CKXR 214")
-    expect(plateLabel(null)).toBe("Not yet plated")
+    expect(plateLabel(ca.plate, "CKXR 214")).toBe("CKXR 214")
+    expect(plateLabel(ca.plate, null)).toBe("Not yet plated")
+  })
+
+  it("puts the state before a US plate, and N/A where there is none", () => {
+    expect(plateLabel(us.plate, "JKR 4821")).toBe("OH JKR 4821")
+    expect(plateLabel(us.plate, null)).toBe("N/A")
   })
 })

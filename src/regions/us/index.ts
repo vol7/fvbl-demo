@@ -34,11 +34,10 @@ export const us: RegionPack = {
   seed: SEED,
   checks: { definitions: CHECKS, integrations: INTEGRATIONS },
   story: STORY,
-  policy: { ownerConfirmation: "optional" },
   forceStates: FORCE_STATES,
   forcedSession: (key, now) => forcedSession(key as ForceKey, now),
   odometerUnit: "mi",
-  plate: { label: "Ohio plate", style: "ohio" },
+  plate: { label: "Ohio plate", style: "ohio", state: "OH", missing: "N/A" },
   sms: { link: (token) => `fvbl.us/c/${token}`, domain: "fvbl.us" },
   copy: {
     decision: DECISION,

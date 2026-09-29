@@ -4,8 +4,8 @@ import { Link } from "react-router"
 import { Countdown } from "@/components/Countdown"
 import { LookupForm } from "@/components/LookupForm"
 import { Plate } from "@/components/Plate"
-import { formatTime } from "@/lib/format"
-import { OUTCOME_LABEL, recentRows, type Outcome } from "@/lib/seed"
+import { formatTime, plateLabel } from "@/lib/format"
+import { recentRows, type Outcome } from "@/lib/seed"
 import { useSession } from "@/lib/session"
 import { cn } from "@/lib/utils"
 import { findVehicle, vehicleTitle } from "@/lib/vehicles"
@@ -66,6 +66,9 @@ export function Home() {
   })
   const casesOpened =
     pack.seed.todayStats.casesOpened + slots.filter(([, a]) => a.status === "escalated").length
+  const held = slots.filter(
+    ([, a]) => a.status === "blocked" || (a.status === "frozen" && a.reason === "denied")
+  ).length
   const rows = recentRows(pack, session).slice(0, 6)
 
   const stats: [string, number, string][] = [
@@ -75,7 +78,10 @@ export function Home() {
       pending.length,
       pending.length ? "Texts out, not yet answered" : "Nothing waiting",
     ],
-    ["Cases opened", casesOpened, "Referred for investigation"],
+    // The US clerk refers in their own office's system; FVBL counts what it held.
+    pack.copy.decision.actions
+      ? ["Cases opened", casesOpened, "Referred for investigation"]
+      : ["Held for review", held, held ? "Flagged by a record check or the owner" : "Nothing held"],
   ]
 
   return (
@@ -126,14 +132,17 @@ export function Home() {
           </SectionTitle>
           <ul className="divide-y overflow-hidden rounded-xl border bg-card shadow-xs">
             {rows.map((row) => {
-              const plated = findVehicle(pack, row.vin)?.plate ?? (row.live ? null : row.plate)
+              const plated = findVehicle(pack, row.vin)?.plate ?? row.plate
               const inner = (
                 <>
-                  <span className="w-[5.5rem] shrink-0">
+                  {/* A US plate carries its state, and US outcomes read longer. */}
+                  <span className={cn("shrink-0", pack.plate.state ? "w-[6.75rem]" : "w-[5.5rem]")}>
                     {plated ? (
                       <Plate plate={plated} size="sm" />
                     ) : (
-                      <span className="text-xs text-muted-foreground">{row.plate}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {plateLabel(pack.plate, row.plate)}
+                      </span>
                     )}
                   </span>
                   <span
@@ -141,12 +150,17 @@ export function Home() {
                   >
                     {row.vehicle}
                   </span>
-                  <span className="flex w-20 shrink-0 items-center gap-1.5 text-[13px] text-muted-foreground">
+                  <span
+                    className={cn(
+                      "flex shrink-0 items-center gap-1.5 text-[13px] whitespace-nowrap text-muted-foreground",
+                      pack.plate.state ? "w-32" : "w-20"
+                    )}
+                  >
                     <span
                       className={cn("size-1.5 rounded-full", OUTCOME_DOT[row.outcome])}
                       aria-hidden
                     />
-                    {OUTCOME_LABEL[row.outcome]}
+                    {pack.copy.portal.outcomes[row.outcome]}
                   </span>
                   <span className="hidden w-32 shrink-0 text-right text-[13px] whitespace-nowrap text-muted-foreground sm:inline">
                     {row.when}

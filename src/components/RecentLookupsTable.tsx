@@ -10,7 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { OUTCOME_LABEL, recentRows } from "@/lib/seed"
+import { plateLabel } from "@/lib/format"
+import { recentRows } from "@/lib/seed"
 import { useSession } from "@/lib/session"
 import { useRegionPaths } from "@/regions/context"
 import { useRegion } from "@/regions"
@@ -46,7 +47,9 @@ export function RecentLookupsTable({
             className={row.live ? "cursor-pointer" : "cursor-default text-muted-foreground"}
             onClick={row.live ? () => navigate(paths.portal.vehicle(row.vin)) : undefined}
           >
-            <TableCell className="pl-6 font-mono tracking-wider">{row.plate}</TableCell>
+            <TableCell className="pl-6 font-mono tracking-wider">
+              {plateLabel(pack.plate, row.plate)}
+            </TableCell>
             <TableCell className={row.live ? "font-medium" : undefined}>{row.vehicle}</TableCell>
             {compact ? null : (
               <TableCell className="font-mono text-xs tracking-wider">
@@ -64,7 +67,7 @@ export function RecentLookupsTable({
               </TableCell>
             )}
             <TableCell>
-              <OutcomeBadge label={OUTCOME_LABEL[row.outcome]} />
+              <OutcomeBadge label={pack.copy.portal.outcomes[row.outcome]} />
             </TableCell>
             <TableCell className="text-right text-muted-foreground">{row.when}</TableCell>
             <TableCell className="pr-6 text-right">

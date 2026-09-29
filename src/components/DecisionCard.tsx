@@ -90,31 +90,20 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
   const certificates = authorizationCertificates(pack, vehicle, state)
   const last4 = vehicle.owner.phoneLast4
 
-  // Canada issues only once the owner approved. In the US the clerk decides: Issue
-  // title wherever nothing holds the record, and over a hold only with a note.
-  const clerkDecides = pack.policy.ownerConfirmation === "optional"
-  const issueButton = (
+  // Canada's clerk acts from the card. The US card only informs: the county clerk
+  // issues or refers in their own office's system, so it has no buttons at all.
+  const actions = copy.actions
+  const informational = actions === null
+  const issueButton = actions ? (
     <Button
       size="lg"
       className="bg-emerald-700 px-4 text-white hover:bg-emerald-700/90 has-data-[icon=inline-start]:pl-3.5"
       onClick={() => onIssue()}
     >
       <FileCheck data-icon="inline-start" aria-hidden />
-      {copy.issueAction}
+      {actions.issue}
     </Button>
-  )
-  const holdActions = (
-    <div className="flex flex-col items-end gap-1.5">
-      <Button
-        size="lg"
-        className="bg-destructive px-4 text-white hover:bg-destructive/90 has-data-[icon=inline-start]:pl-3.5"
-        onClick={onEscalate}
-      >
-        <Siren data-icon="inline-start" aria-hidden />
-        {copy.blocked.referAction}
-      </Button>
-    </div>
-  )
+  ) : undefined
   const hold = (label: string): Body => ({
     tone: "danger",
     icon: ShieldAlert,
@@ -122,27 +111,31 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
     title: story?.title ?? copy.blocked.fallbackTitle,
     text: story?.body ?? "",
     foot: story?.foot,
-    action: holdActions,
+    action: actions ? (
+      <Button
+        size="lg"
+        className="bg-destructive px-4 text-white hover:bg-destructive/90 has-data-[icon=inline-start]:pl-3.5"
+        onClick={onEscalate}
+      >
+        <Siren data-icon="inline-start" aria-hidden />
+        {actions.refer}
+      </Button>
+    ) : undefined,
   })
 
   const body = ((): Body => {
-    if (state.status !== "escalated" && state.issued) {
-      const { issued } = state
+    if (actions && state.status === "authorized" && state.issued) {
       return {
         tone: "success",
         icon: CircleCheck,
-        label: copy.issued.label,
-        title: copy.issued.title,
-        text: (
-          <>
-            {copy.issued.text({
-              clerk: office.clerkFullName,
-              time: formatTime(issued.at),
-              authorizationCode: state.status === "authorized" ? state.authorizationCode : null,
-            })}
-          </>
-        ),
-        reference: issued.reference,
+        label: actions.issued.label,
+        title: actions.issued.title,
+        text: actions.issued.text({
+          clerk: office.clerkFullName,
+          time: formatTime(state.issued.at),
+          authorizationCode: state.authorizationCode,
+        }),
+        reference: state.issued.reference,
       }
     }
     switch (state.status) {
@@ -153,14 +146,9 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
           label: copy.idle.label,
           title: copy.idle.title,
           text: copy.idle.text(n, last4),
-          action: clerkDecides ? (
-            <div className="flex flex-col items-end gap-2">
-              {issueButton}
-              <RequestDialog ownerPhoneLast4={last4} onRequest={onRequest} secondary />
-            </div>
-          ) : (
-            <RequestDialog ownerPhoneLast4={last4} onRequest={onRequest} />
-          ),
+          action: actions ? (
+            <RequestDialog copy={actions.request} ownerPhoneLast4={last4} onRequest={onRequest} />
+          ) : undefined,
         }
       case "pending":
         return {
@@ -176,7 +164,6 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
               The link expires in <Countdown expiresAt={state.expiresAt} />.
             </>
           ),
-          action: clerkDecides ? issueButton : undefined,
         }
       case "authorized":
         return {
@@ -198,24 +185,24 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
         }
       case "frozen":
         // The owner's "Not me" is a hold the US clerk reviews like a failed check.
-        if (clerkDecides && state.reason === "denied") return hold(copy.frozen.labelDenied)
+        if (informational && state.reason === "denied") return hold(copy.frozen.labelDenied)
         return {
-          tone: clerkDecides ? "neutral" : "warning",
-          icon: clerkDecides ? Clock : Snowflake,
+          tone: informational ? "neutral" : "warning",
+          icon: informational ? Clock : Snowflake,
           label: state.reason === "denied" ? copy.frozen.labelDenied : copy.frozen.labelTimeout,
           title: state.reason === "denied" ? copy.frozen.titleDenied : copy.frozen.titleTimeout,
           text: copy.frozen.text(formatTime(state.frozenAt), state.reason),
-          action: clerkDecides ? issueButton : undefined,
         }
       case "blocked":
         return hold(copy.blocked.label)
       case "escalated":
+        if (!actions) return hold(copy.blocked.label)
         return {
           tone: "danger",
           icon: ShieldAlert,
-          label: copy.escalated.label,
-          title: copy.escalated.title,
-          text: copy.escalated.text({
+          label: actions.escalated.label,
+          title: actions.escalated.title,
+          text: actions.escalated.text({
             story: story?.title ?? copy.blocked.fallbackTitle,
             clerk: office.clerkFullName,
             time: formatTime(state.escalatedAt),
@@ -231,10 +218,10 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
                   className="mt-0.5 size-4 shrink-0 text-destructive"
                   aria-hidden
                 />
-                {copy.escalated.customerNote}
+                {actions.escalated.customerNote}
               </p>
               <p className="pl-6 text-muted-foreground">
-                {copy.escalated.sentWith(n, ledgerEntries(pack, vehicle, state).length)}
+                {actions.escalated.sentWith(n, ledgerEntries(pack, vehicle, state).length)}
               </p>
             </div>
           ),

@@ -1,3 +1,5 @@
+import type { RegionPack } from "@/regions/types"
+
 export function normalizeVin(input: string): string {
   return input.replace(/\s+/g, "").toUpperCase()
 }
@@ -55,9 +57,13 @@ export function formatRelative(from: Date | string, now: Date = new Date()): str
   return `${days} day${days === 1 ? "" : "s"} ago`
 }
 
-/** A plate, or the phrase the portal uses for a vehicle the registry has not plated yet. */
-export function plateLabel(plate: string | null): string {
-  return plate ?? "Not yet plated"
+/**
+ * A plate as text, with its state where the region has one ("OH JKR 4821"), or the
+ * region's phrase for a vehicle not plated yet.
+ */
+export function plateLabel(region: RegionPack["plate"], plate: string | null): string {
+  if (!plate) return region.missing
+  return region.state ? `${region.state} ${plate}` : plate
 }
 
 /** "Feb 2023" */

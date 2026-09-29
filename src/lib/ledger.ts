@@ -248,9 +248,7 @@ function authorizationDrafts(
       )
       break
   }
-  // After the switch so the US clerk's title, issued from any state but a hold or a
-  // referral, lands on the chain too. Canada's payload is unchanged.
-  if (state.status !== "escalated" && state.issued) {
+  if (state.status === "authorized" && state.issued) {
     entry("issued", state.issued.at, issuedKind, issuedTitle, state.issued.reference)
   }
   return out

@@ -18,9 +18,7 @@ export type ForceKey =
   | "ownerConfirmed"
   | "notMe"
   | "noReply"
-  | "titleIssued"
   | "held"
-  | "referred"
 
 export const FORCE_STATES: { key: ForceKey; label: string }[] = [
   { key: "idle", label: "Idle" },
@@ -30,9 +28,7 @@ export const FORCE_STATES: { key: ForceKey; label: string }[] = [
   { key: "ownerConfirmed", label: "Owner confirmed" },
   { key: "notMe", label: "Owner said “Not me”" },
   { key: "noReply", label: "No reply" },
-  { key: "titleIssued", label: "Title issued" },
   { key: "held", label: "Held for review" },
-  { key: "referred", label: "Referred" },
 ]
 
 const OTP = "514 087"
@@ -121,18 +117,7 @@ export function forcedSession(key: ForceKey, now: Date = new Date()): SessionSta
         sentAt,
         frozenAt: at,
       })
-    case "titleIssued":
-      return one(CLEAN_VIN, {
-        ...confirmed,
-        issued: { at, reference: "OH-T-2026-09-29-4821" },
-      })
     case "held":
       return one(EXPORTED_VIN, { status: "blocked" })
-    case "referred":
-      return one(EXPORTED_VIN, {
-        status: "escalated",
-        caseReference: "FVBL-2026-09-29-3631",
-        escalatedAt: at,
-      })
   }
 }
