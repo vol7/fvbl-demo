@@ -89,7 +89,7 @@ describe("sessionReducer", () => {
   it("returns the same object when an action does not apply", () => {
     const s = sessionReducer(EMPTY_SESSION, request(A))
     expect(sessionReducer(s, request(A)), "request on pending").toBe(s)
-    expect(sessionReducer(s, { type: "issue", vin: A, packageNumber: "X", at: T1 })).toBe(s)
+    expect(sessionReducer(s, { type: "issue", vin: A, reference: "X", at: T1 })).toBe(s)
   })
 
   it("preapprove and buyerRequest set the slot and the active vehicle", () => {
@@ -219,6 +219,51 @@ describe("one session per region", () => {
     ca.dispatch({ type: "clear" })
     expect(ca.getState()).toEqual(EMPTY_SESSION)
     expect(us.getState().authorizations[B].status).toBe("pending")
+  })
+
+  it("reads an issued package stored under its old field name", () => {
+    const storage = memoryStorage()
+    const issued = {
+      status: "authorized",
+      origin: "clerk",
+      requester: "Marcus B.",
+      otp: "482 193",
+      link: LINK,
+      sentAt: T0,
+      authorizationCode: "OV-AAAA-BBBB",
+      approvedAt: T1,
+      validUntil: T1,
+      issued: { at: T1, packageNumber: "UVIP-2026-09-09-4821" },
+    }
+    storage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ authorizations: { [A]: issued }, registrations: {}, activeVin: A })
+    )
+    const store = createSessionStore({ region: "ca", storage, channel: null, warn: () => {} })
+    expect(store.getState().authorizations[A]).toMatchObject({
+      issued: { at: T1, reference: "UVIP-2026-09-09-4821" },
+    })
+    expect(store.getState().authorizations[A]).not.toHaveProperty("issued.packageNumber")
+  })
+
+  it("lets the US clerk issue on a vehicle nobody has acted on", () => {
+    const issue = {
+      type: "issue" as const,
+      vin: A,
+      reference: "OH-T-1",
+      at: T1,
+      canRequest: true,
+    }
+    expect(sessionReducer(EMPTY_SESSION, issue), "Canada's rule").toBe(EMPTY_SESSION)
+    const us = sessionReducer(EMPTY_SESSION, {
+      ...issue,
+      policy: { ownerConfirmation: "optional" },
+    })
+    expect(us.authorizations[A]).toEqual({
+      status: "idle",
+      issued: { at: T1, reference: "OH-T-1" },
+    })
+    expect(us.activeVin, "issuing texts nobody").toBeNull()
   })
 
   it("moves the pre-region session to Canada once", () => {

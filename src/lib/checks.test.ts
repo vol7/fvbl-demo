@@ -92,7 +92,7 @@ describe("evaluateChecks", () => {
     const rolledBack: Vehicle = {
       ...clean,
       history: clean.history.map((e) =>
-        e.kind === "odometer" && e.date === "2024-05-02" ? { ...e, km: 54000 } : e
+        e.kind === "odometer" && e.date === "2024-05-02" ? { ...e, reading: 54000 } : e
       ),
     }
     const odometer = evaluateChecks(ca, rolledBack).find((c) => c.id === "odometer")!

@@ -1,5 +1,6 @@
 import {
   ArrowLeftRight,
+  FileBadge,
   Globe,
   PlaneTakeoff,
   RefreshCw,
@@ -21,6 +22,8 @@ const NOTE_ICON: Record<OwnerNote["kind"], LucideIcon> = {
   loss: Siren,
   transfer: ArrowLeftRight,
   usTitle: Globe,
+  brand: FileBadge,
+  otherJurisdiction: Globe,
 }
 
 const NOTE_TONE: Record<OwnerNote["tone"], string> = {

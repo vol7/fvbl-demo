@@ -13,6 +13,7 @@ import {
   generateIssuedNumber,
   initialState,
   type AuthorizationState,
+  type Policy,
 } from "./authorization"
 
 const T0 = "2026-09-02T18:14:00.000Z"
@@ -220,26 +221,24 @@ describe("issue", () => {
   it("records the package number against the authorization", () => {
     const state = authorizationReducer(authorized(), {
       type: "issue",
-      packageNumber: "UVIP-2026-09-02-4821",
+      reference: "UVIP-2026-09-02-4821",
       at: T1,
     })
     expect(state).toMatchObject({
       status: "authorized",
-      issued: { at: T1, packageNumber: "UVIP-2026-09-02-4821" },
+      issued: { at: T1, reference: "UVIP-2026-09-02-4821" },
     })
   })
 
   it("is a no-op before authorization and when already issued", () => {
     const idle = initialState(true)
-    expect(authorizationReducer(idle, { type: "issue", packageNumber: "X", at: T1 })).toBe(idle)
+    expect(authorizationReducer(idle, { type: "issue", reference: "X", at: T1 })).toBe(idle)
     const once = authorizationReducer(authorized(), {
       type: "issue",
-      packageNumber: "UVIP-1",
+      reference: "UVIP-1",
       at: T1,
     })
-    expect(authorizationReducer(once, { type: "issue", packageNumber: "UVIP-2", at: T1 })).toBe(
-      once
-    )
+    expect(authorizationReducer(once, { type: "issue", reference: "UVIP-2", at: T1 })).toBe(once)
   })
 })
 
@@ -255,5 +254,81 @@ describe("generateIssuedNumber", () => {
     expect(generateIssuedNumber("UVIP", new Date(2026, 8, 9), () => 0.4821)).toBe(
       "UVIP-2026-09-09-4821"
     )
+  })
+})
+
+describe("issue under the US policy", () => {
+  const OPTIONAL: Policy = { ownerConfirmation: "optional" }
+  const issue = (state: AuthorizationState, reviewNote?: string) =>
+    authorizationReducer(
+      state,
+      { type: "issue", reference: "OH-T-1", at: T1, ...(reviewNote ? { reviewNote } : {}) },
+      OPTIONAL
+    )
+
+  it("issues from idle: no confirmation needed", () => {
+    expect(issue(initialState(true))).toEqual({
+      status: "idle",
+      issued: { at: T1, reference: "OH-T-1" },
+    })
+  })
+
+  it("issues while the owner has not answered, and after the request timed out", () => {
+    expect(issue(pending())).toMatchObject({ status: "pending", issued: { reference: "OH-T-1" } })
+    const expired = authorizationReducer(pending(), { type: "timeout", at: T1 })
+    expect(issue(expired)).toMatchObject({ status: "frozen", reason: "timeout", issued: {} })
+  })
+
+  it("issues after the owner confirmed", () => {
+    const confirmed = authorizationReducer(pending(), {
+      type: "approve",
+      authorizationCode: "OV-7K2M-9Q3F",
+      at: T1,
+    })
+    expect(issue(confirmed)).toMatchObject({ status: "authorized", issued: {} })
+  })
+
+  it("holds after the owner said Not me, unless the clerk writes a review note", () => {
+    const denied = authorizationReducer(pending(), { type: "deny", at: T1 })
+    expect(issue(denied)).toBe(denied)
+    expect(issue(denied, "   ")).toBe(denied)
+    expect(issue(denied, " Owner called the office: sale confirmed. ")).toMatchObject({
+      status: "frozen",
+      issued: { reviewNote: "Owner called the office: sale confirmed." },
+    })
+  })
+
+  it("holds when checks fail, unless the clerk writes a review note", () => {
+    const blocked = initialState(false)
+    expect(issue(blocked)).toBe(blocked)
+    expect(issue(blocked, "Re-entry confirmed with CBP.")).toMatchObject({
+      status: "blocked",
+      issued: { reviewNote: "Re-entry confirmed with CBP." },
+    })
+  })
+
+  it("never issues a referred record", () => {
+    const escalated = authorizationReducer(initialState(false), {
+      type: "escalate",
+      caseReference: "FVBL-1",
+      at: T1,
+    })
+    expect(issue(escalated, "note")).toBe(escalated)
+  })
+
+  it("closes the record: a late approval, denial or second issue is ignored", () => {
+    const issued = issue(pending())
+    expect(authorizationReducer(issued, { type: "approve", authorizationCode: "X", at: T1 })).toBe(
+      issued
+    )
+    expect(authorizationReducer(issued, { type: "deny", at: T1 })).toBe(issued)
+    expect(issue(issued)).toBe(issued)
+  })
+
+  it("leaves Canada's rule alone: the default policy issues only once authorized", () => {
+    const idle = initialState(true)
+    expect(
+      authorizationReducer(idle, { type: "issue", reference: "X", at: T1, reviewNote: "note" })
+    ).toBe(idle)
   })
 })

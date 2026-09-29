@@ -2,11 +2,11 @@ import type { RegionPack } from "@/regions/types"
 
 import { daysBetween, formatDate, formatDuration, formatOdometer } from "./format"
 import { isDealerChannel, officeLabel } from "./ledger"
-import { openExport, sortedHistory, type Vehicle, type VehicleEvent } from "./vehicles"
+import { isOwnershipStart, openExport, sortedHistory, type Vehicle } from "./vehicles"
 
 export type OwnerNote = {
   tone: "plain" | "warn" | "bad"
-  kind: "renewed" | "exported" | "loss" | "transfer" | "usTitle"
+  kind: "renewed" | "exported" | "loss" | "transfer" | "usTitle" | "brand" | "otherJurisdiction"
   text: string
 }
 
@@ -23,8 +23,6 @@ export type Ownership = {
   notes: OwnerNote[]
 }
 
-type Start = Extract<VehicleEvent, { kind: "firstRegistration" | "transfer" }>
-
 const within = (date: string, since: string, until: string | null) =>
   date >= since && (until === null || date < until)
 
@@ -36,9 +34,7 @@ const within = (date: string, since: string, until: string | null) =>
  */
 export function ownershipPeriods(pack: RegionPack, vehicle: Vehicle, today: string): Ownership[] {
   const history = sortedHistory(vehicle)
-  const starts = history.filter(
-    (e): e is Start => e.kind === "firstRegistration" || e.kind === "transfer"
-  )
+  const starts = history.filter(isOwnershipStart)
   const r = vehicle.records
   const open = openExport(vehicle)
 
@@ -87,6 +83,26 @@ export function ownershipPeriods(pack: RegionPack, vehicle: Vehicle, today: stri
           text: `NMVTIS reports an active ${r.usTitle.state} title for this VIN, issued ${formatDate(r.usTitle.issuedOn)}, while it was registered to this owner.`,
         })
       }
+      if (
+        r.brand &&
+        start.kind === "titleTransfer" &&
+        start.state === r.brand.cleanTitle.state &&
+        start.date === r.brand.cleanTitle.issuedOn
+      ) {
+        notes.push({
+          tone: "bad",
+          kind: "brand",
+          text: `${r.brand.state} branded this vehicle ${r.brand.brand.toLowerCase()} on ${formatDate(r.brand.brandedOn)}. The ${start.state} title that opened this ownership carries no brand.`,
+        })
+      }
+      if (r.otherJurisdiction && until === null) {
+        const what = r.otherJurisdiction.kind === "registration" ? "registration" : "title"
+        notes.push({
+          tone: "bad",
+          kind: "otherJurisdiction",
+          text: `${r.otherJurisdiction.jurisdiction} reports an active ${what} for this VIN since ${formatDate(r.otherJurisdiction.since)}.`,
+        })
+      }
       if (notes.length === 0) {
         const renewals = history.filter(
           (e) => e.kind === "renewal" && within(e.date, start.date, until)
@@ -111,14 +127,14 @@ export function ownershipPeriods(pack: RegionPack, vehicle: Vehicle, today: stri
         until,
         duration: formatDuration(start.date, until ?? today),
         acquired:
-          start.kind === "transfer"
+          start.kind === "transfer" || start.kind === "titleTransfer"
             ? "Transfer"
             : isDealerChannel(start.office)
               ? "New, dealer submission"
               : "New vehicle",
         office: officeLabel(start.office),
         odometerAtStart:
-          reading?.kind === "odometer" ? formatOdometer(reading.km, pack.odometerUnit) : null,
+          reading?.kind === "odometer" ? formatOdometer(reading.reading, pack.odometerUnit) : null,
         notes,
       }
     })

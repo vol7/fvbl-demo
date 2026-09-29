@@ -1,9 +1,21 @@
 /** Who started the authorization. */
 export type Origin = "clerk" | "owner" | "buyer"
 
+/**
+ * Whether issuing waits for the owner. Canada needs the owner's approval before
+ * the package is issued; in the US the owner's confirmation is evidence the clerk
+ * weighs, and the clerk issues the title (US plan, Task 5).
+ */
+export type Policy = { ownerConfirmation: "required" | "optional" }
+
+export const REQUIRED: Policy = { ownerConfirmation: "required" }
+
+/** The issued document. `reviewNote` is the clerk's reason for issuing over a hold. */
+export type Issued = { at: string; reference: string; reviewNote?: string }
+
 export type AuthorizationState =
-  | { status: "idle" }
-  | { status: "blocked" }
+  | { status: "idle"; issued?: Issued }
+  | { status: "blocked"; issued?: Issued }
   | {
       status: "pending"
       origin: Origin
@@ -13,6 +25,7 @@ export type AuthorizationState =
       link: string
       sentAt: string
       expiresAt: string
+      issued?: Issued
     }
   | {
       status: "authorized"
@@ -25,7 +38,7 @@ export type AuthorizationState =
       approvedAt: string
       validUntil: string
       /** Set once the clerk hands over the package. */
-      issued?: { at: string; packageNumber: string }
+      issued?: Issued
     }
   | {
       status: "frozen"
@@ -36,6 +49,7 @@ export type AuthorizationState =
       link: string
       sentAt: string
       frozenAt: string
+      issued?: Issued
     }
   | { status: "escalated"; caseReference: string; escalatedAt: string }
 
@@ -44,7 +58,7 @@ export type AuthorizationAction =
   | { type: "approve"; authorizationCode: string; at: string }
   | { type: "deny"; at: string }
   | { type: "timeout"; at: string }
-  | { type: "issue"; packageNumber: string; at: string }
+  | { type: "issue"; reference: string; at: string; reviewNote?: string }
   | { type: "escalate"; caseReference: string; at: string }
   | { type: "reset"; canRequest: boolean }
 
@@ -96,10 +110,26 @@ export function buyerPendingState(input: {
   }
 }
 
+/**
+ * Where the clerk may issue. Canada: only once the owner approved. US: anywhere
+ * but a referral; over a hold (failed checks or the owner's "Not me") only with
+ * the clerk's review note.
+ */
+function canIssue(state: AuthorizationState, reviewNote: string | undefined, policy: Policy) {
+  if (state.status === "escalated" || state.issued) return false
+  if (policy.ownerConfirmation === "required") return state.status === "authorized"
+  const held =
+    state.status === "blocked" || (state.status === "frozen" && state.reason === "denied")
+  return !held || Boolean(reviewNote?.trim())
+}
+
 export function authorizationReducer(
   state: AuthorizationState,
-  action: AuthorizationAction
+  action: AuthorizationAction,
+  policy: Policy = REQUIRED
 ): AuthorizationState {
+  // Once issued, the record is closed: a late approval or denial changes nothing.
+  if (state.status !== "escalated" && state.issued && action.type !== "reset") return state
   switch (action.type) {
     case "request": {
       if (state.status !== "idle") return state
@@ -154,8 +184,10 @@ export function authorizationReducer(
       }
     }
     case "issue": {
-      if (state.status !== "authorized" || state.issued) return state
-      return { ...state, issued: { at: action.at, packageNumber: action.packageNumber } }
+      if (state.status === "escalated" || !canIssue(state, action.reviewNote, policy)) return state
+      const issued: Issued = { at: action.at, reference: action.reference }
+      const note = action.reviewNote?.trim()
+      return { ...state, issued: note ? { ...issued, reviewNote: note } : issued }
     }
     case "escalate": {
       if (state.status !== "blocked") return state

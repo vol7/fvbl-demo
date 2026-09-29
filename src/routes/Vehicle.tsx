@@ -161,12 +161,17 @@ function VehicleView({
       requester: applicant.name,
       at: stamp(),
     })
-  const onIssue = () =>
+  // Canada issues only once the owner approved. In the US the clerk issues from any
+  // state but a referral, and over a hold only with a review note (the reducer decides).
+  const onIssue = (reviewNote?: string) =>
     dispatch({
       type: "issue",
       vin,
-      packageNumber: generateIssuedNumber(pack.references.issued, new Date()),
+      canRequest,
+      policy: pack.policy,
+      reference: generateIssuedNumber(pack.references.issued, new Date()),
       at: stamp(),
+      ...(reviewNote ? { reviewNote } : {}),
     })
   const onEscalate = () =>
     dispatch({

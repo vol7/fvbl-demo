@@ -2,6 +2,8 @@ import {
   ArrowLeftRight,
   Copy,
   Factory,
+  FileBadge,
+  FileText,
   Gauge,
   Globe,
   Landmark,
@@ -39,6 +41,9 @@ const EVENT_ICON: Record<VehicleEvent["kind"], LucideIcon> = {
   customsEntry: Globe,
   export: PlaneTakeoff,
   firstRegistration: Landmark,
+  firstTitle: FileText,
+  titleTransfer: ArrowLeftRight,
+  titleBrand: FileBadge,
   transfer: ArrowLeftRight,
   renewal: RefreshCw,
   odometer: Gauge,
@@ -55,6 +60,10 @@ const STOP_ICON: Record<StopKind, LucideIcon> = {
   writtenOff: Siren,
   secondPlate: Copy,
   usTitle: Globe,
+  titled: FileText,
+  titleTransferred: ArrowLeftRight,
+  branded: FileBadge,
+  otherJurisdiction: Globe,
 }
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -69,12 +78,17 @@ function titleFor(pack: RegionPack, event: VehicleEvent): string {
       return pack.copy.portal.timeline.exported
     case "firstRegistration":
       return "First registration"
+    case "firstTitle":
+    case "titleTransfer":
+      return `${pack.copy.portal.historyTitle[event.kind]} in ${event.state}`
+    case "titleBrand":
+      return `${event.brand} brand in ${event.state}`
     case "transfer":
       return "Ownership transferred"
     case "renewal":
       return "Registration renewed"
     case "odometer":
-      return `Odometer ${formatOdometer(event.km, pack.odometerUnit)}`
+      return `Odometer ${formatOdometer(event.reading, pack.odometerUnit)}`
   }
 }
 
@@ -86,7 +100,11 @@ function detailFor(event: VehicleEvent, flagged: boolean): string {
       return event.port
     case "export":
       return flagged ? `${event.port}, with no re-entry on record` : event.port
+    case "titleBrand":
+      return event.detail
     case "firstRegistration":
+    case "firstTitle":
+    case "titleTransfer":
     case "transfer":
     case "renewal":
       return isDealerChannel(event.office)
@@ -256,9 +274,11 @@ export function VehicleTimeline({ vehicle }: { vehicle: Vehicle }) {
                   const Icon = EVENT_ICON[event.kind]
                   const major = MILESTONES.has(event.kind)
                   const border = isBorderEvent(event)
-                  const bad = flagged !== null && event === flagged
+                  const bad = (flagged !== null && event === flagged) || event.kind === "titleBrand"
                   // A vehicle born on the ledger: its first entry is the registration itself.
-                  const opened = index === 0 && event.kind === "firstRegistration"
+                  const opened =
+                    index === 0 &&
+                    (event.kind === "firstRegistration" || event.kind === "firstTitle")
                   const [, m, d] = event.date.split("-")
                   // A second entry on the same day reads as part of the first: no date.
                   const sameDay = i > 0 && inYear[i - 1].event.date === event.date

@@ -38,18 +38,18 @@ function renderSummary(vin: string, state: AuthorizationState) {
 const card = () => screen.getByRole("region", { name: "Package decision" })
 
 describe("verdictLabel", () => {
+  const label = (state: AuthorizationState) => verdictLabel(state, ca.copy.decision.verdict)
+
   it("names every state", () => {
-    expect(verdictLabel({ status: "idle" })).toBe("Checks clear")
-    expect(verdictLabel({ status: "blocked" })).toBe("Cannot be issued")
-    expect(verdictLabel({ status: "escalated", caseReference: "x", escalatedAt: T0 })).toBe(
-      "Escalated"
-    )
+    expect(label({ status: "idle" })).toBe("Checks clear")
+    expect(label({ status: "blocked" })).toBe("Cannot be issued")
+    expect(label({ status: "escalated", caseReference: "x", escalatedAt: T0 })).toBe("Escalated")
     const base = { origin: "clerk" as const, requester: "M.", otp: "", link: "", sentAt: T0 }
-    expect(verdictLabel({ status: "pending", ...base, expiresAt: T1 })).toBe("Awaiting owner")
-    expect(verdictLabel({ status: "frozen", ...base, reason: "denied", frozenAt: T1 })).toBe(
+    expect(label({ status: "pending", ...base, expiresAt: T1 })).toBe("Awaiting owner")
+    expect(label({ status: "frozen", ...base, reason: "denied", frozenAt: T1 })).toBe(
       "Owner denied"
     )
-    expect(verdictLabel({ status: "frozen", ...base, reason: "timeout", frozenAt: T1 })).toBe(
+    expect(label({ status: "frozen", ...base, reason: "timeout", frozenAt: T1 })).toBe(
       "Request expired"
     )
     const authorized = {
@@ -59,10 +59,8 @@ describe("verdictLabel", () => {
       approvedAt: T1,
       validUntil: T1,
     }
-    expect(verdictLabel(authorized)).toBe("Authorized to issue")
-    expect(verdictLabel({ ...authorized, issued: { at: T1, packageNumber: "UVIP-1" } })).toBe(
-      "Package issued"
-    )
+    expect(label(authorized)).toBe("Authorized to issue")
+    expect(label({ ...authorized, issued: { at: T1, reference: "UVIP-1" } })).toBe("Package issued")
   })
 })
 
@@ -188,7 +186,7 @@ describe("VehicleSummary", () => {
       authorizationCode: "OV-7K2M-9Q3F",
       approvedAt: T1,
       validUntil: VALID,
-      issued: { at: T1, packageNumber: "UVIP-2026-09-09-4821" },
+      issued: { at: T1, reference: "UVIP-2026-09-09-4821" },
     })
     expect(within(card()).getByText("Package issued")).toBeInTheDocument()
     expect(within(card()).getByText("UVIP-2026-09-09-4821")).toBeInTheDocument()

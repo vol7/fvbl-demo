@@ -56,7 +56,7 @@ type Props = {
   checks: Check[]
   state: AuthorizationState
   onRequest: (applicant: ApplicantDetails) => void
-  onIssue: () => void
+  onIssue: (reviewNote?: string) => void
   onEscalate: () => void
 }
 
@@ -128,7 +128,7 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
               formatTime(state.issued.at),
               state.authorizationCode
             ),
-            reference: state.issued.packageNumber,
+            reference: state.issued.reference,
           }
         }
         return {
@@ -150,7 +150,7 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
             <Button
               size="lg"
               className="bg-emerald-700 px-4 text-white hover:bg-emerald-700/90 has-data-[icon=inline-start]:pl-3.5"
-              onClick={onIssue}
+              onClick={() => onIssue()}
             >
               <FileCheck data-icon="inline-start" aria-hidden />
               {copy.authorized.issueAction}

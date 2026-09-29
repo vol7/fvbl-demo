@@ -46,7 +46,7 @@ describe("forcedSession", () => {
   it("marks the issued state with a package number", () => {
     expect(activeAuthorization(forcedSession("issued", NOW))?.state).toMatchObject({
       status: "authorized",
-      issued: { packageNumber: "UVIP-2026-09-09-4821" },
+      issued: { reference: "UVIP-2026-09-09-4821" },
     })
   })
 })

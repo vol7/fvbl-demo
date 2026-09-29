@@ -16,6 +16,10 @@ export const PORTAL: PortalCopy = {
     export: "Exported",
     firstRegistration: "First registration",
     transfer: "Ownership transferred",
+    // A Canadian record never carries these; the kinds are shared with the US.
+    firstTitle: "First title",
+    titleTransfer: "Title transferred",
+    titleBrand: "Title branded",
     renewal: "Registration renewed",
     odometer: "Odometer reading",
   },

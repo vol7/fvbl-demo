@@ -14,6 +14,10 @@ export type StopKind =
   | "writtenOff"
   | "secondPlate"
   | "usTitle"
+  | "titled"
+  | "titleTransferred"
+  | "branded"
+  | "otherJurisdiction"
 
 export type LifecycleStop = {
   kind: StopKind
@@ -79,6 +83,35 @@ export function lifecycleStops(pack: RegionPack, vehicle: Vehicle): LifecycleSto
           date: e.date,
         })
         break
+      case "firstTitle":
+        stops.push({
+          kind: "titled",
+          title: "First title",
+          lines: [when, e.state],
+          tone: "major",
+          date: e.date,
+        })
+        break
+      case "titleTransfer":
+        stops.push({
+          kind: "titleTransferred",
+          title: `Titled in ${e.state}`,
+          lines: [when, officePlace(e.office)],
+          tone: "major",
+          date: e.date,
+        })
+        break
+      case "titleBrand":
+        stops.push({
+          kind: "branded",
+          title: `${e.brand} brand`,
+          lines: [when, e.state],
+          tone: "bad",
+          // A later clean title contradicts the brand.
+          brokenAfter: vehicle.records.brand?.brandedOn === e.date,
+          date: e.date,
+        })
+        break
       case "transfer":
         stops.push({
           kind: "transferred",
@@ -140,6 +173,23 @@ export function lifecycleStops(pack: RegionPack, vehicle: Vehicle): LifecycleSto
       tone: "bad",
       date: r.usTitle.issuedOn,
     })
+  }
+  if (r.otherJurisdiction) {
+    const { jurisdiction, kind, since } = r.otherJurisdiction
+    const flag: LifecycleStop = {
+      kind: "otherJurisdiction",
+      title:
+        kind === "registration" ? `Registered in ${jurisdiction}` : `Titled in ${jurisdiction}`,
+      lines: [formatMonth(since), "Still active"],
+      tone: "bad",
+      date: since,
+    }
+    // When the ledger holds that record as history, the stop it made becomes the flag.
+    const held = stops.findIndex(
+      (s) => s.date === since && (s.kind === "registered" || s.kind === "titleTransferred")
+    )
+    if (held === -1) flags.push(flag)
+    else stops[held] = flag
   }
   // Flags slot in by date, after any history stop on the same day.
   for (const flag of flags) {

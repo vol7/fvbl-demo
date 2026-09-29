@@ -122,7 +122,7 @@ describe("deriveActivity", () => {
         authorizationCode: "OV-AAAA-BBBB",
         approvedAt: T2,
         validUntil: T2,
-        issued: { at: T2, packageNumber: "UVIP-2026-09-09-4821" },
+        issued: { at: T2, reference: "UVIP-2026-09-09-4821" },
       },
       T0,
       "M. Chen"
@@ -144,7 +144,7 @@ describe("deriveActivity", () => {
         authorizationCode: "OV-AAAA-BBBB",
         approvedAt: T2,
         validUntil: T2,
-        issued: { at: T2, packageNumber: "UVIP-2026-09-09-4821" },
+        issued: { at: T2, reference: "UVIP-2026-09-09-4821" },
       },
       T0,
       "M. Chen",

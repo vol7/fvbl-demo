@@ -80,7 +80,7 @@ describe("openExport", () => {
 
 describe("odometerEvents", () => {
   it("returns readings oldest first", () => {
-    const km = odometerEvents(findVehicle(ca, CLEAN_VIN)!).map((e) => e.km)
+    const km = odometerEvents(findVehicle(ca, CLEAN_VIN)!).map((e) => e.reading)
     expect(km).toEqual([42, 14880, 31240])
   })
 })
@@ -151,10 +151,10 @@ describe("the unborn vehicle", () => {
         agency: "MTO",
         office: "Dealer channel · Mercedes-Benz Downtown",
       },
-      { kind: "odometer", date: "2026-09-15", agency: "Dealer", km: 12, source: "Dealer delivery" },
+      { kind: "odometer", date: "2026-09-15", agency: "Dealer", reading: 12, source: "Dealer delivery" },
     ])
     expect(born.registeredOn).toBe("2026-09-15")
-    expect(born.odometerKm).toBe(12)
+    expect(born.odometer).toBe(12)
     expect(born.plate).toBeNull()
     expect(odometerEvents(born)).toHaveLength(1)
   })

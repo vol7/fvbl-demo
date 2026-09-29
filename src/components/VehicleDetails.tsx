@@ -3,7 +3,7 @@ import { ShieldCheck } from "lucide-react"
 import { SecretValue } from "@/components/SecretValue"
 import { formatDate, formatOdometer, formatRelative } from "@/lib/format"
 import { officeLabel } from "@/lib/ledger"
-import { sortedHistory, type Vehicle } from "@/lib/vehicles"
+import { isOwnershipStart, sortedHistory, type Vehicle } from "@/lib/vehicles"
 import { useRegion } from "@/regions"
 
 /**
@@ -22,9 +22,7 @@ export function VehicleDetails({
   now: Date
 }) {
   const pack = useRegion()
-  const registration = sortedHistory(vehicle)
-    .filter((e) => e.kind === "firstRegistration" || e.kind === "transfer")
-    .at(-1)
+  const registration = sortedHistory(vehicle).filter(isOwnershipStart).at(-1)
   const rows: [string, React.ReactNode][] = [
     ["Owner", <SecretValue value={vehicle.owner.name} label="owner name" width="5.5rem" />],
     [
@@ -33,7 +31,7 @@ export function VehicleDetails({
     ],
     ["Registered", vehicle.registeredOn ? formatDate(vehicle.registeredOn) : "Not registered"],
     ["Office", registration ? officeLabel(registration.office) : "None"],
-    ["Odometer", formatOdometer(vehicle.odometerKm, pack.odometerUnit)],
+    ["Odometer", formatOdometer(vehicle.odometer, pack.odometerUnit)],
     ["Last inspection", vehicle.lastInspection ? formatDate(vehicle.lastInspection) : "None yet"],
     ["Active lien", vehicle.records.lien ? vehicle.records.lien.holder : "None"],
   ]

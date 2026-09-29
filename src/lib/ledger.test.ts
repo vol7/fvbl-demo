@@ -29,7 +29,7 @@ const issued: AuthorizationState = {
   authorizationCode: "OV-AAAA-BBBB",
   approvedAt: T2,
   validUntil: T3,
-  issued: { at: T3, packageNumber: "UVIP-2026-09-10-4821" },
+  issued: { at: T3, reference: "UVIP-2026-09-10-4821" },
 }
 
 describe("fingerprint", () => {

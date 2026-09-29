@@ -10,6 +10,7 @@ import {
   preapprovedState,
   type AuthorizationAction,
   type AuthorizationState,
+  type Policy,
 } from "./authorization"
 import {
   NO_REGISTRATION,
@@ -45,7 +46,15 @@ export type SessionAction =
   | { type: "buyerRequest"; vin: string; buyer: string; otp: string; link: string; at: string }
   | Targeted<Extract<AuthorizationAction, { type: "request" }> & { canRequest: boolean }>
   | Targeted<Extract<AuthorizationAction, { type: "escalate" }> & { canRequest: boolean }>
-  | Targeted<Extract<AuthorizationAction, { type: "approve" | "deny" | "timeout" | "issue" }>>
+  | Targeted<Extract<AuthorizationAction, { type: "approve" | "deny" | "timeout" }>>
+  | Targeted<
+      Extract<AuthorizationAction, { type: "issue" }> & {
+        /** The region's rule. Omitted means Canada's: issue only once the owner approved. */
+        policy?: Policy
+        /** Lets the US clerk issue on a vehicle nobody has acted on yet. */
+        canRequest?: boolean
+      }
+    >
   | {
       type: "submitRegistration"
       vin: string
@@ -147,6 +156,15 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
       })
     case "declineRegistration":
       return withRegistration(state, action.vin, { type: "decline", at: action.at })
+    case "issue": {
+      const { vin, canRequest, policy, ...rest } = action
+      const base =
+        state.authorizations[vin] ??
+        (canRequest === undefined ? undefined : initialState(canRequest))
+      if (!base) return state
+      const next = authorizationReducer(base, rest, policy)
+      return next === base ? state : withSlot(state, vin, next)
+    }
     case "request":
     case "escalate": {
       const { vin, canRequest, ...rest } = action
@@ -205,10 +223,35 @@ function readStorage(storage: StorageLike | null, key: string): SessionState | n
     const parsed: unknown = JSON.parse(raw)
     if (!isSession(parsed)) return null
     // Sessions stored before registrations existed are still v2; fill the map.
-    return parsed.registrations ? parsed : { ...parsed, registrations: {} }
+    const session = parsed.registrations ? parsed : { ...parsed, registrations: {} }
+    return withIssuedReferences(session)
   } catch {
     return null
   }
+}
+
+/**
+ * Issued records stored before the US version call the number `packageNumber`.
+ * Renamed to `reference` so an older Canadian session still reads.
+ */
+function withIssuedReferences(session: SessionState): SessionState {
+  let changed = false
+  const authorizations: Record<string, AuthorizationState> = {}
+  for (const [vin, state] of Object.entries(session.authorizations)) {
+    const issued =
+      "issued" in state ? (state.issued as Record<string, unknown> | undefined) : undefined
+    if (issued && typeof issued.packageNumber === "string" && issued.reference === undefined) {
+      const { packageNumber, ...rest } = issued
+      authorizations[vin] = {
+        ...state,
+        issued: { ...rest, reference: packageNumber },
+      } as AuthorizationState
+      changed = true
+    } else {
+      authorizations[vin] = state
+    }
+  }
+  return changed ? { ...session, authorizations } : session
 }
 
 function safeStorage(): StorageLike | null {

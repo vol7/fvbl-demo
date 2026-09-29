@@ -110,6 +110,29 @@ function historyDrafts(pack: RegionPack, vehicle: Vehicle): Draft[] {
           visibility: "public",
           payload: `${e.date}|${e.agency}|${e.office}`,
         }
+      case "firstTitle":
+      case "titleTransfer":
+        return {
+          at: e.date,
+          kind: `title.${e.kind}`,
+          title:
+            e.kind === "firstTitle" && isDealerChannel(e.office)
+              ? "First title (dealer submission)"
+              : titles[e.kind],
+          vin,
+          office: e.office,
+          visibility: "public",
+          payload: `${e.date}|${e.agency}|${e.state}|${e.office}`,
+        }
+      case "titleBrand":
+        return {
+          at: e.date,
+          kind: "title.titleBrand",
+          title: titles[e.kind],
+          vin,
+          visibility: "public",
+          payload: `${e.date}|${e.agency}|${e.state}|${e.brand}`,
+        }
       case "odometer":
         return {
           at: e.date,
@@ -117,7 +140,7 @@ function historyDrafts(pack: RegionPack, vehicle: Vehicle): Draft[] {
           title: titles[e.kind],
           vin,
           visibility: "private",
-          payload: `${e.date}|${e.agency}|${e.km}`,
+          payload: `${e.date}|${e.agency}|${e.reading}`,
         }
     }
   })
@@ -206,7 +229,7 @@ function authorizationDrafts(
         )
       }
       if (state.issued) {
-        entry("issued", state.issued.at, issuedKind, issuedTitle, state.issued.packageNumber)
+        entry("issued", state.issued.at, issuedKind, issuedTitle, state.issued.reference)
       }
       break
     case "frozen":

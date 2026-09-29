@@ -3,10 +3,22 @@ import type { RegionPack } from "@/regions/types"
 import { normalizeVin } from "./format"
 import type { RegistrationState } from "./registration"
 
-/** The registry that owns the record, per region. */
-export type RegistryAgency = "MTO"
+/**
+ * The registry that owns the record, per region: the MTO in Ontario; in Ohio the
+ * county clerks title vehicles and the BMV registers them.
+ */
+export type RegistryAgency = "MTO" | "County clerk" | "Ohio BMV"
 
-export type Agency = "Transport Canada" | "CBSA" | RegistryAgency | "Insurer" | "Dealer"
+export type Agency =
+  | "Transport Canada"
+  | "CBSA"
+  | "CBP"
+  | "NMVTIS"
+  | RegistryAgency
+  /** Another US state's title or registration office. */
+  | "State registry"
+  | "Insurer"
+  | "Dealer"
 
 /**
  * One dated fact about the vehicle from one agency. Together they are the
@@ -24,11 +36,30 @@ export type VehicleEvent =
       detail: string
     }
   | { kind: "customsEntry"; date: string; agency: "CBSA"; port: string }
-  | { kind: "export"; date: string; agency: "CBSA"; port: string }
+  | { kind: "export"; date: string; agency: "CBSA" | "CBP"; port: string }
   | { kind: "firstRegistration"; date: string; agency: RegistryAgency; office: string }
+  /**
+   * A US title, first or on a transfer. `office` is the titling office ("Franklin
+   * County, Ohio" or a dealer channel); `state` is the state that issued it.
+   */
+  | { kind: "firstTitle"; date: string; agency: TitleAgency; office: string; state: string }
+  | { kind: "titleTransfer"; date: string; agency: TitleAgency; office: string; state: string }
+  /** A state branded the title ("Salvage"). */
+  | {
+      kind: "titleBrand"
+      date: string
+      agency: TitleAgency
+      state: string
+      brand: TitleBrand
+      detail: string
+    }
   | { kind: "transfer"; date: string; agency: RegistryAgency; office: string }
   | { kind: "renewal"; date: string; agency: RegistryAgency; office: string }
-  | { kind: "odometer"; date: string; agency: Agency; km: number; source: string }
+  /** A reading in the region's odometer unit (`RegionPack.odometerUnit`). */
+  | { kind: "odometer"; date: string; agency: Agency; reading: number; source: string }
+
+export type TitleAgency = "County clerk" | "State registry"
+export type TitleBrand = "Salvage" | "Rebuilt" | "Flood"
 
 export type EventKind = VehicleEvent["kind"]
 
@@ -41,6 +72,9 @@ export const MILESTONES: ReadonlySet<EventKind> = new Set<EventKind>([
   "export",
   "firstRegistration",
   "transfer",
+  "firstTitle",
+  "titleTransfer",
+  "titleBrand",
 ])
 
 export type VehicleRecords = {
@@ -51,6 +85,22 @@ export type VehicleRecords = {
   duplicateIdentity: { plate: string; since: string } | null
   /** An active title for the same VIN in a US state, reported through NMVTIS. */
   usTitle: { state: string; issuedOn: string } | null
+  /**
+   * The same VIN active in another jurisdiction than the one titling it here: an
+   * Ontario registration behind a US title presented at an Ohio counter.
+   */
+  otherJurisdiction: {
+    jurisdiction: string
+    kind: "title" | "registration"
+    since: string
+  } | null
+  /** A brand one state put on the title that a later title no longer carries. */
+  brand: {
+    state: string
+    brand: TitleBrand
+    brandedOn: string
+    cleanTitle: { state: string; issuedOn: string }
+  } | null
   lien: { holder: string; registeredOn: string } | null
 }
 
@@ -71,10 +121,14 @@ export type Vehicle = {
   trim: string
   colour: string
   bodyStyle: string
-  /** Null until the registry records a first registration. */
+  /**
+   * Null until the registry records a first registration, and for a US vehicle
+   * whose title application is the one at the counter.
+   */
   plate: string | null
   registeredOn: string | null
-  odometerKm: number
+  /** In the region's odometer unit. */
+  odometer: number
   /** The full phone shows only when the clerk reveals it; the last four are for copy. */
   owner: { name: string; phone: string; phoneLast4: string; city: string }
   /** Null until the vehicle has been inspected once. */
@@ -102,22 +156,31 @@ export function bornVehicle(
 ): Vehicle {
   if (registration.status !== "registered" || vehicle.history.length > 0) return vehicle
   const date = registration.registeredAt.slice(0, 10)
+  const titles = pack.place.registry.titles
   return {
     ...vehicle,
     registeredOn: date,
-    odometerKm: registration.deliveryKm,
+    odometer: registration.deliveryKm,
     history: [
-      {
-        kind: "firstRegistration",
-        date,
-        agency: pack.place.registry.agency,
-        office: registration.office,
-      },
+      titles
+        ? {
+            kind: "firstTitle",
+            date,
+            agency: "County clerk",
+            office: registration.office,
+            state: titles.state,
+          }
+        : {
+            kind: "firstRegistration",
+            date,
+            agency: pack.place.registry.agency,
+            office: registration.office,
+          },
       {
         kind: "odometer",
         date,
         agency: "Dealer",
-        km: registration.deliveryKm,
+        reading: registration.deliveryKm,
         source: "Dealer delivery",
       },
     ],
@@ -130,6 +193,21 @@ const COUNTRY_NAMES: Record<string, string> = { USA: "United States", UK: "Unite
 export function countryOfOrigin(vehicle: Vehicle): string {
   const country = vehicle.decoded.plant.split(",").at(-1)!.trim()
   return COUNTRY_NAMES[country] ?? country
+}
+
+export type OwnershipStart = Extract<
+  VehicleEvent,
+  { kind: "firstRegistration" | "transfer" | "firstTitle" | "titleTransfer" }
+>
+
+/** An event that opens an ownership: a registration or a title, first or on a transfer. */
+export function isOwnershipStart(event: VehicleEvent): event is OwnershipStart {
+  return (
+    event.kind === "firstRegistration" ||
+    event.kind === "transfer" ||
+    event.kind === "firstTitle" ||
+    event.kind === "titleTransfer"
+  )
 }
 
 export function isBorderEvent(event: VehicleEvent): event is BorderEvent {

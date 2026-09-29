@@ -105,7 +105,7 @@ export function forcedSession(key: ForceKey, now: Date = new Date()): SessionSta
     case "issued":
       return one(CLEAN_VIN, {
         ...authorized,
-        issued: { at, packageNumber: "UVIP-2026-09-09-4821" },
+        issued: { at, reference: "UVIP-2026-09-09-4821" },
       })
     case "preapproved":
       return one(CLEAN_VIN, {

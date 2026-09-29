@@ -106,7 +106,7 @@ export function deriveActivity(
       id: "issued",
       at: state.issued.at,
       title: pack.copy.portal.activity.issuedTitle,
-      detail: state.issued.packageNumber,
+      detail: state.issued.reference,
       tone: "success",
     })
   }

@@ -1,19 +1,22 @@
+import type { VerdictLabels } from "@/regions/types"
+
 import type { AuthorizationState } from "./authorization"
 
-/** The verdict pill: one label for the whole record. */
-export function verdictLabel(state: AuthorizationState): string {
+/** The verdict pill: one label for the whole record, in the region's words. */
+export function verdictLabel(state: AuthorizationState, labels: VerdictLabels): string {
+  if (state.status !== "escalated" && state.issued) return labels.issued
   switch (state.status) {
     case "escalated":
-      return "Escalated"
+      return labels.escalated
     case "blocked":
-      return "Cannot be issued"
+      return labels.blocked
     case "frozen":
-      return state.reason === "denied" ? "Owner denied" : "Request expired"
+      return state.reason === "denied" ? labels.denied : labels.timeout
     case "pending":
-      return "Awaiting owner"
+      return labels.pending
     case "authorized":
-      return state.issued ? "Package issued" : "Authorized to issue"
+      return labels.authorized
     case "idle":
-      return "Checks clear"
+      return labels.idle
   }
 }

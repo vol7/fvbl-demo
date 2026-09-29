@@ -2,6 +2,16 @@ import type { DecisionCopy } from "@/regions/types"
 
 export const DECISION: DecisionCopy = {
   ariaLabel: "Package decision",
+  verdict: {
+    idle: "Checks clear",
+    pending: "Awaiting owner",
+    authorized: "Authorized to issue",
+    issued: "Package issued",
+    denied: "Owner denied",
+    timeout: "Request expired",
+    blocked: "Cannot be issued",
+    escalated: "Escalated",
+  },
   idle: {
     label: "Checks clear",
     title: "Ready to request owner authorization",

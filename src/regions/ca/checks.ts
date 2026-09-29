@@ -107,10 +107,10 @@ function odometerCheck(readings: OdometerEvent[]): Outcome {
   for (let i = 1; i < readings.length; i++) {
     const prev = readings[i - 1]
     const curr = readings[i]
-    if (curr.km < prev.km) {
+    if (curr.reading < prev.reading) {
       return fail(
         "Rolled back",
-        `${km(prev.km)} on ${formatDate(prev.date)}, then ${km(curr.km)} on ${formatDate(curr.date)}`
+        `${km(prev.reading)} on ${formatDate(prev.date)}, then ${km(curr.reading)} on ${formatDate(curr.date)}`
       )
     }
   }
@@ -118,7 +118,7 @@ function odometerCheck(readings: OdometerEvent[]): Outcome {
   if (!last) return pass("No readings on file yet")
   return pass(
     "Consistent",
-    `${readings.length} ${readings.length === 1 ? "reading" : "readings"}, last ${km(last.km)} on ${formatDate(last.date)}`
+    `${readings.length} ${readings.length === 1 ? "reading" : "readings"}, last ${km(last.reading)} on ${formatDate(last.date)}`
   )
 }
 

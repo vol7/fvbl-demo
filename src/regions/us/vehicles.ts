@@ -1,0 +1,310 @@
+import type { Vehicle, VehicleRecords } from "@/lib/vehicles"
+
+import { FIRST_OWNER, OWNER } from "./people"
+
+/** Titled in Ohio, one transfer, title alerts on: every check passes. */
+export const CLEAN_VIN = "4JGFB8KB4PA305518"
+/** CBP recorded an export; no re-entry into the US is on file. */
+export const EXPORTED_VIN = "1GNSKRKD3RR173602"
+/** A Georgia title presented in Ohio while the VIN is on an active Ontario registration. */
+export const ONTARIO_VIN = "2HKRS6H89NH408215"
+/** Salvage brand in Kentucky, clean title in Indiana, now presented in Ohio. */
+export const SALVAGE_VIN = "1FTFW1E89MFA52937"
+/** Brand new: decodes, no title until the dealer submits the first-title application. */
+export const NEW_VIN = "4JGFB5KB9TA051846"
+
+const CLEAR: VehicleRecords = {
+  stolenReport: null,
+  writeOff: null,
+  collision: null,
+  duplicateIdentity: null,
+  usTitle: null,
+  otherJurisdiction: null,
+  brand: null,
+  lien: null,
+}
+
+/** Odometers in miles. Ohio has no annual safety inspection, so none is on file. */
+export const DEMO_VEHICLES: Vehicle[] = [
+  {
+    vin: CLEAN_VIN,
+    year: 2023,
+    make: "Mercedes-AMG",
+    model: "GLE 53",
+    trim: "4MATIC+",
+    colour: "Selenite Gray",
+    bodyStyle: "SUV",
+    plate: "JKR 4821",
+    registeredOn: "2023-05-09",
+    odometer: 21860,
+    owner: {
+      name: OWNER.name,
+      phone: OWNER.mobile,
+      phoneLast4: OWNER.mobileLast4,
+      city: "Westerville, OH",
+    },
+    lastInspection: null,
+    riskTier: "high-value",
+    records: CLEAR,
+    decoded: {
+      year: 2023,
+      make: "Mercedes-AMG",
+      model: "GLE 53",
+      bodyStyle: "SUV",
+      plant: "Tuscaloosa, Alabama, USA",
+    },
+    history: [
+      {
+        kind: "firstTitle",
+        date: "2023-05-09",
+        agency: "County clerk",
+        office: "Delaware County",
+        state: "Ohio",
+      },
+      {
+        kind: "odometer",
+        date: "2023-05-09",
+        agency: "Dealer",
+        reading: 18,
+        source: "Dealer delivery",
+      },
+      {
+        kind: "titleTransfer",
+        date: "2024-10-22",
+        agency: "County clerk",
+        office: "Franklin County",
+        state: "Ohio",
+      },
+      {
+        kind: "odometer",
+        date: "2024-10-22",
+        agency: "County clerk",
+        reading: 12940,
+        source: "Title transfer",
+      },
+      { kind: "renewal", date: "2025-10-20", agency: "Ohio BMV", office: "Westerville" },
+      {
+        kind: "odometer",
+        date: "2026-06-03",
+        agency: "Dealer",
+        reading: 21860,
+        source: "Service record",
+      },
+    ],
+  },
+  {
+    vin: EXPORTED_VIN,
+    year: 2024,
+    make: "Chevrolet",
+    model: "Tahoe",
+    trim: "High Country",
+    colour: "Black",
+    bodyStyle: "SUV",
+    plate: "HWT 3057",
+    registeredOn: "2024-03-14",
+    odometer: 17420,
+    owner: { name: "Marcus Hale", phone: "(216) 555-0147", phoneLast4: "0147", city: "Parma, OH" },
+    lastInspection: null,
+    riskTier: "high-value",
+    records: CLEAR,
+    decoded: {
+      year: 2024,
+      make: "Chevrolet",
+      model: "Tahoe",
+      bodyStyle: "SUV",
+      plant: "Arlington, Texas, USA",
+    },
+    history: [
+      {
+        kind: "firstTitle",
+        date: "2024-03-14",
+        agency: "County clerk",
+        office: "Cuyahoga County",
+        state: "Ohio",
+      },
+      {
+        kind: "odometer",
+        date: "2024-03-14",
+        agency: "Dealer",
+        reading: 9,
+        source: "Dealer delivery",
+      },
+      { kind: "export", date: "2025-02-18", agency: "CBP", port: "Laredo, TX" },
+      {
+        kind: "odometer",
+        date: "2025-09-30",
+        agency: "Dealer",
+        reading: 17420,
+        source: "Service record",
+      },
+      { kind: "renewal", date: "2026-03-10", agency: "Ohio BMV", office: "Parma" },
+    ],
+  },
+  {
+    vin: ONTARIO_VIN,
+    year: 2022,
+    make: "Honda",
+    model: "CR-V",
+    trim: "Touring",
+    colour: "Sonic Gray Pearl",
+    bodyStyle: "SUV",
+    // No Ohio title yet: the application at the counter is for one.
+    plate: null,
+    registeredOn: null,
+    odometer: 38210,
+    owner: { name: "Devon Price", phone: "(419) 555-0116", phoneLast4: "0116", city: "Toledo, OH" },
+    lastInspection: null,
+    riskTier: "standard",
+    records: {
+      ...CLEAR,
+      otherJurisdiction: { jurisdiction: "Ontario", kind: "registration", since: "2022-06-02" },
+    },
+    decoded: {
+      year: 2022,
+      make: "Honda",
+      model: "CR-V",
+      bodyStyle: "SUV",
+      plant: "Alliston, Ontario, Canada",
+    },
+    history: [
+      {
+        kind: "firstRegistration",
+        date: "2022-06-02",
+        agency: "MTO",
+        office: "3117 · Mississauga",
+      },
+      {
+        kind: "titleTransfer",
+        date: "2026-07-15",
+        agency: "State registry",
+        office: "Fulton County",
+        state: "Georgia",
+      },
+      {
+        kind: "odometer",
+        date: "2026-07-15",
+        agency: "State registry",
+        reading: 38040,
+        source: "Georgia title",
+      },
+      {
+        kind: "odometer",
+        date: "2026-09-21",
+        agency: "County clerk",
+        reading: 38210,
+        source: "Title application",
+      },
+    ],
+  },
+  {
+    vin: SALVAGE_VIN,
+    year: 2021,
+    make: "Ford",
+    model: "F-150",
+    trim: "Lariat SuperCrew",
+    colour: "Antimatter Blue",
+    bodyStyle: "Pickup",
+    plate: null,
+    registeredOn: null,
+    odometer: 46730,
+    owner: {
+      name: "Kyle Brennan",
+      phone: "(614) 555-0164",
+      phoneLast4: "0164",
+      city: "Grove City, OH",
+    },
+    lastInspection: null,
+    riskTier: "standard",
+    records: {
+      ...CLEAR,
+      brand: {
+        state: "Kentucky",
+        brand: "Salvage",
+        brandedOn: "2024-08-12",
+        cleanTitle: { state: "Indiana", issuedOn: "2025-01-28" },
+      },
+    },
+    decoded: {
+      year: 2021,
+      make: "Ford",
+      model: "F-150",
+      bodyStyle: "Pickup",
+      plant: "Dearborn, Michigan, USA",
+    },
+    history: [
+      {
+        kind: "firstTitle",
+        date: "2021-04-06",
+        agency: "State registry",
+        office: "Jefferson County",
+        state: "Kentucky",
+      },
+      {
+        kind: "odometer",
+        date: "2021-04-06",
+        agency: "Dealer",
+        reading: 12,
+        source: "Dealer delivery",
+      },
+      {
+        kind: "titleBrand",
+        date: "2024-08-12",
+        agency: "State registry",
+        state: "Kentucky",
+        brand: "Salvage",
+        detail: "Flood damage, insurer total loss",
+      },
+      {
+        kind: "titleTransfer",
+        date: "2025-01-28",
+        agency: "State registry",
+        office: "Clark County",
+        state: "Indiana",
+      },
+      {
+        kind: "odometer",
+        date: "2025-01-28",
+        agency: "State registry",
+        reading: 41190,
+        source: "Indiana title",
+      },
+      {
+        kind: "odometer",
+        date: "2026-09-22",
+        agency: "County clerk",
+        reading: 46730,
+        source: "Title application",
+      },
+    ],
+  },
+  {
+    vin: NEW_VIN,
+    year: 2026,
+    make: "Mercedes-Benz",
+    model: "GLE 450",
+    trim: "4MATIC",
+    colour: "Polar White",
+    bodyStyle: "SUV",
+    plate: null,
+    registeredOn: null,
+    odometer: 0,
+    owner: {
+      name: FIRST_OWNER.name,
+      phone: FIRST_OWNER.mobile,
+      phoneLast4: FIRST_OWNER.mobileLast4,
+      city: "Dublin, OH",
+    },
+    lastInspection: null,
+    riskTier: "high-value",
+    records: CLEAR,
+    decoded: {
+      year: 2026,
+      make: "Mercedes-Benz",
+      model: "GLE 450",
+      bodyStyle: "SUV",
+      plant: "Tuscaloosa, Alabama, USA",
+    },
+    // The first title and the delivery reading are added when the dealer's submission is confirmed.
+    history: [],
+  },
+]

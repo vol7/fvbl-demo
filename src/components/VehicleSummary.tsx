@@ -52,7 +52,7 @@ export function VehicleSummary({
   checks: RecordCheck[]
   state: AuthorizationState
   onRequest: (applicant: ApplicantDetails) => void
-  onIssue: () => void
+  onIssue: (reviewNote?: string) => void
   onEscalate: () => void
 }) {
   const title = vehicleTitle(vehicle)

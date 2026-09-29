@@ -43,7 +43,15 @@ export type RegionPack = {
     /** The country the portal stands in: "Entered Canada", "Not back in Canada since". */
     country: string
     /** The registry that owns the record, as its chip on an event and in a sentence. */
-    registry: { agency: RegistryAgency; inSentence: string }
+    registry: {
+      agency: RegistryAgency
+      inSentence: string
+      /**
+       * Set where vehicles are titled (the US): a dealer's submission opens the
+       * record with a first title in this state instead of a first registration.
+       */
+      titles?: { state: string }
+    }
   }
 
   office: Office
@@ -157,9 +165,22 @@ export type StoryTelling = {
  */
 export type Template = string
 
+/** The verdict pill: one label for the whole record, per state. */
+export type VerdictLabels = {
+  idle: string
+  pending: string
+  authorized: string
+  issued: string
+  denied: string
+  timeout: string
+  blocked: string
+  escalated: string
+}
+
 export type DecisionCopy = {
   /** The card's accessible name: "Package decision". */
   ariaLabel: string
+  verdict: VerdictLabels
   idle: { label: string; title: string; text: (checks: number, last4: string) => string }
   pending: {
     label: string
