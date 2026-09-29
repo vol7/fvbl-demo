@@ -27,7 +27,7 @@ export const ca: RegionPack = {
   odometerUnit: "km",
   plate: { label: "Ontario plate", style: "ontario" },
   sms: { link: (token) => `fvbl.on.ca/c/${token}`, domain: "fvbl.on.ca" },
-  references: { issued: "UVIP" },
+  references: { issued: "UVIP", registration: "FVBL-R" },
   forceStates: FORCE_STATES,
   forcedSession: (key, now) => forcedSession(key as ForceKey, now),
   story: STORY,

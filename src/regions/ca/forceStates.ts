@@ -62,9 +62,10 @@ export function forcedSession(key: ForceKey, now: Date = new Date()): SessionSta
   const submission = {
     dealer: DEALER.name,
     dealerMobileLast4: DEALER.mobileLast4,
-    nvis: DEALER.nvis,
+    sourceDocument: { label: "NVIS", number: DEALER.nvis },
     deliveryKm: 12,
     firstOwner: FIRST_OWNER.name,
+    titleAlerts: null,
   }
   const buyer = { origin: "buyer" as const, requester: BUYER.name }
 

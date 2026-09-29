@@ -4,6 +4,8 @@ import { deriveActivity, registrationActivity } from "./activity"
 import { bornVehicle, findVehicle } from "./vehicles"
 import { CLEAN_VIN, NEW_VIN } from "@/regions/ca/vehicles"
 import { ca } from "@/regions/ca"
+import { us } from "@/regions/us"
+import { NEW_VIN as US_NEW_VIN } from "@/regions/us/vehicles"
 
 const T0 = "2026-09-04T18:10:00.000Z"
 const T1 = "2026-09-04T18:14:00.000Z"
@@ -163,8 +165,9 @@ describe("registrationActivity", () => {
     status: "registered" as const,
     dealer: "Mercedes-Benz Downtown",
     dealerMobileLast4: "2204",
-    nvis: "NVIS 2026-MB-0187342",
+    sourceDocument: { label: "NVIS", number: "NVIS 2026-MB-0187342" },
     deliveryKm: 12,
+    titleAlerts: null,
     firstOwner: "Léa Tremblay",
     otp: "1",
     link: "k7m2p9xq4tvn8bwz",
@@ -191,5 +194,19 @@ describe("registrationActivity", () => {
     expect(event.detail).toContain("Mercedes-Benz Downtown")
     expect(event.detail).toContain("FVBL-R-2026-09-15-0417")
     expect(event.certificate).toMatch(/^[0-9a-f]{64}$/)
+  })
+
+  it("adds the first owner's title alerts in the US", () => {
+    const usRegistered = {
+      ...registered,
+      titleAlerts: { mobileLast4: "0193" },
+      registrationRef: "FVBL-T-2026-09-29-0417",
+    }
+    const born = bornVehicle(us, findVehicle(us, US_NEW_VIN)!, usRegistered)
+    const events = registrationActivity(us, born, usRegistered)
+    expect(events.map((e) => e.title)).toEqual([
+      "First title recorded",
+      "Title alerts on for mobile ending 0193",
+    ])
   })
 })

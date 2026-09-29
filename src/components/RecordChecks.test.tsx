@@ -50,4 +50,23 @@ describe("RecordChecks", () => {
       "Reported exported through Port of Montréal, QC on March 18, 2025"
     )
   })
+
+  it("puts a certificate on a row that has one", () => {
+    render(
+      <RecordChecks
+        checks={checksFor(CLEAN_VIN)}
+        certificates={{
+          border: {
+            hash: "a".repeat(64),
+            event: "Owner confirmed the sale",
+            source: "FVBL",
+            recordedAt: "2026-09-29T14:03:10.000Z",
+          },
+        }}
+      />
+    )
+    const passed = within(screen.getByRole("region", { name: "Passed" })).getAllByRole("listitem")
+    expect(within(passed[0]).getByRole("button", { name: /blockchain certified/i })).toBeInTheDocument()
+    expect(screen.getAllByRole("button", { name: /blockchain certified/i })).toHaveLength(1)
+  })
 })

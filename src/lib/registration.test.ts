@@ -4,6 +4,7 @@ import {
   REGISTRATION_WINDOW_MS,
   generateRegistrationRef,
   registrationReducer,
+  upgradeRegistration,
   type RegistrationState,
   type Submission,
 } from "./registration"
@@ -16,8 +17,9 @@ const NONE: RegistrationState = { status: "none" }
 const SUBMISSION: Submission = {
   dealer: "Mercedes-Benz Downtown",
   dealerMobileLast4: "2204",
-  nvis: "NVIS 2026-MB-0187342",
+  sourceDocument: { label: "NVIS", number: "NVIS 2026-MB-0187342" },
   deliveryKm: 12,
+  titleAlerts: null,
   firstOwner: "Léa Tremblay",
 }
 
@@ -95,6 +97,29 @@ describe("generateRegistrationRef", () => {
   it("stamps the date and four digits behind an R", () => {
     expect(generateRegistrationRef(new Date(2026, 8, 15), () => 0.0417)).toBe(
       "FVBL-R-2026-09-15-0417"
+    )
+  })
+})
+
+describe("upgradeRegistration", () => {
+  it("reads a registration stored with the old nvis field", () => {
+    const old: Record<string, unknown> = { ...pending(), nvis: "NVIS 2026-MB-0187342" }
+    delete old.sourceDocument
+    delete old.titleAlerts
+    expect(upgradeRegistration(old as RegistrationState)).toEqual(pending())
+  })
+
+  it("leaves a current registration alone", () => {
+    const state = pending()
+    expect(upgradeRegistration(state)).toBe(state)
+    expect(upgradeRegistration(NONE)).toBe(NONE)
+  })
+})
+
+describe("generateRegistrationRef prefix", () => {
+  it("uses the region's prefix for a first title", () => {
+    expect(generateRegistrationRef(new Date(2026, 8, 29), () => 0.0417, "FVBL-T")).toBe(
+      "FVBL-T-2026-09-29-0417"
     )
   })
 })

@@ -10,8 +10,9 @@ const LINK = "k7m2p9xq4tvn8bwz"
 const submission = {
   dealer: "Mercedes-Benz Downtown",
   dealerMobileLast4: "2204",
-  nvis: "NVIS 2026-MB-0187342",
+  sourceDocument: { label: "NVIS", number: "NVIS 2026-MB-0187342" },
   deliveryKm: 12,
+  titleAlerts: null,
   firstOwner: "Léa Tremblay",
 }
 

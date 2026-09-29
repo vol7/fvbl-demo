@@ -27,7 +27,11 @@ export function useOwnerActions() {
         dispatch({
           type: "confirmRegistration",
           vin,
-          registrationRef: generateRegistrationRef(new Date()),
+          registrationRef: generateRegistrationRef(
+            new Date(),
+            Math.random,
+            pack.references.registration
+          ),
           at: now(),
         })
       } else {

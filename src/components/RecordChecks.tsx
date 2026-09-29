@@ -1,10 +1,19 @@
 import { Check, CircleAlert, CircleX, type LucideIcon } from "lucide-react"
 
-import { failingChecks, type Check as RecordCheck } from "@/lib/checks"
+import { LedgerMark } from "@/components/LedgerMark"
+import { failingChecks, type CheckId, type Check as RecordCheck } from "@/lib/checks"
 import { cn } from "@/lib/utils"
 import { useRegion } from "@/regions"
 
 type Tone = "high" | "low" | "pass"
+
+/** A ledger certificate behind a check's result: the owner's confirmation in the US. */
+export type CheckCertificate = {
+  hash: string
+  event: string
+  source: string
+  recordedAt: string
+}
 
 /**
  * Each group speaks in its own colour: high risk in reds, low risk in ambers. The
@@ -58,7 +67,13 @@ const TONE: Record<
  * The sources that answered, then the nine checks in three groups: high risk, low
  * risk, passed. The pills only say that a source answered; what it found is in the rows.
  */
-export function RecordChecks({ checks }: { checks: RecordCheck[] }) {
+export function RecordChecks({
+  checks,
+  certificates,
+}: {
+  checks: RecordCheck[]
+  certificates?: Partial<Record<CheckId, CheckCertificate>>
+}) {
   const pack = useRegion()
   const failing = failingChecks(checks)
   const high = failing.filter((c) => c.severity === "high")
@@ -68,6 +83,7 @@ export function RecordChecks({ checks }: { checks: RecordCheck[] }) {
   const row = (tone: Tone) => (check: RecordCheck) => {
     const t = TONE[tone]
     const Icon = t.icon
+    const certificate = certificates?.[check.id]
     return (
       <li
         key={check.id}
@@ -83,7 +99,10 @@ export function RecordChecks({ checks }: { checks: RecordCheck[] }) {
         />
         <span className={cn("text-sm", t.text)}>{check.label}</span>
         <div className="col-start-2 flex flex-col sm:col-start-auto">
-          <span className={cn("text-sm font-semibold", t.result)}>{check.result}</span>
+          <span className={cn("flex items-center gap-1.5 text-sm font-semibold", t.result)}>
+            {check.result}
+            {certificate ? <LedgerMark {...certificate} label="Blockchain certified" /> : null}
+          </span>
           {check.detail ? (
             <span className={cn("text-[13px]", tone === "pass" ? "text-muted-foreground" : t.text)}>
               {check.detail}

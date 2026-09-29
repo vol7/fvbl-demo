@@ -29,17 +29,22 @@ import { useRegionPaths } from "@/regions/context"
 import type { RegionPack } from "@/regions/types"
 
 const INVALID = "Enter the 17-character VIN (letters I, O and Q are not used)."
-const ALREADY =
-  "This VIN already has a registration on file. Use a transfer, not a first registration."
 
-/** What the dealer submits. Prefilled in the demo; only the statement's check mark is live. */
-function submissionFor({ people }: RegionPack): Submission {
+/**
+ * What the dealer submits. Prefilled in the demo; only the document's check mark
+ * is live, and the first owner's title-alert opt-in (US) comes pre-ticked.
+ */
+function submissionFor({ people, copy }: RegionPack, titleAlerts: boolean): Submission {
   return {
     dealer: people.dealer.name,
     dealerMobileLast4: people.dealer.mobileLast4,
-    nvis: people.dealer.nvis,
+    sourceDocument: { label: copy.dealer.review.documentLabel, number: people.dealer.nvis },
     deliveryKm: 12,
     firstOwner: people.firstOwner.name,
+    titleAlerts:
+      copy.dealer.titleAlerts && titleAlerts
+        ? { mobileLast4: people.firstOwner.mobileLast4 }
+        : null,
   }
 }
 
@@ -105,7 +110,8 @@ export function Register() {
   const pack = useRegion()
   const copy = pack.copy.dealer
   const { dealer, firstOwner } = pack.people
-  const submission = submissionFor(pack)
+  const [alertsOn, setAlertsOn] = useState(true)
+  const submission = submissionFor(pack, alertsOn)
   const steps = ["Vehicle", copy.statement.title, "Review"]
   const km = (value: number) => formatOdometer(value, pack.odometerUnit)
   const paths = useRegionPaths()
@@ -126,7 +132,7 @@ export function Register() {
     const found = findVehicle(pack, normalized)
     if (!found) return setError(copy.unknownVin)
     if (found.history.length > 0 || registrationState(session, found.vin).status === "registered") {
-      return setError(ALREADY)
+      return setError(copy.already)
     }
     setError(null)
     setVehicle(found)
@@ -149,6 +155,7 @@ export function Register() {
     setSubmitted(null)
     setVehicle(null)
     setNvisConfirmed(false)
+    setAlertsOn(true)
     setStep(0)
   }
 
@@ -200,7 +207,7 @@ export function Register() {
                   value={<span className="font-mono tracking-wider">{vehicle.vin}</span>}
                 />
                 <ReviewRow
-                  label="Registered"
+                  label={copy.registered.dateLabel}
                   value={`Today, ${formatTime(registration.registeredAt)}`}
                 />
                 <ReviewRow label="Office" value={registration.office.split(" · ").at(-1)} />
@@ -226,7 +233,7 @@ export function Register() {
                   View in FVBL
                 </Link>
                 <Button type="button" variant="outline" onClick={startOver}>
-                  Register another
+                  {copy.registered.again}
                 </Button>
               </div>
             </StatusCard>
@@ -305,8 +312,8 @@ export function Register() {
                     <p className="flex items-center gap-2 border-t bg-emerald-50/60 px-5 py-3 text-sm dark:bg-emerald-950/20">
                       <CircleCheck className="size-4 shrink-0 text-emerald-600" aria-hidden />
                       <span>
-                        <span className="font-medium">No registration on file.</span> This VIN has
-                        not been registered in any jurisdiction.
+                        <span className="font-medium">{copy.vinClear.title}</span>{" "}
+                        {copy.vinClear.text}
                       </span>
                     </p>
                   </motion.div>
@@ -349,10 +356,31 @@ export function Register() {
                   <span className="font-medium">{copy.statement.confirm}</span>
                 </label>
 
+                {copy.titleAlerts ? (
+                  <label className="flex cursor-pointer items-start gap-3 rounded-xl border bg-card p-4 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                    <input
+                      type="checkbox"
+                      className="mt-0.5 size-5 shrink-0 accent-primary"
+                      checked={alertsOn}
+                      onChange={(e) => setAlertsOn(e.target.checked)}
+                    />
+                    <span className="flex flex-col gap-0.5">
+                      <span className="font-medium">
+                        {copy.titleAlerts.confirm(firstOwner.mobileLast4)}
+                      </span>
+                      <span className="text-muted-foreground">{copy.titleAlerts.note}</span>
+                    </span>
+                  </label>
+                ) : null}
+
                 <dl className="divide-y rounded-xl border bg-card px-5">
                   <ReviewRow
                     label={copy.statement.documentLabel}
-                    value={<span className="font-mono tracking-wider">{submission.nvis}</span>}
+                    value={
+                      <span className="font-mono tracking-wider">
+                        {submission.sourceDocument.number}
+                      </span>
+                    }
                   />
                   <ReviewRow label="Delivery odometer" value={km(submission.deliveryKm)} />
                   <ReviewRow
@@ -399,10 +427,20 @@ export function Register() {
                   />
                   <ReviewRow
                     label={copy.review.documentLabel}
-                    value={<span className="font-mono tracking-wider">{submission.nvis}</span>}
+                    value={
+                      <span className="font-mono tracking-wider">
+                        {submission.sourceDocument.number}
+                      </span>
+                    }
                   />
                   <ReviewRow label="Delivery odometer" value={km(submission.deliveryKm)} />
                   <ReviewRow label={copy.statement.firstOwnerLabel} value={firstOwner.name} />
+                  {copy.titleAlerts && submission.titleAlerts ? (
+                    <ReviewRow
+                      label={copy.titleAlerts.reviewLabel}
+                      value={copy.titleAlerts.reviewValue(submission.titleAlerts.mobileLast4)}
+                    />
+                  ) : null}
                   <ReviewRow label="Submitted by" value={dealer.name} />
                 </dl>
                 <div className="flex gap-2">

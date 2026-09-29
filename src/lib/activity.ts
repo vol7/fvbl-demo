@@ -130,16 +130,27 @@ export function registrationActivity(
   registration: RegistrationState
 ): ActivityEvent[] {
   if (registration.status !== "registered" || vehicle.history.length === 0) return []
-  return [
+  const titled = Boolean(pack.place.registry.titles)
+  const events: ActivityEvent[] = [
     {
       id: "registered",
       at: registration.registeredAt,
-      title: "First registration recorded",
+      title: titled ? "First title recorded" : "First registration recorded",
       detail: `Submitted by ${registration.dealer}, confirmed from the dealership mobile ending ${registration.dealerMobileLast4}. Reference ${registration.registrationRef}`,
       tone: "success",
       certificate: historyCertificates(pack, vehicle)[0],
     },
   ]
+  if (registration.titleAlerts) {
+    events.push({
+      id: "titleAlerts",
+      at: registration.registeredAt,
+      title: `Title alerts on for mobile ending ${registration.titleAlerts.mobileLast4}`,
+      detail: "Turned on by the first owner at delivery",
+      tone: "info",
+    })
+  }
+  return events
 }
 
 function sentEvent(state: {

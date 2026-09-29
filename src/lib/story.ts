@@ -29,7 +29,7 @@ export function recordStory(
 ): RecordStory | null {
   const [worst, ...others] = failingChecks(checks)
   if (!worst) return null
-  const { footnote, ...story } = pack.story.tell(worst, vehicle)
+  const { footnote, reportedBy = worst.agencies, ...story } = pack.story.tell(worst, vehicle)
   const also =
     others.length === 0
       ? ""
@@ -37,6 +37,7 @@ export function recordStory(
           others.map((c) => inSentence(c.label)),
           true
         )} ${others.length === 1 ? "is" : "are"} also flagged.`
-  const foot = `Reported by ${joinNames(worst.agencies.map(pack.story.agencyName))}.${footnote ? ` ${footnote}` : ""}${also}`
+  const closing = pack.story.closing ? ` ${pack.story.closing}` : ""
+  const foot = `Reported by ${joinNames(reportedBy.map(pack.story.agencyName))}.${footnote ? ` ${footnote}` : ""}${also}${closing}`
   return { ...story, foot }
 }

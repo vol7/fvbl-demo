@@ -22,12 +22,13 @@ import {
   generateIssuedNumber,
 } from "@/lib/authorization"
 import { allPass, evaluateChecks } from "@/lib/checks"
-import { ledgerEntries } from "@/lib/ledger"
+import { authorizationCertificates, ledgerEntries } from "@/lib/ledger"
 import type { RegistrationState } from "@/lib/registration"
 import { registrationState, useSession, vehicleState } from "@/lib/session"
 import {
   bornVehicle,
   findVehicle,
+  isOwnershipStart,
   vehicleTitle,
   type Vehicle as VehicleRecord,
 } from "@/lib/vehicles"
@@ -121,8 +122,10 @@ function VehicleView({
   registration: RegistrationState
 }) {
   const pack = useRegion()
-  const checks = useMemo(() => evaluateChecks(pack, vehicle), [pack, vehicle])
-  const canRequest = allPass(checks)
+  // Whether the record can be requested at all comes from the vehicle's own records;
+  // checks that report on the owner's answer join once the session is read.
+  const recordChecks = useMemo(() => evaluateChecks(pack, vehicle), [pack, vehicle])
+  const canRequest = allPass(recordChecks)
   const [session, dispatch] = useSession()
   const now = useClock()
   // Presentational only: when this page was opened, for the activity feed and the ledger.
@@ -149,6 +152,23 @@ function VehicleView({
   // Browsing is read-only. Nothing here writes to the session until the clerk acts.
   const vin = vehicle.vin
   const state = vehicleState(session, vin, canRequest)
+  const checks = useMemo(
+    () => evaluateChecks(pack, vehicle, { authorization: state }),
+    [pack, vehicle, state]
+  )
+  const approved = state.status === "authorized" ? state.approvedAt : null
+  const approvedCertificate = authorizationCertificates(pack, vehicle, state).approved
+  const checkCertificates =
+    approved && approvedCertificate
+      ? {
+          ownerConfirmed: {
+            hash: approvedCertificate,
+            event: "Owner confirmed the sale",
+            source: "FVBL",
+            recordedAt: approved,
+          },
+        }
+      : undefined
 
   const stamp = () => new Date().toISOString()
   const onRequest = (applicant: ApplicantDetails) =>
@@ -223,14 +243,12 @@ function VehicleView({
                 {
                   key: "ownership",
                   label: "Ownership",
-                  count: vehicle.history.filter(
-                    (e) => e.kind === "firstRegistration" || e.kind === "transfer"
-                  ).length,
+                  count: vehicle.history.filter(isOwnershipStart).length,
                 },
               ]}
             />
             <TabPanel id="vehicle-tab" active={tab} direction={direction}>
-              {tab === "checks" ? <RecordChecks checks={checks} /> : null}
+              {tab === "checks" ? <RecordChecks checks={checks} certificates={checkCertificates} /> : null}
               {tab === "history" ? <VehicleTimeline vehicle={vehicle} /> : null}
               {tab === "ownership" ? (
                 <OwnershipHistory vehicle={vehicle} today={openedAt.slice(0, 10)} />

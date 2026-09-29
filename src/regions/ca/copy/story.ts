@@ -89,6 +89,12 @@ function tell(check: Check, vehicle: Vehicle): StoryTelling {
           : `${check.detail}.`,
         notifyAfterReview: PROVINCIAL,
       }
+    // US-only checks; Ontario never runs them.
+    case "nmvtis":
+    case "otherJurisdiction":
+    case "brand":
+    case "ownerConfirmed":
+      return { title: check.label, body: `${check.detail}.`, notifyAfterReview: PROVINCIAL }
   }
 }
 

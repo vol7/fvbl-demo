@@ -13,6 +13,11 @@ export type CheckId =
   | "collision"
   | "odometer"
   | "lien"
+  // US only (US plan, Task 6).
+  | "nmvtis"
+  | "otherJurisdiction"
+  | "brand"
+  | "ownerConfirmed"
 
 export type CheckStatus = "pass" | "fail"
 

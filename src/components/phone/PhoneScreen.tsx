@@ -8,7 +8,7 @@ import { useSession } from "@/lib/session"
 import { liveThread, type Thread } from "@/lib/thread"
 import { cn } from "@/lib/utils"
 import { fill } from "@/lib/fill"
-import { vehicleTitle } from "@/lib/vehicles"
+import { isOwnershipStart, vehicleTitle, type Vehicle } from "@/lib/vehicles"
 import { useRegion } from "@/regions"
 
 const BUBBLE_ENTER = { duration: 0.22, ease: "easeOut" } as const
@@ -77,9 +77,16 @@ function Header() {
   )
 }
 
+/** When the owner's older message was sent: the last renewal, or when they took ownership. */
+function ownerHistoryDate(vehicle: Vehicle, at: "lastRenewal" | "ownershipStart"): string | null {
+  if (at === "ownershipStart") return vehicle.history.filter(isOwnershipStart).at(-1)?.date ?? null
+  return vehicle.history.filter((e) => e.kind === "renewal").at(-1)?.date ?? null
+}
+
 /** An older service message, so the thread does not start with the live request. */
 function ContextBubble({ thread }: { thread: Thread | null }) {
-  const { phone } = useRegion().copy
+  const pack = useRegion()
+  const { phone } = pack.copy
   if (thread?.kind === "registration") {
     // The dealership's phone: its previous registration, another vehicle.
     const { date, text } = phone.dealerHistory
@@ -90,16 +97,20 @@ function ContextBubble({ thread }: { thread: Thread | null }) {
       </>
     )
   }
-  const vehicle = thread?.vehicle
-  const plate = vehicle?.plate ?? "CKXR 214"
-  const renewed =
-    vehicle?.history.filter((e) => e.kind === "renewal").at(-1)?.date ??
-    vehicle?.registeredOn ??
-    "2025-04-11"
+  // Nothing requested yet: the phone belongs to the first demo vehicle's owner.
+  const vehicle = thread?.vehicle ?? pack.vehicles[0]
+  const date = ownerHistoryDate(vehicle, phone.ownerHistoryAt) ?? vehicle.registeredOn ?? ""
   return (
     <>
-      <Separator>{formatDate(renewed)}</Separator>
-      <Bubble from="sender">{phone.ownerHistory(plate, formatDate(renewed))}</Bubble>
+      <Separator>{formatDate(date)}</Separator>
+      <Bubble from="sender">
+        {phone.ownerHistory({
+          plate: vehicle.plate ?? "",
+          date: formatDate(date),
+          vehicle: vehicleTitle(vehicle),
+          vinLast4: vehicle.vin.slice(-4),
+        })}
+      </Bubble>
     </>
   )
 }
@@ -120,7 +131,13 @@ function RegistrationThread({
       <Separator>Today {formatTime(state.sentAt)}</Separator>
       <Bubble from="sender">
         {fill(
-          phone.registrationRequest(state.dealer, vehicleTitle(vehicle), vehicle.vin.slice(-4)),
+          phone.registrationRequest({
+            dealer: state.dealer,
+            vehicle: vehicleTitle(vehicle),
+            vinLast4: vehicle.vin.slice(-4),
+            firstOwner: state.firstOwner,
+            alertsLast4: state.titleAlerts?.mobileLast4 ?? null,
+          }),
           {
             link: <SmsLink onClick={onOpen}>{pack.sms.link(state.link)}</SmsLink>,
           }
@@ -197,11 +214,12 @@ export function PhoneScreen() {
                 <Separator>Today {formatTime(thread.state.sentAt)}</Separator>
                 <Bubble from="sender">
                   {fill(
-                    phone.authorizationRequest(
-                      vehicleTitle(thread.vehicle),
-                      thread.vehicle.plate ?? "",
-                      thread.state.requester
-                    ),
+                    phone.authorizationRequest({
+                      vehicle: vehicleTitle(thread.vehicle),
+                      plate: thread.vehicle.plate ?? "",
+                      vinLast4: thread.vehicle.vin.slice(-4),
+                      requester: phone.requesterName(thread.state.requester),
+                    }),
                     {
                       link: (
                         <SmsLink onClick={() => navigate("confirm")}>

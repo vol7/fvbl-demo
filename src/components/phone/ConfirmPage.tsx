@@ -76,9 +76,17 @@ function RegistrationConfirm({
           />
           <Row label="Submitted by" value={state.dealer} />
           <Row label={copy.firstOwnerLabel} value={state.firstOwner} />
+          {copy.alertsLabel && state.titleAlerts ? (
+            <Row
+              label={copy.alertsLabel}
+              value={`On for mobile ending ${state.titleAlerts.mobileLast4}`}
+            />
+          ) : null}
           <Row
             label={copy.documentLabel}
-            value={<span className="font-mono tracking-wider">{state.nvis}</span>}
+            value={
+              <span className="font-mono tracking-wider">{state.sourceDocument.number}</span>
+            }
           />
           <Row label="Submitted" value={`Today at ${formatTime(state.sentAt)}`} />
           <Row
@@ -154,7 +162,11 @@ export function ConfirmPage() {
     dispatch({
       type: "confirmRegistration",
       vin,
-      registrationRef: generateRegistrationRef(new Date()),
+      registrationRef: generateRegistrationRef(
+        new Date(),
+        Math.random,
+        pack.references.registration
+      ),
       at: at(),
     })
   const declineRegistration = () => vin && dispatch({ type: "declineRegistration", vin, at: at() })
@@ -220,6 +232,9 @@ export function ConfirmPage() {
               <div className="flex flex-col gap-1.5">
                 <h1 className="text-xl font-semibold tracking-tight">{copy.askTitle}</h1>
                 <p className="text-[15px] text-neutral-600">{copy.askLede}</p>
+                {copy.asksNothing ? (
+                  <p className="text-[13px] font-medium text-neutral-700">{copy.asksNothing}</p>
+                ) : null}
               </div>
 
               <dl className="divide-y divide-black/10 rounded-2xl bg-white px-4 ring-1 ring-black/10">
@@ -227,11 +242,25 @@ export function ConfirmPage() {
                   label="Vehicle"
                   value={<span className="font-medium">{vehicleTitle(thread.vehicle)}</span>}
                 />
+                {copy.identifier === "plate" ? (
+                  <Row
+                    label="Plate"
+                    value={<span className="font-mono tracking-wider">{thread.vehicle.plate}</span>}
+                  />
+                ) : (
+                  <Row
+                    label="VIN"
+                    value={
+                      <span className="font-mono tracking-wider">
+                        …{thread.vehicle.vin.slice(-4)}
+                      </span>
+                    }
+                  />
+                )}
                 <Row
-                  label="Plate"
-                  value={<span className="font-mono tracking-wider">{thread.vehicle.plate}</span>}
+                  label="Requested by"
+                  value={pack.copy.phone.requesterName(thread.state.requester)}
                 />
-                <Row label="Requested by" value={thread.state.requester} />
                 <Row label="Requested" value={`Today at ${formatTime(thread.state.sentAt)}`} />
                 <Row
                   label="Expires"

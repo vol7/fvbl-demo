@@ -90,6 +90,8 @@ export type RegionPack = {
   references: {
     /** Prefix of the issued document's number: "UVIP" for UVIP-2026-09-09-4821. */
     issued: string
+    /** Prefix of a dealer submission's reference: "FVBL-R" (registration), "FVBL-T" (title). */
+    registration: string
   }
 
   forceStates: { key: string; label: string }[]
@@ -148,6 +150,11 @@ export type StoryCopy = {
   tell: (check: Check, vehicle: Vehicle) => StoryTelling
   /** Agencies as a clerk says them: "the MTO", everything else by name. */
   agencyName: (agency: string) => string
+  /**
+   * The last sentence of every story, after the other flags: the US says who
+   * decides ("Your office decides whether to issue.").
+   */
+  closing?: string
 }
 
 export type StoryTelling = {
@@ -155,6 +162,8 @@ export type StoryTelling = {
   body: string
   /** Said after the reporting agencies, e.g. what the local record alone would show. */
   footnote?: string
+  /** Who reported the flag, when it is not every agency on the check's row. */
+  reportedBy?: string[]
   /** Who the investigators notify once they have reviewed a referral. */
   notifyAfterReview: string
 }
@@ -233,21 +242,55 @@ export type DecisionCopy = {
   }
 }
 
+/** What the owner's older service message can mention. */
+export type OwnerHistoryContext = {
+  plate: string
+  date: string
+  vehicle: string
+  vinLast4: string
+}
+
+/** What the text carrying a live request can mention. */
+export type AuthorizationRequestContext = {
+  vehicle: string
+  plate: string
+  vinLast4: string
+  /** As the region shows it to the owner: the full name, or first name and initial. */
+  requester: string
+}
+
+/** What the dealership's text about its own submission can read back. */
+export type RegistrationRequestContext = {
+  dealer: string
+  vehicle: string
+  vinLast4: string
+  firstOwner: string
+  /** The first owner's mobile for title alerts, when they turned them on. */
+  alertsLast4: string | null
+}
+
 export type PhoneCopy = {
   /** The business sender's name and the letters on its icon. */
   sender: string
   senderIcon: string
-  /** The owner's older service message: `{plate}`, `{date}`. */
-  ownerHistory: (plate: string, date: string) => string
+  /**
+   * The owner's older service message, so the thread does not start with the live
+   * request. Dated from the last renewal (Canada) or the start of the current
+   * ownership, when the owner turned on title alerts (US).
+   */
+  ownerHistory: (ctx: OwnerHistoryContext) => string
+  ownerHistoryAt: "lastRenewal" | "ownershipStart"
   /** The dealership's older service message, with its date. */
   dealerHistory: { date: string; text: string }
   /** `{link}` is the tappable link. */
-  registrationRequest: (dealer: string, vehicle: string, vinLast4: string) => Template
+  registrationRequest: (ctx: RegistrationRequestContext) => Template
   /** `{ref}` is the registration reference. */
   registrationConfirmed: Template
   registrationDeclined: string
   /** `{link}` is the tappable link. */
-  authorizationRequest: (vehicle: string, plate: string, requester: string) => Template
+  authorizationRequest: (ctx: AuthorizationRequestContext) => Template
+  /** How the requester's name is shown to the owner. */
+  requesterName: (name: string) => string
   /** `{code}` is the authorization code. */
   authorized: Template
   denied: string
@@ -258,6 +301,10 @@ export type PhoneCopy = {
     headerDealer: string
     askTitle: string
     askLede: string
+    /** Says what the page never asks for. Shown under the lede when set. */
+    asksNothing?: string
+    /** What identifies the vehicle on the page: its plate, or the VIN's last four. */
+    identifier: "plate" | "vinLast4"
     approve: string
     decline: string
     recorded: string
@@ -271,6 +318,8 @@ export type PhoneCopy = {
       /** Row label for the source document's number: "NVIS". */
       documentLabel: string
       firstOwnerLabel: string
+      /** Row label for the first owner's title alerts, where the region has them. */
+      alertsLabel?: string
       recorded: string
       recordedTitle: string
       recordedText: (vehicle: string) => string
@@ -286,8 +335,22 @@ export type DealerCopy = {
   vinHint: string
   /** The VIN does not decode. */
   unknownVin: string
+  /** The VIN already has a record on file. */
+  already: string
+  /** Under the decoded vehicle: nothing on file anywhere yet. */
+  vinClear: { title: string; text: string }
   pending: { title: string; text: (last4: string) => string }
-  registered: { label: string; title: string; text: string; ledger: string; ledgerEvent: string }
+  registered: {
+    label: string
+    title: string
+    text: string
+    ledger: string
+    ledgerEvent: string
+    /** Label of the row with the time it was recorded. */
+    dateLabel: string
+    /** The button that starts another submission. */
+    again: string
+  }
   declined: { label: string; title: string; text: string }
   statement: {
     title: string
@@ -297,6 +360,16 @@ export type DealerCopy = {
     firstOwnerLabel: string
   }
   review: { title: string; text: (last4: string) => string; documentLabel: string; submit: string }
+  /**
+   * The first owner's title-alert opt-in (US): a pre-ticked row on the statement
+   * step. Absent where the registry doesn't text owners about transfers.
+   */
+  titleAlerts?: {
+    confirm: (last4: string) => string
+    note: string
+    reviewLabel: string
+    reviewValue: (last4: string) => string
+  }
   navLabel: string
   navItem: string
 }

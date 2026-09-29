@@ -7,6 +7,8 @@ import { regionPaths } from "@/lib/paths"
 import { getSessionStore } from "@/lib/session"
 import { Register } from "./Register"
 import { NEW_VIN } from "@/regions/ca/vehicles"
+import { RegionProvider } from "@/regions/RegionRoot"
+import { NEW_VIN as US_NEW_VIN } from "@/regions/us/vehicles"
 
 const paths = regionPaths("ca")
 
@@ -63,7 +65,7 @@ describe("Dealer registration", () => {
         [NEW_VIN]: {
           status: "pending",
           dealer: "Mercedes-Benz Downtown",
-          nvis: "NVIS 2026-MB-0187342",
+          sourceDocument: { label: "NVIS", number: "NVIS 2026-MB-0187342" },
         },
       },
     })
@@ -90,5 +92,75 @@ describe("Dealer registration", () => {
       "href",
       paths.portal.vehicle(NEW_VIN)
     )
+  })
+})
+
+describe("Dealer first title (US)", () => {
+  const usPaths = regionPaths("us")
+
+  async function toCertificateStep() {
+    const router = createMemoryRouter(
+      [{ path: usPaths.dealer.register, element: <Register /> }],
+      { initialEntries: [usPaths.dealer.register] }
+    )
+    render(
+      <RegionProvider region="us">
+        <RouterProvider router={router} />
+      </RegionProvider>
+    )
+    expect(screen.getByLabelText(/vehicle identification number/i)).toHaveValue(US_NEW_VIN)
+    await userEvent.click(screen.getByRole("button", { name: /decode vin/i }))
+    expect(await screen.findByText(/no title on file/i)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("button", { name: "Continue" }))
+    expect(
+      await screen.findByRole("heading", { name: /^certificate of origin$/i })
+    ).toBeInTheDocument()
+  }
+
+  it("confirms the certificate of origin, with title alerts pre-ticked", async () => {
+    await toCertificateStep()
+    const alerts = screen.getByRole("checkbox", { name: /turned on title alerts/i })
+    expect(alerts).toBeChecked()
+    expect(screen.getByText(/turn alerts off any time/i)).toBeInTheDocument()
+    await userEvent.click(
+      screen.getByRole("checkbox", { name: /manufacturer's certificate of origin/i })
+    )
+    await userEvent.click(screen.getByRole("button", { name: "Continue" }))
+    expect(await screen.findByRole("heading", { name: /review and submit/i })).toBeInTheDocument()
+    expect(screen.getByText("MCO 2026-0418826")).toBeInTheDocument()
+    expect(screen.getByText("On, mobile ending 0193")).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("button", { name: /submit title application/i }))
+
+    expect(await screen.findByText(/submitted to the county title office/i)).toBeInTheDocument()
+    expect(getSessionStore("us").getState().registrations[US_NEW_VIN]).toMatchObject({
+      status: "pending",
+      sourceDocument: { label: "Certificate of origin", number: "MCO 2026-0418826" },
+      titleAlerts: { mobileLast4: "0193" },
+    })
+
+    getSessionStore("us").dispatch({
+      type: "confirmRegistration",
+      vin: US_NEW_VIN,
+      registrationRef: "FVBL-T-2026-09-29-0417",
+      at: new Date().toISOString(),
+    })
+    expect(await screen.findByText("Title application recorded")).toBeInTheDocument()
+    expect(screen.getByText("FVBL-T-2026-09-29-0417")).toBeInTheDocument()
+  })
+
+  it("submits without title alerts when the box is unticked", async () => {
+    await toCertificateStep()
+    await userEvent.click(screen.getByRole("checkbox", { name: /turned on title alerts/i }))
+    await userEvent.click(
+      screen.getByRole("checkbox", { name: /manufacturer's certificate of origin/i })
+    )
+    await userEvent.click(screen.getByRole("button", { name: "Continue" }))
+    expect(await screen.findByRole("heading", { name: /review and submit/i })).toBeInTheDocument()
+    expect(screen.queryByText(/on, mobile ending/i)).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole("button", { name: /submit title application/i }))
+    await screen.findByText(/submitted to the county title office/i)
+    expect(getSessionStore("us").getState().registrations[US_NEW_VIN]).toMatchObject({
+      titleAlerts: null,
+    })
   })
 })

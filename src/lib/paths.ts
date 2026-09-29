@@ -36,6 +36,9 @@ export function regionPaths(region: RegionId) {
     uvip: `${root}/uvip`,
     uvipOwner: `${root}/uvip/owner`,
     uvipBuyer: `${root}/uvip/buyer`,
+
+    /** US only: the mock Ohio title search, where the buyer asks the owner to confirm. */
+    ohio: `${root}/ohio`,
   }
 }
 
@@ -56,6 +59,7 @@ export const routePatterns = {
   uvip: "uvip",
   uvipOwner: "uvip/owner",
   uvipBuyer: "uvip/buyer",
+  ohio: "ohio",
 } as const
 
 export const paths = {

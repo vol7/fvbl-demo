@@ -5,19 +5,21 @@ export const PHONE: PhoneCopy = {
   // reads as phishing (2026-09-18 review).
   sender: "MTO",
   senderIcon: "MTO",
-  ownerHistory: (plate, date) =>
+  ownerHistory: ({ plate, date }) =>
     `MTO: Your Ontario registration for plate ${plate} was renewed on ${date}. No action is needed. Reply STOP to opt out of service messages.`,
+  ownerHistoryAt: "lastRenewal",
   dealerHistory: {
     date: "2026-09-08",
     text: "MTO: Registration FVBL-R-2026-09-08-2291 for a 2026 Mercedes-Benz GLC 300 4MATIC was recorded on {date}. Reply STOP to opt out of service messages.",
   },
-  registrationRequest: (dealer, vehicle, vinLast4) =>
+  registrationRequest: ({ dealer, vehicle, vinLast4 }) =>
     `MTO: ${dealer} submitted the first registration of a ${vehicle} (VIN …${vinLast4}) to the ministry. Confirm this submission: {link}. Expires in 24 hours.`,
   registrationConfirmed:
     "Confirmed. Registration {ref} is recorded and the vehicle's ledger has been opened.",
   registrationDeclined: "Understood. The submission has been withdrawn. Nothing was recorded.",
-  authorizationRequest: (vehicle, plate, requester) =>
+  authorizationRequest: ({ vehicle, plate, requester }) =>
     `MTO: A Used Vehicle Information Package was requested for your ${vehicle} (plate ${plate}) by ${requester}. Review and approve or decline: {link}. Expires in 24 hours.`,
+  requesterName: (name) => name,
   authorized:
     "Thanks — your authorization has been recorded. Reference {code}. It is valid for 30 days.",
   denied:
@@ -31,6 +33,7 @@ export const PHONE: PhoneCopy = {
     askTitle: "Approve a Used Vehicle Information Package?",
     askLede:
       "Someone is asking for the UVIP for a vehicle registered to you. Only approve if you are selling it.",
+    identifier: "plate",
     approve: "Approve",
     decline: "Decline",
     recorded: "Your response is recorded with the Federal VIN Blockchain Ledger.",

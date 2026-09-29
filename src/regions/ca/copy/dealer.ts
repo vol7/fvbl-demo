@@ -5,6 +5,11 @@ export const DEALER_COPY: DealerCopy = {
   lede: "First registration with the ministry, from the New Vehicle Information Statement. You confirm the submission from the dealership's registered mobile.",
   vinHint: "As printed on the New Vehicle Information Statement.",
   unknownVin: "This VIN does not decode. Check the NVIS and try again.",
+  already: "This VIN already has a registration on file. Use a transfer, not a first registration.",
+  vinClear: {
+    title: "No registration on file.",
+    text: "This VIN has not been registered in any jurisdiction.",
+  },
   pending: {
     title: "Submitted to the ministry",
     text: (last4) =>
@@ -16,6 +21,8 @@ export const DEALER_COPY: DealerCopy = {
     text: "The ministry has the first registration and the vehicle's ledger is open.",
     ledger: "First registration and delivery odometer",
     ledgerEvent: "First registration",
+    dateLabel: "Registered",
+    again: "Register another",
   },
   declined: {
     label: "Declined from the dealership's mobile",

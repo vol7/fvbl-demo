@@ -2,7 +2,10 @@ import type { CheckDefinition, CheckId, CheckStatus, Severity } from "@/lib/chec
 import { formatDate, formatOdometer } from "@/lib/format"
 import { odometerEvents, openExport, type OdometerEvent, type Vehicle } from "@/lib/vehicles"
 
-const LABELS: Record<CheckId, string> = {
+/** The checks Ontario runs. The US-only ids never appear on a Canadian record. */
+type CaCheckId = Exclude<CheckId, "nmvtis" | "otherJurisdiction" | "brand" | "ownerConfirmed">
+
+const LABELS: Record<CaCheckId, string> = {
   border: "Import and export record",
   decode: "VIN decode match",
   stolen: "Stolen vehicle report",
@@ -14,7 +17,7 @@ const LABELS: Record<CheckId, string> = {
   lien: "Active lien",
 }
 
-const SOURCES: Record<CheckId, string> = {
+const SOURCES: Record<CaCheckId, string> = {
   border: "Transport Canada RIV · CBSA",
   decode: "NHTSA vPIC · MTO vehicle registry",
   stolen: "CPIC · Canadian Police Information Centre",
@@ -27,7 +30,7 @@ const SOURCES: Record<CheckId, string> = {
 }
 
 /** Chips on each row. Short names; the long form is in SOURCES. */
-const AGENCIES: Record<CheckId, string[]> = {
+const AGENCIES: Record<CaCheckId, string[]> = {
   border: ["Transport Canada", "CBSA"],
   decode: ["NHTSA", "MTO"],
   stolen: ["CPIC"],
@@ -52,7 +55,7 @@ export const INTEGRATIONS: { name: string; detail: string }[] = [
   { name: "PPSR", detail: "Ontario Personal Property Security Registration" },
 ]
 
-const SEVERITY: Record<CheckId, Severity> = {
+const SEVERITY: Record<CaCheckId, Severity> = {
   border: "high",
   decode: "high",
   stolen: "high",
@@ -122,7 +125,7 @@ function odometerCheck(readings: OdometerEvent[]): Outcome {
   )
 }
 
-const EVALUATE: Record<CheckId, (vehicle: Vehicle) => Outcome> = {
+const EVALUATE: Record<CaCheckId, (vehicle: Vehicle) => Outcome> = {
   border: borderCheck,
   decode: decodeCheck,
   stolen: ({ records: r }) =>
@@ -165,7 +168,7 @@ const EVALUATE: Record<CheckId, (vehicle: Vehicle) => Outcome> = {
 }
 
 /** Display order when nothing fails. Failures are pulled to the front. */
-const ORDER: CheckId[] = [
+const ORDER: CaCheckId[] = [
   "border",
   "decode",
   "stolen",

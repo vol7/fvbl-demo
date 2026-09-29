@@ -82,8 +82,7 @@ describe("the Ohio demo vehicles", () => {
     expect(findVehicle(us, CLEAN_VIN)!.owner.name).toBe(OWNER.name)
   })
 
-  // The US record checks land in Task 6. Until then each scenario is held to the one
-  // record that makes it fail, and the export to the check Canada already runs.
+  // Each scenario's exact pass/fail set is held in checks.test.ts; here, the records.
   it("flag each catch with exactly one record", () => {
     expect(recordsSet(findVehicle(us, CLEAN_VIN)!.records)).toEqual([])
     expect(recordsSet(findVehicle(us, EXPORTED_VIN)!.records)).toEqual([])
@@ -126,8 +125,9 @@ describe("the Ohio demo vehicles", () => {
       status: "registered",
       dealer: "Scioto Ridge Motorcars",
       dealerMobileLast4: "0155",
-      nvis: "MCO 2026-0418826",
+      sourceDocument: { label: "Certificate of origin", number: "MCO 2026-0418826" },
       deliveryKm: 11,
+      titleAlerts: null,
       firstOwner: "Jordan Whitfield",
       otp: "482 193",
       link: "k7m2p9xq4tvn8bwz",

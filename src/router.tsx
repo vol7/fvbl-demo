@@ -15,6 +15,7 @@ import { Lookup } from "@/routes/Lookup"
 import { NotFound } from "@/routes/NotFound"
 import { Phone } from "@/routes/Phone"
 import { Picker } from "@/routes/Picker"
+import { TitleSearch } from "@/routes/public/ohio/TitleSearch"
 import { Uvip } from "@/routes/public/Uvip"
 import { UvipBuyer } from "@/routes/public/UvipBuyer"
 import { UvipOwner } from "@/routes/public/UvipOwner"
@@ -82,6 +83,15 @@ export const routes: RouteObject[] = [
         element: (
           <OnlyIn region="ca">
             <UvipBuyer />
+          </OnlyIn>
+        ),
+      },
+
+      {
+        path: r.ohio,
+        element: (
+          <OnlyIn region="us">
+            <TitleSearch />
           </OnlyIn>
         ),
       },

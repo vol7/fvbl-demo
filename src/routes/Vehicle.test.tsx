@@ -179,8 +179,9 @@ describe("Vehicle route for a brand-new VIN", () => {
   const submission = {
     dealer: "Mercedes-Benz Downtown",
     dealerMobileLast4: "2204",
-    nvis: "NVIS 2026-MB-0187342",
+    sourceDocument: { label: "NVIS", number: "NVIS 2026-MB-0187342" },
     deliveryKm: 12,
+    titleAlerts: null,
     firstOwner: "Léa Tremblay",
   }
   const T0 = "2026-09-15T14:02:00.000Z"

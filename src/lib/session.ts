@@ -15,6 +15,7 @@ import {
 import {
   NO_REGISTRATION,
   registrationReducer,
+  upgradeRegistration,
   type RegistrationAction,
   type RegistrationState,
   type Submission,
@@ -224,7 +225,7 @@ function readStorage(storage: StorageLike | null, key: string): SessionState | n
     if (!isSession(parsed)) return null
     // Sessions stored before registrations existed are still v2; fill the map.
     const session = parsed.registrations ? parsed : { ...parsed, registrations: {} }
-    return withIssuedReferences(session)
+    return withIssuedReferences(withUpgradedRegistrations(session))
   } catch {
     return null
   }
@@ -252,6 +253,17 @@ function withIssuedReferences(session: SessionState): SessionState {
     }
   }
   return changed ? { ...session, authorizations } : session
+}
+
+/** Registrations stored with the old `nvis` field, upgraded to `sourceDocument`. */
+function withUpgradedRegistrations(session: SessionState): SessionState {
+  const registrations: Record<string, RegistrationState> = {}
+  let changed = false
+  for (const [vin, state] of Object.entries(session.registrations)) {
+    registrations[vin] = upgradeRegistration(state)
+    if (registrations[vin] !== state) changed = true
+  }
+  return changed ? { ...session, registrations } : session
 }
 
 function safeStorage(): StorageLike | null {
