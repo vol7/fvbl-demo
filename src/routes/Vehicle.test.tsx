@@ -6,7 +6,9 @@ import { describe, expect, it } from "vitest"
 import { getSessionStore } from "@/lib/session"
 import { CLEAN_VIN, CLONED_VIN, EXPORTED_VIN, NEW_VIN } from "@/lib/vehicles"
 import { Vehicle } from "./Vehicle"
-import { paths } from "@/lib/paths"
+import { regionPaths } from "@/lib/paths"
+
+const paths = regionPaths("ca")
 
 function renderVehicle(vin: string) {
   const router = createMemoryRouter(

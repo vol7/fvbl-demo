@@ -3,10 +3,12 @@ import { createMemoryRouter, RouterProvider } from "react-router"
 import { describe, expect, it } from "vitest"
 
 import { forcedSession } from "@/lib/forceStates"
-import { paths } from "@/lib/paths"
+import { regionPaths } from "@/lib/paths"
 import { getSessionStore } from "@/lib/session"
 import { CLEAN_VIN, NEW_VIN } from "@/lib/vehicles"
 import { PortalShell } from "./PortalShell"
+
+const paths = regionPaths("ca")
 
 function renderShellAt(vin: string) {
   const router = createMemoryRouter(

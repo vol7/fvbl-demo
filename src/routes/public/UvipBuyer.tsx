@@ -14,11 +14,12 @@ import { useSession } from "@/lib/session"
 import { maskName } from "@/lib/format"
 import { vehicleTitle, type Vehicle } from "@/lib/vehicles"
 import { ReviewRow } from "./UvipOwner"
+import { regionPaths } from "@/lib/paths"
 
 const STEPS = ["Vehicle", "Your details", "Review"]
 const CRUMBS = [
   { label: "ServiceOntario", to: "/serviceontario/" },
-  { label: "Used Vehicle Information Package", to: "/uvip" },
+  { label: "Used Vehicle Information Package", to: regionPaths("ca").uvip },
   { label: "Buyer" },
 ]
 

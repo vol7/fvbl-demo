@@ -173,7 +173,7 @@ export function PhoneScreen() {
                 className="flex flex-col gap-2.5"
                 initial={false}
               >
-                <RegistrationThread thread={thread} onOpen={() => navigate("/phone/confirm")} />
+                <RegistrationThread thread={thread} onOpen={() => navigate("confirm")} />
               </motion.div>
             ) : null}
 
@@ -190,7 +190,7 @@ export function PhoneScreen() {
                   {thread.state.requester}. Review and approve or decline:{" "}
                   <button
                     type="button"
-                    onClick={() => navigate("/phone/confirm")}
+                    onClick={() => navigate("confirm")}
                     className="font-normal break-all text-[#0a84ff] underline decoration-[#0a84ff]/60 underline-offset-2"
                   >
                     {smsLink(thread.state.link)}

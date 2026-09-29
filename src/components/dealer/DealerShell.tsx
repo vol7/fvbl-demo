@@ -5,7 +5,7 @@ import { FvblMark } from "@/components/FvblMark"
 import { TopBar } from "@/components/shell/TopBar"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { DEALER } from "@/lib/people"
-import { paths } from "@/lib/paths"
+import { useRegionPaths } from "@/regions/context"
 
 /**
  * The dealer's side of FVBL: a sibling of the clerk portal with one job. Same inset
@@ -14,6 +14,7 @@ import { paths } from "@/lib/paths"
  * land here alone.
  */
 export function DealerShell() {
+  const paths = useRegionPaths()
   return (
     <div className="flex h-svh overflow-hidden bg-muted/70">
       <aside className="flex h-svh w-60 shrink-0 flex-col px-2 py-2.5">

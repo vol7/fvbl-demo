@@ -4,8 +4,10 @@ import { createMemoryRouter, RouterProvider } from "react-router"
 import { describe, expect, it } from "vitest"
 
 import { CLEAN_VIN, CLONED_VIN } from "@/lib/vehicles"
-import { paths } from "@/lib/paths"
+import { regionPaths } from "@/lib/paths"
 import { Lookup } from "./Lookup"
+
+const paths = regionPaths("ca")
 
 function renderLookup() {
   const router = createMemoryRouter(

@@ -25,7 +25,8 @@ import {
   US_TITLE_VIN,
   vehicleTitle,
 } from "@/lib/vehicles"
-import { paths } from "@/lib/paths"
+import { paths as sitePaths } from "@/lib/paths"
+import { useRegionPaths } from "@/regions/context"
 
 /** The README's scenarios, in the README's order. */
 const SCENARIOS: { n: number; title: string; vin: string; route: string; outcome: string }[] = [
@@ -103,6 +104,7 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 export function Hub() {
+  const paths = useRegionPaths()
   const [session, dispatch] = useSession()
   const active = activeAuthorization(session)
   const vehicle = session.activeVin ? findVehicle(session.activeVin) : undefined
@@ -154,11 +156,11 @@ export function Hub() {
               <CardDescription>Owner or buyer pre-approval. Record at 1440×900.</CardDescription>
             </CardHeader>
             <CardContent className="flex-row flex-wrap gap-2">
-              <Button onClick={() => open(paths.serviceOntario, 1440, 900)}>
+              <Button onClick={() => open(sitePaths.serviceOntario, 1440, 900)}>
                 <ExternalLink data-icon="inline-start" aria-hidden />
                 Open window
               </Button>
-              <a href={paths.serviceOntario} className={buttonVariants({ variant: "outline" })}>
+              <a href={sitePaths.serviceOntario} className={buttonVariants({ variant: "outline" })}>
                 Open here
               </a>
             </CardContent>

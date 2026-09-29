@@ -10,7 +10,7 @@ import { OUTCOME_LABEL, recentRows, TODAY_STATS, type Outcome } from "@/lib/seed
 import { useSession } from "@/lib/session"
 import { cn } from "@/lib/utils"
 import { findVehicle, vehicleTitle } from "@/lib/vehicles"
-import { paths } from "@/lib/paths"
+import { useRegionPaths } from "@/regions/context"
 
 const OUTCOME_DOT: Record<Outcome, string> = {
   clear: "bg-emerald-500",
@@ -54,6 +54,7 @@ function SectionTitle({
  * you left off. The demo vehicles are the first rows under Recent lookups.
  */
 export function Home() {
+  const paths = useRegionPaths()
   const [session] = useSession()
   const slots = Object.entries(session.authorizations)
   const pending = slots.flatMap(([vin, auth]) => {

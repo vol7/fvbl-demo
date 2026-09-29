@@ -7,10 +7,11 @@ import { isValidVin, normalizeVin } from "@/lib/format"
 import { submitOnEnter } from "@/lib/submitOnEnter"
 import { cn } from "@/lib/utils"
 import { findVehicle } from "@/lib/vehicles"
-import { paths } from "@/lib/paths"
+import { useRegionPaths } from "@/regions/context"
 
 /** VIN search for the sidebar. ⌘K or Ctrl+K focuses it from anywhere in the portal. */
 export function VinSearch() {
+  const paths = useRegionPaths()
   const navigate = useNavigate()
   const ref = useRef<HTMLInputElement>(null)
   const [vin, setVin] = useState("")

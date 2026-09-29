@@ -4,12 +4,12 @@ import { Link, NavLink, useLocation } from "react-router"
 import { FvblMark } from "@/components/FvblMark"
 import { VinSearch } from "@/components/shell/VinSearch"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { NAV_ITEMS, isActive } from "@/lib/nav"
+import { isActive, navItems } from "@/lib/nav"
 import { OFFICE } from "@/lib/office"
 import { recentRows } from "@/lib/seed"
 import { useSession } from "@/lib/session"
 import { cn } from "@/lib/utils"
-import { paths } from "@/lib/paths"
+import { useRegionPaths } from "@/regions/context"
 
 const itemClass = (active: boolean) =>
   cn(
@@ -24,6 +24,7 @@ const itemClass = (active: boolean) =>
  * workspace, search lives here, and the demo vehicles are one click away under Recent.
  */
 export function Sidebar() {
+  const paths = useRegionPaths()
   const { pathname } = useLocation()
   const [session] = useSession()
   const recent = recentRows(session).filter((row) => row.live)
@@ -47,7 +48,7 @@ export function Sidebar() {
 
       <nav aria-label="Primary" className="mt-3 flex flex-1 flex-col gap-5 overflow-y-auto">
         <div className="flex flex-col gap-0.5">
-          {NAV_ITEMS.map((item) => {
+          {navItems(paths).map((item) => {
             const active = isActive(item, pathname)
             return (
               <NavLink

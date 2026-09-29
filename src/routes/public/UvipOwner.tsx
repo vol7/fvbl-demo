@@ -14,11 +14,12 @@ import { formatDate, maskName } from "@/lib/format"
 import { OWNER } from "@/lib/people"
 import { useSession } from "@/lib/session"
 import { vehicleTitle, type Vehicle } from "@/lib/vehicles"
+import { regionPaths } from "@/lib/paths"
 
 const STEPS = ["Vehicle", "Identity", "Review"]
 const CRUMBS = [
   { label: "ServiceOntario", to: "/serviceontario/" },
-  { label: "Used Vehicle Information Package", to: "/uvip" },
+  { label: "Used Vehicle Information Package", to: regionPaths("ca").uvip },
   { label: "Registered owner" },
 ]
 

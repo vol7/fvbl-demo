@@ -11,7 +11,6 @@ import { Label } from "@/components/ui/label"
 import { generateLinkToken, generateOtp } from "@/lib/authorization"
 import { formatOdometer, formatTime, isValidVin, normalizeVin } from "@/lib/format"
 import { historyCertificates } from "@/lib/ledger"
-import { paths } from "@/lib/paths"
 import { DEALER, FIRST_OWNER, maskLicence } from "@/lib/people"
 import { NO_REGISTRATION, type Submission } from "@/lib/registration"
 import { registrationState, useSession } from "@/lib/session"
@@ -27,6 +26,7 @@ import {
   type Vehicle,
 } from "@/lib/vehicles"
 import { ReviewRow } from "@/routes/public/UvipOwner"
+import { useRegionPaths } from "@/regions/context"
 
 const STEPS = ["Vehicle", "NVIS and delivery", "Review"]
 
@@ -97,6 +97,7 @@ function StatusCard({
 
 /** First registration of a brand-new vehicle: the birth of the VIN, from the dealer's side. */
 export function Register() {
+  const paths = useRegionPaths()
   const [session, dispatch] = useSession()
   const reduceMotion = useReducedMotion()
   const [step, setStep] = useState(0)

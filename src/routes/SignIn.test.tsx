@@ -4,7 +4,9 @@ import { createMemoryRouter, RouterProvider } from "react-router"
 import { describe, expect, it } from "vitest"
 
 import { SignIn } from "./SignIn"
-import { paths } from "@/lib/paths"
+import { regionPaths } from "@/lib/paths"
+
+const paths = regionPaths("ca")
 
 function renderSignIn() {
   const router = createMemoryRouter(

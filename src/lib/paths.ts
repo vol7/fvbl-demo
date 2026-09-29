@@ -1,37 +1,73 @@
+import type { RegionId } from "@/regions/types"
+
 /**
- * Every route in one place. The hub owns `/`; each surface lives under its own prefix.
+ * Every route in one place. `/` picks a country; each region's hub owns `/<region>`
+ * and every surface lives under it.
  */
-export const PORTAL_PREFIX = "/portal"
+export function regionPaths(region: RegionId) {
+  const root = `/${region}`
+  const portal = `${root}/portal`
+  return {
+    hub: root,
+
+    portal: {
+      prefix: portal,
+      signIn: portal,
+      home: `${portal}/home`,
+      lookup: `${portal}/lookup`,
+      vehicle: (vin: string) => `${portal}/vehicle/${vin}`,
+      vehiclePattern: `${portal}/vehicle/:vin`,
+      /** Tab on the vehicle page; omitted for the default (record checks). */
+      vehicleTab: (vin: string, tab: string) => `${portal}/vehicle/${vin}?tab=${tab}`,
+      requests: `${portal}/requests`,
+      cases: `${portal}/cases`,
+    },
+
+    phone: `${root}/phone`,
+    phoneConfirm: `${root}/phone/confirm`,
+
+    /** The dealer's side: first registration of a brand-new vehicle. */
+    dealer: {
+      signIn: `${root}/dealer`,
+      register: `${root}/dealer/register`,
+    },
+
+    /** Canada only: the UVIP pages behind the saved ServiceOntario page. */
+    uvip: `${root}/uvip`,
+    uvipOwner: `${root}/uvip/owner`,
+    uvipBuyer: `${root}/uvip/buyer`,
+  }
+}
+
+export type RegionPaths = ReturnType<typeof regionPaths>
+
+/** Route patterns, relative to `/:region`. */
+export const routePatterns = {
+  portal: {
+    signIn: "portal",
+    home: "portal/home",
+    lookup: "portal/lookup",
+    vehicle: "portal/vehicle/:vin",
+    requests: "portal/requests",
+    cases: "portal/cases",
+  },
+  dealer: { signIn: "dealer", register: "dealer/register" },
+  phone: "phone",
+  uvip: "uvip",
+  uvipOwner: "uvip/owner",
+  uvipBuyer: "uvip/buyer",
+} as const
 
 export const paths = {
-  hub: "/",
-  /** Legacy alias for the hub; redirects to `/`. */
+  /** Picks a country. Not part of the product. */
+  picker: "/",
+  /** Legacy alias for the Canadian hub. */
   demo: "/demo",
-
-  portal: {
-    signIn: PORTAL_PREFIX,
-    home: `${PORTAL_PREFIX}/home`,
-    lookup: `${PORTAL_PREFIX}/lookup`,
-    vehicle: (vin: string) => `${PORTAL_PREFIX}/vehicle/${vin}`,
-    vehiclePattern: `${PORTAL_PREFIX}/vehicle/:vin`,
-    /** Tab on the vehicle page; omitted for the default (record checks). */
-    vehicleTab: (vin: string, tab: string) => `${PORTAL_PREFIX}/vehicle/${vin}?tab=${tab}`,
-    requests: `${PORTAL_PREFIX}/requests`,
-    cases: `${PORTAL_PREFIX}/cases`,
-  },
-
-  phone: "/phone",
-  phoneConfirm: "/phone/confirm",
-
-  /** The dealer's side: first registration of a brand-new vehicle. */
-  dealer: {
-    signIn: "/dealer",
-    register: "/dealer/register",
-  },
-
-  /** Served statically from public/; needs the trailing slash. */
+  /** Served statically from public/; needs the trailing slash. Canada only. */
   serviceOntario: "/serviceontario/",
-  uvip: "/uvip",
-  uvipOwner: "/uvip/owner",
-  uvipBuyer: "/uvip/buyer",
+  /**
+   * Routes from before the region prefix. Each redirects to the same path under
+   * `/ca`, so the Canadian setup and shared links keep working.
+   */
+  legacy: ["/portal/*", "/dealer/*", "/phone/*", "/uvip/*"],
 } as const

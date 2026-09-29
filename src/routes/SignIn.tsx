@@ -6,7 +6,7 @@ import { FvblMark } from "@/components/FvblMark"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { paths } from "@/lib/paths"
+import { useRegionPaths } from "@/regions/context"
 
 /** Two entrances, one form: the clerk's ministry portal and the dealer's. */
 const COPY = {
@@ -17,7 +17,7 @@ const COPY = {
     audience: "Ontario Ministry of Transportation · Authorized users only",
     title: "Authorized User Portal",
     subtitle: "Sign in with your ministry credentials to look up vehicle records.",
-    destination: paths.portal.home,
+    destination: "clerk",
   },
   dealer: {
     headline: "Every vehicle's record begins the day you register it.",
@@ -29,12 +29,14 @@ const COPY = {
     audience: "Ontario Ministry of Transportation · Registered dealers only",
     title: "Dealer Portal",
     subtitle: "Sign in with your dealer credentials to register new vehicles.",
-    destination: paths.dealer.register,
+    destination: "dealer",
   },
 } as const
 
 export function SignIn({ variant = "clerk" }: { variant?: keyof typeof COPY }) {
   const copy = COPY[variant]
+  const paths = useRegionPaths()
+  const destination = copy.destination === "clerk" ? paths.portal.home : paths.dealer.register
   const navigate = useNavigate()
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
@@ -89,7 +91,7 @@ export function SignIn({ variant = "clerk" }: { variant?: keyof typeof COPY }) {
             autoComplete="off"
             onSubmit={(event) => {
               event.preventDefault()
-              navigate(copy.destination)
+              navigate(destination)
             }}
           >
             <div className="flex flex-col gap-2">

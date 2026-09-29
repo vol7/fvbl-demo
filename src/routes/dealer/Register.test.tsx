@@ -3,10 +3,12 @@ import userEvent from "@testing-library/user-event"
 import { createMemoryRouter, RouterProvider } from "react-router"
 import { describe, expect, it } from "vitest"
 
-import { paths } from "@/lib/paths"
+import { regionPaths } from "@/lib/paths"
 import { getSessionStore } from "@/lib/session"
 import { NEW_VIN } from "@/lib/vehicles"
 import { Register } from "./Register"
+
+const paths = regionPaths("ca")
 
 function renderRegister() {
   const router = createMemoryRouter([{ path: paths.dealer.register, element: <Register /> }], {

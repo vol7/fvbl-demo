@@ -58,13 +58,13 @@ export function Uvip() {
         <div className="flex flex-col gap-3">
           <h2 className="text-sm font-medium text-muted-foreground">I am…</h2>
           <RoleCard
-            to="/uvip/owner"
+            to="owner"
             icon={<KeyRound className="size-5" aria-hidden />}
             title="Selling my vehicle"
             description="Verify your identity and pre-approve the package for your vehicle. Valid for 30 days."
           />
           <RoleCard
-            to="/uvip/buyer"
+            to="buyer"
             icon={<ShoppingCart className="size-5" aria-hidden />}
             title="Buying a vehicle"
             description="Ask the registered owner to authorize the package. They will receive a text message."

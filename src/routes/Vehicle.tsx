@@ -32,7 +32,7 @@ import {
   vehicleTitle,
   type Vehicle as VehicleRecord,
 } from "@/lib/vehicles"
-import { paths } from "@/lib/paths"
+import { useRegionPaths } from "@/regions/context"
 
 const TABS: VehicleTab[] = ["checks", "history", "ownership"]
 
@@ -41,6 +41,7 @@ function isTab(value: string | null): value is VehicleTab {
 }
 
 export function Vehicle() {
+  const paths = useRegionPaths()
   const { vin = "" } = useParams<{ vin: string }>()
   const [session] = useSession()
   const found = findVehicle(vin)
@@ -76,6 +77,7 @@ function UnregisteredVehicle({
   vehicle: VehicleRecord
   registration: RegistrationState
 }) {
+  const paths = useRegionPaths()
   return (
     <Card className="mx-auto max-w-lg">
       <CardContent className="items-start gap-4">
@@ -215,9 +217,7 @@ function VehicleView({
               ]}
             />
             <TabPanel id="vehicle-tab" active={tab} direction={direction}>
-              {tab === "checks" ? (
-                <RecordChecks checks={checks} />
-              ) : null}
+              {tab === "checks" ? <RecordChecks checks={checks} /> : null}
               {tab === "history" ? <VehicleTimeline vehicle={vehicle} /> : null}
               {tab === "ownership" ? (
                 <OwnershipHistory vehicle={vehicle} today={openedAt.slice(0, 10)} />

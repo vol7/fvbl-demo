@@ -177,7 +177,7 @@ export function ConfirmPage() {
       <div className="flex items-center gap-2 px-3 pb-2">
         <button
           type="button"
-          onClick={() => navigate("/phone")}
+          onClick={() => navigate("..", { relative: "path" })}
           className="flex size-8 items-center justify-center rounded-full text-[#0a84ff]"
           aria-label="Back"
         >
