@@ -26,7 +26,7 @@ export type Check = {
   label: string
   status: CheckStatus
   severity: Severity
-  /** The condition in a few words ("No export on record"), set heavier than the detail. */
+  /** The condition in a few words ("No export reported"), set heavier than the detail. */
   result: string
   /** The evidence behind the result. Empty when the result says it all. */
   detail: string
@@ -129,8 +129,8 @@ function borderCheck(vehicle: Vehicle): Check {
     return check(
       "border",
       "fail",
-      "Exported, no re-entry",
-      `Left through ${exported.port} on ${formatDate(exported.date)}`
+      "Export reported, no re-entry",
+      `Reported exported through ${exported.port} on ${formatDate(exported.date)}`
     )
   }
   const entry = vehicle.history.filter((e) => e.kind === "import").at(-1)
@@ -138,7 +138,7 @@ function borderCheck(vehicle: Vehicle): Check {
     ? check(
         "border",
         "pass",
-        "No export on record",
+        "No export reported",
         `Entered Canada ${formatDate(entry.date)} via ${entry.port}`
       )
     : check("border", "pass", "No border activity")

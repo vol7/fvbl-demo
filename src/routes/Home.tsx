@@ -73,7 +73,7 @@ export function Home() {
       pending.length,
       pending.length ? "Texts out, not yet answered" : "Nothing waiting",
     ],
-    ["Cases opened", casesOpened, "Sent to law enforcement"],
+    ["Cases opened", casesOpened, "Referred for investigation"],
   ]
 
   return (

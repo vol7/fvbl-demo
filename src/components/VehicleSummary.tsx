@@ -44,27 +44,24 @@ export function VehicleSummary({
   vehicle,
   checks,
   state,
-  settled,
   onRequest,
   onIssue,
   onEscalate,
-  onOpenTab,
 }: {
   vehicle: Vehicle
   checks: RecordCheck[]
   state: AuthorizationState
-  settled: boolean
   onRequest: (applicant: ApplicantDetails) => void
   onIssue: () => void
   onEscalate: () => void
-  onOpenTab: (tab: VehicleTab) => void
 }) {
   const title = vehicleTitle(vehicle)
   const trimAt = title.lastIndexOf(vehicle.trim)
   return (
-    <div className="flex flex-col gap-7">
-      <header className="flex flex-col gap-1.5">
-        <div className="flex flex-wrap items-center gap-2.5">
+    <div className="flex flex-col gap-9">
+      {/* The plate row introduces the vehicle; the title and its meta line read as one unit. */}
+      <header className="flex flex-col gap-1">
+        <div className="mb-2 flex flex-wrap items-center gap-2.5">
           {vehicle.plate ? (
             <Plate plate={vehicle.plate} />
           ) : (
@@ -100,11 +97,9 @@ export function VehicleSummary({
         vehicle={vehicle}
         checks={checks}
         state={state}
-        settled={settled}
         onRequest={onRequest}
         onIssue={onIssue}
         onEscalate={onEscalate}
-        onOpenTab={onOpenTab}
       />
     </div>
   )

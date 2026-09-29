@@ -169,7 +169,7 @@ function authorizationDrafts(
         "escalated",
         state.escalatedAt,
         "case.opened",
-        "Escalated for review",
+        "Referred for investigation",
         state.caseReference
       )
       break

@@ -56,8 +56,8 @@ describe("evaluateChecks", () => {
     const checks = evaluateChecks(exported)
     expect(failingChecks(checks).map((c) => c.id)).toEqual(["border"])
     expect(checks[0]).toMatchObject({ id: "border", status: "fail", severity: "high" })
-    expect(checks[0].result).toBe("Exported, no re-entry")
-    expect(checks[0].detail).toBe("Left through Port of Montréal, QC on March 18, 2025")
+    expect(checks[0].result).toBe("Export reported, no re-entry")
+    expect(checks[0].detail).toBe("Reported exported through Port of Montréal, QC on March 18, 2025")
   })
 
   it("passes the border check when an export is followed by a re-entry", () => {
@@ -77,7 +77,7 @@ describe("evaluateChecks", () => {
     }
     const border = evaluateChecks(returned).find((c) => c.id === "border")!
     expect(border.status).toBe("pass")
-    expect(border.result).toBe("No export on record")
+    expect(border.result).toBe("No export reported")
     expect(border.detail).toBe("Entered Canada September 1, 2025 via Halifax, NS")
   })
 

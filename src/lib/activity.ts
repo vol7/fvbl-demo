@@ -16,7 +16,7 @@ export type ActivityEvent = {
 /**
  * Timeline derived from the timestamps present in the authorization state.
  * Pass the vehicle to stamp on-chain events with their certificate; views
- * ("Record retrieved", "Package cannot be issued") never get one.
+ * ("Record retrieved", "Held for review") never get one.
  */
 export function deriveActivity(
   state: AuthorizationState,
@@ -42,7 +42,7 @@ export function deriveActivity(
         events.push({
           id: "blocked",
           at: openedAt,
-          title: "Package cannot be issued",
+          title: "Held for review",
           detail: "Record checks returned conflicts",
           tone: "danger",
         })
@@ -53,7 +53,7 @@ export function deriveActivity(
         events.push({
           id: "blocked",
           at: openedAt,
-          title: "Package cannot be issued",
+          title: "Held for review",
           detail: "Record checks returned conflicts",
           tone: "danger",
         })
@@ -61,7 +61,7 @@ export function deriveActivity(
       events.push({
         id: "escalated",
         at: state.escalatedAt,
-        title: "Escalated for review",
+        title: "Referred for investigation",
         detail: `Case ${state.caseReference}`,
         tone: "danger",
       })

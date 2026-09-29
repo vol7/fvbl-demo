@@ -67,7 +67,7 @@ export function RequestDialog({
 
   return (
     <Dialog>
-      <DialogTrigger render={<Button size="lg" className="px-3.5" />}>
+      <DialogTrigger render={<Button size="lg" className="px-4 has-data-[icon=inline-start]:pl-3.5" />}>
         <Send data-icon="inline-start" aria-hidden />
         Request owner authorization
       </DialogTrigger>

@@ -1,120 +1,115 @@
-import { Check, CircleX } from "lucide-react"
-import { motion, useReducedMotion } from "motion/react"
-import { useEffect } from "react"
+import { Check, CircleAlert, CircleX, type LucideIcon } from "lucide-react"
 
 import { failingChecks, INTEGRATIONS, type Check as RecordCheck } from "@/lib/checks"
 import { cn } from "@/lib/utils"
 
-/** When each source answers, in seconds after the record opens, in INTEGRATIONS order. */
-const ANSWERED_AT = [0.3, 0.45, 0.55, 0.8, 0.95, 1.15, 1.3, 1.55, 1.8]
-/** The last source has answered; the rows start coming in. */
-export const SOURCES_DONE_S = 1.95
-export const CHECK_STAGGER_S = 0.08
-
-const fade = (delay: number) => ({ duration: 0.18, ease: "easeOut" as const, delay })
+type Tone = "high" | "low" | "pass"
 
 /**
- * Every source answering, then the nine checks. The pills only say that a source
- * answered; what it found is in the rows. `boot` plays the sequence, which happens
- * once per record: coming back to the tab shows the settled list.
+ * Each group speaks in its own colour: high risk in reds, low risk in ambers. The
+ * result carries the full colour and the rest of the row a darker shade of it, so
+ * a row reads as one unit and the result still leads. The reds mix into the theme's
+ * text tokens, so they hold in dark mode too.
  */
-export function RecordChecks({
-  checks,
-  boot = true,
-  onSettled,
-}: {
-  checks: RecordCheck[]
-  boot?: boolean
-  onSettled?: () => void
-}) {
-  const reduceMotion = useReducedMotion()
-  const play = boot && !reduceMotion
+const TONE: Record<
+  Tone,
+  {
+    icon: LucideIcon
+    iconClass: string
+    row?: string
+    list?: string
+    heading: string
+    text: string
+    result?: string
+    muted: string
+  }
+> = {
+  high: {
+    icon: CircleX,
+    iconClass: "text-destructive",
+    row: "bg-destructive/[0.04] py-3.5",
+    list: "divide-destructive/15 border-destructive/25",
+    heading: "text-destructive",
+    text: "text-[color-mix(in_oklch,var(--color-destructive)_40%,var(--color-foreground))]",
+    result: "text-destructive",
+    muted: "text-[color-mix(in_oklch,var(--color-destructive)_45%,var(--color-muted-foreground))]",
+  },
+  low: {
+    icon: CircleAlert,
+    iconClass: "text-amber-600 dark:text-amber-400",
+    row: "bg-amber-500/[0.06] py-3.5",
+    list: "divide-amber-700/20 border-amber-700/35",
+    heading: "text-amber-700 dark:text-amber-400",
+    text: "text-amber-950/80 dark:text-amber-100/80",
+    result: "text-amber-700 dark:text-amber-400",
+    muted: "text-amber-900/60 dark:text-amber-200/60",
+  },
+  pass: {
+    icon: Check,
+    iconClass: "text-emerald-600",
+    heading: "text-muted-foreground",
+    text: "text-foreground/80",
+    muted: "text-muted-foreground/80",
+  },
+}
+
+/**
+ * The sources that answered, then the nine checks in three groups: high risk, low
+ * risk, passed. The pills only say that a source answered; what it found is in the rows.
+ */
+export function RecordChecks({ checks }: { checks: RecordCheck[] }) {
   const failing = failingChecks(checks)
+  const high = failing.filter((c) => c.severity === "high")
+  const low = failing.filter((c) => c.severity === "low")
   const passing = checks.filter((c) => c.status === "pass")
 
-  // Without the sequence there is nothing to wait for.
-  useEffect(() => {
-    if (!play) onSettled?.()
-    // Settles once per mount; the callback identity does not matter.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [play])
-
-  let index = 0
-  const row = (check: RecordCheck) => {
-    const i = index++
-    const pass = check.status === "pass"
+  const row = (tone: Tone) => (check: RecordCheck) => {
+    const t = TONE[tone]
+    const Icon = t.icon
     return (
-      <motion.li
+      <li
         key={check.id}
-        initial={play ? { opacity: 0, y: 5 } : false}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{
-          duration: 0.25,
-          ease: "easeOut",
-          delay: SOURCES_DONE_S + i * CHECK_STAGGER_S,
-        }}
         className={cn(
           "grid grid-cols-[18px_minmax(0,1fr)] items-start gap-x-3.5 gap-y-1 px-4 py-3 sm:grid-cols-[18px_minmax(8rem,11rem)_minmax(0,1fr)_9.5rem]",
-          !pass && "bg-destructive/[0.04] py-3.5"
+          t.row
         )}
       >
-        {pass ? (
-          <Check className="mt-0.5 size-4 text-emerald-600" strokeWidth={2.25} aria-hidden />
-        ) : (
-          <CircleX className="mt-0.5 size-4 text-destructive" aria-hidden />
-        )}
-        <div className="flex flex-col items-start gap-1">
-          <span className="text-sm text-foreground/80">{check.label}</span>
-          {pass ? null : (
-            <span
-              className={cn(
-                "rounded px-1.5 text-[11.5px] leading-[18px] font-semibold",
-                check.severity === "high"
-                  ? "bg-destructive/10 text-destructive"
-                  : "bg-amber-500/15 text-amber-700 dark:text-amber-400"
-              )}
-            >
-              {check.severity === "high" ? "High risk" : "Low risk"}
-            </span>
-          )}
-        </div>
+        <Icon
+          className={cn("mt-0.5 size-4", t.iconClass)}
+          strokeWidth={tone === "pass" ? 2.25 : 2}
+          aria-hidden
+        />
+        <span className={cn("text-sm", t.text)}>{check.label}</span>
         <div className="col-start-2 flex flex-col sm:col-start-auto">
-          <span className={cn("text-sm font-semibold", !pass && "text-destructive")}>
-            {check.result}
-          </span>
+          <span className={cn("text-sm font-semibold", t.result)}>{check.result}</span>
           {check.detail ? (
-            <span
-              className={cn("text-[13px]", pass ? "text-muted-foreground" : "text-foreground/80")}
-            >
+            <span className={cn("text-[13px]", tone === "pass" ? "text-muted-foreground" : t.text)}>
               {check.detail}
             </span>
           ) : null}
         </div>
         <span
           title={check.source}
-          className="col-start-2 text-[12.5px] text-muted-foreground/80 sm:col-start-auto sm:text-right"
+          className={cn("col-start-2 text-[12.5px] sm:col-start-auto sm:text-right", t.muted)}
         >
           {check.agencies.join(", ")}
         </span>
-      </motion.li>
+      </li>
     )
   }
 
-  const group = (label: string, items: RecordCheck[], danger = false) => (
+  const group = (label: string, items: RecordCheck[], tone: Tone) => (
     <section aria-label={label} className="flex flex-col gap-2">
-      <motion.h3
-        initial={play ? { opacity: 0 } : false}
-        animate={{ opacity: 1 }}
-        transition={fade(SOURCES_DONE_S + index * CHECK_STAGGER_S)}
+      <h3
         className={cn(
           "text-[11.5px] font-semibold tracking-[0.07em] uppercase",
-          danger ? "text-destructive" : "text-muted-foreground"
+          TONE[tone].heading
         )}
       >
         {label}
-      </motion.h3>
-      <ul className="divide-y overflow-hidden rounded-xl border bg-card shadow-xs">
-        {items.map(row)}
+      </h3>
+      <ul className={cn("divide-y overflow-hidden rounded-xl border bg-card", TONE[tone].list)}>
+        {items.map(row(tone))}
       </ul>
     </section>
   )
@@ -122,63 +117,25 @@ export function RecordChecks({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
-        <p className="grid text-[13px] text-muted-foreground" aria-live="polite">
-          <motion.span
-            className="[grid-area:1/1]"
-            initial={{ opacity: play ? 1 : 0 }}
-            animate={{ opacity: 0 }}
-            transition={fade(play ? SOURCES_DONE_S : 0)}
-            aria-hidden={!play}
-          >
-            Querying {INTEGRATIONS.length} sources…
-          </motion.span>
-          <motion.span
-            className="font-medium text-foreground [grid-area:1/1]"
-            initial={play ? { opacity: 0 } : false}
-            animate={{ opacity: 1 }}
-            transition={fade(SOURCES_DONE_S)}
-            // Settled when the caption lands, on the same clock as the pills: a stalled
-            // frame never shows the verdict before the sources have visibly answered.
-            onAnimationComplete={play ? onSettled : undefined}
-          >
-            All {INTEGRATIONS.length} sources answered in 1.8 s
-          </motion.span>
+        <p className="text-[13px] font-medium text-foreground">
+          All {INTEGRATIONS.length} sources answered
         </p>
         <ul aria-label="Sources" className="flex flex-wrap gap-1.5">
-          {INTEGRATIONS.map((source, i) => (
+          {INTEGRATIONS.map((source) => (
             <li
               key={source.name}
               title={source.detail}
               className="inline-flex h-6 items-center gap-1.5 rounded-full bg-muted pr-2.5 pl-1.5 text-[12.5px] text-foreground/80"
             >
-              <span className="grid size-3.5 place-items-center" aria-hidden>
-                {play ? (
-                  <motion.span
-                    className="size-[11px] rounded-full border-[1.5px] border-muted-foreground/30 border-t-muted-foreground [grid-area:1/1]"
-                    initial={{ opacity: 1 }}
-                    animate={{ opacity: 0, rotate: 360 * 3 }}
-                    transition={{
-                      opacity: fade(ANSWERED_AT[i] ?? 0),
-                      rotate: { duration: 2, ease: "linear" },
-                    }}
-                  />
-                ) : null}
-                <motion.span
-                  className="grid [grid-area:1/1]"
-                  initial={play ? { opacity: 0, scale: 0.6 } : false}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={fade(ANSWERED_AT[i] ?? 0)}
-                >
-                  <Check className="size-3 text-muted-foreground" strokeWidth={2.5} />
-                </motion.span>
-              </span>
+              <Check className="size-3 text-muted-foreground" strokeWidth={2.5} aria-hidden />
               {source.name}
             </li>
           ))}
         </ul>
       </div>
-      {failing.length > 0 ? group("Flagged", failing, true) : null}
-      {group("Passed", passing)}
+      {high.length > 0 ? group("High risk", high, "high") : null}
+      {low.length > 0 ? group("Low risk", low, "low") : null}
+      {group("Passed", passing, "pass")}
     </div>
   )
 }

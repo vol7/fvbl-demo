@@ -19,15 +19,14 @@ const clerk = {
   link: "k7m2p9xq4tvn8bwz",
 }
 
-function renderSummary(vin: string, state: AuthorizationState, settled = true) {
+function renderSummary(vin: string, state: AuthorizationState) {
   const vehicle = findVehicle(vin)!
-  const handlers = { onRequest: vi.fn(), onIssue: vi.fn(), onEscalate: vi.fn(), onOpenTab: vi.fn() }
+  const handlers = { onRequest: vi.fn(), onIssue: vi.fn(), onEscalate: vi.fn() }
   render(
     <VehicleSummary
       vehicle={vehicle}
       checks={evaluateChecks(vehicle)}
       state={state}
-      settled={settled}
       {...handlers}
     />
   )
@@ -76,19 +75,13 @@ describe("VehicleSummary", () => {
     expect(screen.getByText("4JGFB8KB5PA812634")).toBeInTheDocument()
   })
 
-  it("holds the verdict while the checks are still coming in", () => {
-    renderSummary(CLONED_VIN, { status: "blocked" }, false)
-    expect(within(card()).getByText("Running record checks")).toBeInTheDocument()
-    expect(within(card()).getByText("Querying 9 sources")).toBeInTheDocument()
-    expect(screen.queryByRole("button", { name: /escalate/i })).not.toBeInTheDocument()
-  })
-
   it("idle: the checks are clear and the clerk can request authorization", async () => {
     const { onRequest } = renderSummary(CLEAN_VIN, { status: "idle" })
     expect(within(card()).getByText("Checks clear")).toBeInTheDocument()
     expect(within(card()).getByText("All 9 passed")).toBeInTheDocument()
     expect(within(card()).getByText("Not yet requested")).toBeInTheDocument()
-    expect(within(card()).getByText("Registration renewed on April 11, 2025")).toBeInTheDocument()
+    expect(within(card()).getByText("Registration renewed")).toBeInTheDocument()
+    expect(within(card()).getByText("April 11, 2025")).toBeInTheDocument()
     await userEvent.click(screen.getByRole("button", { name: /request owner authorization/i }))
     const dialog = await screen.findByRole("dialog")
     expect(within(dialog).getByLabelText("Applicant")).toHaveValue("Marcus Beaulieu")
@@ -104,28 +97,30 @@ describe("VehicleSummary", () => {
 
   it("blocked: tells the worst flag's story and offers escalation", async () => {
     const { onEscalate } = renderSummary(CLONED_VIN, { status: "blocked" })
-    expect(within(card()).getByText("Package cannot be issued")).toBeInTheDocument()
+    expect(within(card()).getByText("Hold, do not issue")).toBeInTheDocument()
     expect(within(card()).getByText("This vehicle was declared a total loss")).toBeInTheDocument()
     expect(
       within(card()).getByText(
         "Reported by IBC and Carfax. Duplicate identity and collision record are also flagged."
       )
     ).toBeInTheDocument()
-    expect(within(card()).getByText("3 of 9 failed, 2 high risk")).toBeInTheDocument()
-    expect(within(card()).getByText("Unavailable until checks clear")).toBeInTheDocument()
+    expect(within(card()).getByText("3 of 9 failed")).toBeInTheDocument()
+    expect(within(card()).getByText("2 high risk")).toBeInTheDocument()
+    expect(within(card()).getByText("Unavailable")).toBeInTheDocument()
     expect(
       screen.queryByRole("button", { name: /request owner authorization/i })
     ).not.toBeInTheDocument()
-    await userEvent.click(screen.getByRole("button", { name: "Escalate to law enforcement" }))
+    await userEvent.click(screen.getByRole("button", { name: "Refer for investigation" }))
     expect(onEscalate).toHaveBeenCalledTimes(1)
   })
 
   it("blocked export: the last recorded event is the export", () => {
     renderSummary(EXPORTED_VIN, { status: "blocked" })
     expect(
-      within(card()).getByText("A vehicle with this VIN left Canada and has no re-entry on record")
+      within(card()).getByText("This VIN was reported exported and has no re-entry on record")
     ).toBeInTheDocument()
-    expect(within(card()).getByText("Exported on March 18, 2025")).toBeInTheDocument()
+    expect(within(card()).getByText("Exported")).toBeInTheDocument()
+    expect(within(card()).getByText("March 18, 2025")).toBeInTheDocument()
   })
 
   it("escalated: names the case and what was shared", () => {
@@ -134,10 +129,10 @@ describe("VehicleSummary", () => {
       caseReference: "FVBL-2026-09-09-0417",
       escalatedAt: T1,
     })
-    expect(within(card()).getByText("Escalated, do not issue")).toBeInTheDocument()
+    expect(within(card()).getByText("Referred, do not issue")).toBeInTheDocument()
     expect(within(card()).getByText("FVBL-2026-09-09-0417")).toBeInTheDocument()
-    expect(within(card()).getByText(/Shared with Ontario Provincial Police/)).toBeInTheDocument()
-    expect(within(card()).getByText("9 record check results")).toBeInTheDocument()
+    expect(within(card()).getByText(/notifies the OPP after review/)).toBeInTheDocument()
+    expect(within(card()).getByText(/9 record check results/)).toBeInTheDocument()
   })
 
   it("pending from the clerk: the text went out and the link is counting down", () => {
@@ -228,13 +223,5 @@ describe("VehicleSummary", () => {
       within(card()).getByText("The owner did not respond within 24 hours")
     ).toBeInTheDocument()
     expect(within(card()).getByText(/flagged for security review/)).toBeInTheDocument()
-  })
-
-  it("strip cells open their tab", async () => {
-    const { onOpenTab } = renderSummary(CLEAN_VIN, { status: "idle" })
-    await userEvent.click(screen.getByRole("button", { name: /record checks/i }))
-    expect(onOpenTab).toHaveBeenCalledWith("checks")
-    await userEvent.click(screen.getByRole("button", { name: /last recorded event/i }))
-    expect(onOpenTab).toHaveBeenCalledWith("history")
   })
 })

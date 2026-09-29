@@ -37,7 +37,7 @@ export function Cases() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Cases"
-        description="Transactions escalated to law enforcement from this office."
+        description="Transactions referred to MTO Investigations from this office."
       />
       <Card className="gap-0 py-0">
         <CardContent className="px-0">

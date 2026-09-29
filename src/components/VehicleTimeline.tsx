@@ -140,6 +140,43 @@ function Stop({ stop }: { stop: LifecycleStop }) {
   )
 }
 
+/**
+ * A point on the history line. Milestones and flags get an icon in a ring; renewals
+ * and readings are a small dot, so the line reads by importance at a glance.
+ */
+function Node({
+  icon: Icon,
+  tone,
+}: {
+  icon?: LucideIcon
+  tone: "plain" | "border" | "bad" | "origin"
+}) {
+  return (
+    <span aria-hidden className="grid justify-items-center">
+      {Icon ? (
+        <span
+          className={cn(
+            "-mt-1 grid size-7 place-items-center rounded-full border bg-card",
+            tone === "plain" && "text-foreground/80",
+            // Tints mixed into the card colour, not layered on it: the line must not show through.
+            tone === "border" &&
+              "border-primary/30 bg-[color-mix(in_srgb,var(--color-primary)_10%,var(--color-card))] text-primary",
+            tone === "bad" && "border-destructive bg-destructive text-white",
+            tone === "origin" && "border-dashed text-muted-foreground"
+          )}
+        >
+          <Icon className="size-3.5" />
+        </span>
+      ) : (
+        <span className="mt-[5px] size-2.5 rounded-full border-2 border-muted-foreground/45 bg-card" />
+      )}
+    </span>
+  )
+}
+
+/** Date, then the node on the line, then the entry, its source and its certificate. */
+const ROW_GRID = "grid grid-cols-[3.5rem_2rem_minmax(0,1fr)_auto_1.25rem] items-start gap-x-3"
+
 const ROW = {
   hidden: { opacity: 0, y: 5 },
   show: { opacity: 1, y: 0, transition: { duration: 0.2, ease: "easeOut" } },
@@ -161,9 +198,16 @@ export function VehicleTimeline({ vehicle }: { vehicle: Vehicle }) {
   const flagged = openExport(vehicle)
   const stops = lifecycleStops(vehicle)
 
+  // Newest first. On a shared date the event leads and its odometer reading follows,
+  // so a reading sits under the renewal or delivery it was taken at.
   const rows = history
     .map((event, index) => ({ event, index, hash: certificates[index] }))
-    .reverse()
+    .sort(
+      (a, b) =>
+        b.event.date.localeCompare(a.event.date) ||
+        Number(a.event.kind === "odometer") - Number(b.event.kind === "odometer") ||
+        b.index - a.index
+    )
   const years = Array.from(new Set(rows.map((r) => r.event.date.slice(0, 4))))
 
   return (
@@ -187,22 +231,25 @@ export function VehicleTimeline({ vehicle }: { vehicle: Vehicle }) {
       </section>
 
       <motion.div
-        className="flex flex-col gap-1.5"
+        className="relative"
         initial={reduceMotion ? false : "hidden"}
         animate="show"
         variants={{ hidden: {}, show: { transition: { staggerChildren: 0.04 } } }}
       >
+        {/* One line behind every node, from the newest event down to where it was built. */}
+        <span aria-hidden className="absolute top-3 bottom-5 left-[5.25rem] w-px bg-border" />
         {years.map((year, y) => (
-          <section
-            key={year}
-            aria-label={year}
-            className="grid grid-cols-[4rem_minmax(0,1fr)] gap-x-4"
-          >
-            <h3 className="pt-2.5 text-[13px] font-semibold tabular-nums">{year}</h3>
-            <ol className="divide-y border-l">
+          <section key={year} aria-label={year} className="relative pt-4 first:pt-0">
+            {/* The year sits on the line, like a marker the events hang from. */}
+            <div className={cn(ROW_GRID, "pb-1.5")}>
+              <h3 className="col-start-2 justify-self-center rounded-full border bg-card px-2 py-px text-[11.5px] font-semibold text-muted-foreground tabular-nums">
+                {year}
+              </h3>
+            </div>
+            <ol>
               {rows
                 .filter((r) => r.event.date.startsWith(year))
-                .map(({ event, index, hash }) => {
+                .map(({ event, index, hash }, i, inYear) => {
                   const Icon = EVENT_ICON[event.kind]
                   const major = MILESTONES.has(event.kind)
                   const border = isBorderEvent(event)
@@ -210,38 +257,26 @@ export function VehicleTimeline({ vehicle }: { vehicle: Vehicle }) {
                   // A vehicle born on the ledger: its first entry is the registration itself.
                   const opened = index === 0 && event.kind === "firstRegistration"
                   const [, m, d] = event.date.split("-")
+                  // A second entry on the same day reads as part of the first: no date.
+                  const sameDay = i > 0 && inYear[i - 1].event.date === event.date
                   return (
                     <motion.li
                       key={`${event.kind}-${event.date}-${index}`}
                       variants={ROW}
-                      className={cn(
-                        "grid grid-cols-[3.25rem_1.75rem_minmax(0,1fr)_auto_1.25rem] items-center gap-x-2.5 py-2 pl-3.5",
-                        major ? "min-h-11" : "min-h-9 py-1.5",
-                        bad && "bg-destructive/[0.05]"
-                      )}
+                      className={cn(ROW_GRID, "py-2")}
                     >
-                      <span className="text-[12.5px] text-muted-foreground tabular-nums">
-                        {MONTHS[Number(m) - 1]} {Number(d)}
+                      <span className="pt-px text-right text-[12.5px] text-muted-foreground tabular-nums">
+                        {sameDay ? null : `${MONTHS[Number(m) - 1]} ${Number(d)}`}
                       </span>
-                      <span
-                        aria-hidden
-                        className={cn(
-                          "grid size-7 place-items-center rounded-lg",
-                          bad
-                            ? "bg-destructive text-white"
-                            : border
-                              ? "bg-primary/10 text-primary"
-                              : major
-                                ? "bg-muted text-foreground/80"
-                                : "text-muted-foreground/70"
-                        )}
-                      >
-                        <Icon className="size-3.5" />
-                      </span>
-                      <span className="flex min-w-0 flex-wrap items-baseline gap-x-2">
+                      <Node
+                        icon={major || bad ? Icon : undefined}
+                        tone={bad ? "bad" : border ? "border" : "plain"}
+                      />
+                      <span className="flex min-w-0 flex-col">
                         <span
                           className={cn(
-                            major ? "text-sm font-medium" : "text-[13.5px] text-foreground/80",
+                            "text-sm",
+                            major ? "font-medium" : "text-foreground/80",
                             bad && "text-destructive"
                           )}
                         >
@@ -256,40 +291,31 @@ export function VehicleTimeline({ vehicle }: { vehicle: Vehicle }) {
                           </span>
                         ) : null}
                       </span>
-                      <span className="hidden text-[12.5px] whitespace-nowrap text-muted-foreground/80 sm:inline">
+                      <span className="pt-px text-[12.5px] whitespace-nowrap text-muted-foreground">
                         {event.agency}
                       </span>
-                      <LedgerMark
-                        hash={hash}
-                        event={titleFor(event)}
-                        source={event.agency}
-                        recordedAt={event.date}
-                      />
+                      <span className="pt-0.5">
+                        <LedgerMark
+                          hash={hash}
+                          event={titleFor(event)}
+                          source={event.agency}
+                          recordedAt={event.date}
+                        />
+                      </span>
                     </motion.li>
                   )
                 })}
               {y === years.length - 1 ? (
-                <motion.li
-                  variants={ROW}
-                  className="grid min-h-11 grid-cols-[3.25rem_1.75rem_minmax(0,1fr)_auto_1.25rem] items-center gap-x-2.5 py-2 pl-3.5"
-                >
+                <motion.li variants={ROW} className={cn(ROW_GRID, "py-2")}>
                   <span />
-                  <span
-                    aria-hidden
-                    className="grid size-7 place-items-center rounded-lg border border-dashed text-muted-foreground"
-                  >
-                    <Factory className="size-3.5" />
-                  </span>
-                  <span className="flex min-w-0 flex-wrap items-baseline gap-x-2">
+                  <Node icon={Factory} tone="origin" />
+                  <span className="flex min-w-0 flex-col">
                     <span className="text-sm font-medium">Built in {countryOfOrigin(vehicle)}</span>
                     <span className="text-[13px] text-muted-foreground">
                       {vehicle.decoded.plant}, from the VIN decode
                     </span>
                   </span>
-                  <span className="hidden text-[12.5px] text-muted-foreground/80 sm:inline">
-                    NHTSA
-                  </span>
-                  <span />
+                  <span className="pt-px text-[12.5px] text-muted-foreground">NHTSA</span>
                 </motion.li>
               ) : null}
             </ol>

@@ -7,12 +7,12 @@ export type RecordStory = {
   body: string
   /** "Reported by Transport Canada and CBSA." plus the other flags, if any. */
   foot: string
-  /** Who receives the case when the clerk escalates. */
-  sharedWith: string
+  /** Who MTO Investigations notifies once it has reviewed a referral. */
+  notifyAfterReview: string
 }
 
-const FEDERAL = "RCMP and CBSA"
-const PROVINCIAL = "Ontario Provincial Police"
+const FEDERAL = "the OPP and CBSA"
+const PROVINCIAL = "the OPP"
 
 /** Agencies as a clerk says them: "the MTO", everything else by name. */
 function agencyName(agency: string): string {
@@ -36,10 +36,10 @@ function tell(check: Check, vehicle: Vehicle): Omit<RecordStory, "foot"> & { foo
       const exported = openExport(vehicle)
       const where = exported ? ` on ${formatDate(exported.date)} via ${exported.port}` : ""
       return {
-        title: "A vehicle with this VIN left Canada and has no re-entry on record",
-        body: `CBSA recorded an export${where}. Transport Canada has no re-entry on file. Either the vehicle at this counter or the exported one carries a cloned identity.`,
+        title: "This VIN was reported exported and has no re-entry on record",
+        body: `CBSA has an export reported${where}, and no re-entry is on file. Either the vehicle at this counter or the exported one carries a cloned identity, or a re-entry went unrecorded.`,
         footnote: "The MTO record alone would have shown this vehicle as clear.",
-        sharedWith: FEDERAL,
+        notifyAfterReview: FEDERAL,
       }
     }
     case "usTitle": {
@@ -47,9 +47,9 @@ function tell(check: Check, vehicle: Vehicle): Omit<RecordStory, "foot"> & { foo
       const issued = r.usTitle ? `, issued ${formatDate(r.usTitle.issuedOn)}` : ""
       return {
         title: "This VIN also holds an active US title",
-        body: `NMVTIS, the US federal title system, reports an active ${state} title for this VIN${issued}. Either the vehicle at this counter or the one titled in ${state} carries a cloned identity.`,
+        body: `NMVTIS, the US federal title system, reports an active ${state} title for this VIN${issued}. Either the vehicle at this counter or the one titled in ${state} carries a cloned identity, or the US title was not cancelled at import.`,
         footnote: "The Ontario record alone would have shown this vehicle as clear.",
-        sharedWith: FEDERAL,
+        notifyAfterReview: FEDERAL,
       }
     }
     case "writeOff":
@@ -58,7 +58,7 @@ function tell(check: Check, vehicle: Vehicle): Omit<RecordStory, "foot"> & { foo
         body: r.writeOff
           ? `${r.writeOff.insurer} declared it a total loss on ${formatDate(r.writeOff.declaredOn)}. A written-off VIN back on the road is a common sign of a rebuilt or re-identified vehicle.`
           : `${check.detail}.`,
-        sharedWith: PROVINCIAL,
+        notifyAfterReview: PROVINCIAL,
       }
     case "duplicate":
       return {
@@ -66,7 +66,7 @@ function tell(check: Check, vehicle: Vehicle): Omit<RecordStory, "foot"> & { foo
         body: r.duplicateIdentity
           ? `The same VIN has been active on Ontario plate ${r.duplicateIdentity.plate} since ${formatDate(r.duplicateIdentity.since)}. Two vehicles cannot share one identity, so one of them carries a cloned VIN.`
           : `${check.detail}.`,
-        sharedWith: PROVINCIAL,
+        notifyAfterReview: PROVINCIAL,
       }
     case "stolen":
       return {
@@ -74,25 +74,25 @@ function tell(check: Check, vehicle: Vehicle): Omit<RecordStory, "foot"> & { foo
         body: r.stolenReport
           ? `${r.stolenReport.agency} reported it stolen on ${formatDate(r.stolenReport.reportedOn)}.`
           : `${check.detail}.`,
-        sharedWith: PROVINCIAL,
+        notifyAfterReview: PROVINCIAL,
       }
     case "decode":
       return {
         title: "The VIN does not describe this vehicle",
         body: `${check.detail}.`,
-        sharedWith: FEDERAL,
+        notifyAfterReview: FEDERAL,
       }
     case "collision":
       return {
         title: "A collision is on record",
         body: `${check.detail}.`,
-        sharedWith: PROVINCIAL,
+        notifyAfterReview: PROVINCIAL,
       }
     case "odometer":
       return {
         title: "The odometer has gone backwards",
         body: `The odometer read ${check.detail}.`,
-        sharedWith: PROVINCIAL,
+        notifyAfterReview: PROVINCIAL,
       }
     case "lien":
       return {
@@ -100,7 +100,7 @@ function tell(check: Check, vehicle: Vehicle): Omit<RecordStory, "foot"> & { foo
         body: r.lien
           ? `${r.lien.holder} registered a lien on ${formatDate(r.lien.registeredOn)}. The package cannot be issued until it is discharged.`
           : `${check.detail}.`,
-        sharedWith: PROVINCIAL,
+        notifyAfterReview: PROVINCIAL,
       }
   }
 }

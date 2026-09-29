@@ -16,14 +16,14 @@ describe("recordStory", () => {
 
   it("tells the CBSA and Transport Canada story for an open export", () => {
     const story = storyFor(EXPORTED_VIN)!
-    expect(story.title).toBe("A vehicle with this VIN left Canada and has no re-entry on record")
+    expect(story.title).toBe("This VIN was reported exported and has no re-entry on record")
     expect(story.body).toContain("March 18, 2025 via Port of Montréal, QC")
-    expect(story.body).toContain("Transport Canada has no re-entry on file")
+    expect(story.body).toContain("no re-entry is on file")
     expect(story.body).toContain("cloned identity")
     expect(story.foot).toBe(
       "Reported by Transport Canada and CBSA. The MTO record alone would have shown this vehicle as clear."
     )
-    expect(story.sharedWith).toBe("RCMP and CBSA")
+    expect(story.notifyAfterReview).toBe("the OPP and CBSA")
   })
 
   it("tells the US title conflict through NMVTIS", () => {
@@ -40,7 +40,7 @@ describe("recordStory", () => {
     expect(story.foot).toBe(
       "Reported by IBC and Carfax. Duplicate identity and collision record are also flagged."
     )
-    expect(story.sharedWith).toBe("Ontario Provincial Police")
+    expect(story.notifyAfterReview).toBe("the OPP")
   })
 
   it("never uses dot separators", () => {

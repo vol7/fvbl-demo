@@ -51,9 +51,9 @@ theme's fonts and colours so the hand-off feels continuous.
 | Scenario | VIN | What happens |
 | --- | --- | --- |
 | 1 · Clean vehicle | `4JGFB8KB5PA812634` | All checks pass. Request owner authorization; approve or deny from the phone. |
-| 2 · Cloned VIN | `5TDEBRCH7SS041927` | Write-off, duplicate identity and collision fail. Request disabled; escalate. |
+| 2 · Cloned VIN | `5TDEBRCH7SS041927` | Write-off, duplicate identity and collision fail. Request disabled; refer for investigation. |
 | 3 · Buyer pre-request | `4JGFB8KB5PA812634` | On ServiceOntario choose "Buying a vehicle", send the request; owner taps the SMS link and approves; clerk lookup shows the authorization on file. The owner can also pre-approve directly ("Selling my vehicle"). |
-| 4 · Exported vehicle | `SALWR2SE4NA209311` | Clean MTO record, but CBSA logged a vehicle carrying this VIN leaving in March 2025 with no re-entry. The identity is in conflict: either the car at the counter is a clone, or the exported one was. One high-risk check fails and holds the package for investigation. ServiceOntario refuses the pre-approval. |
+| 4 · Exported vehicle | `SALWR2SE4NA209311` | Clean MTO record, but CBSA logged a vehicle carrying this VIN leaving in March 2025 with no re-entry. The identity is in conflict: either the car at the counter is a clone, or the exported one was. One high-risk check fails and holds the package for review. ServiceOntario refuses the pre-approval. |
 | 5 · US title conflict | `JTJTABGX9R4027418` | Clean Ontario record and border history (imported new from Japan), but NMVTIS, the US federal title database, shows the same VIN with an active Pennsylvania title. One high-risk check fails. One federal query covers every state. |
 | 6 · New vehicle · dealer first registration | `4JGFF5KE9SB412009` | The birth of the VIN. In the dealer portal the VIN decodes but has no registration on file; tick the NVIS check mark, submit to the ministry; the dealership's phone gets the text and confirms. The clerk portal's Unregistered VIN card resolves live into a record with two history rows, the first captioned "Ledger opened". |
 
@@ -77,11 +77,10 @@ rail on the right.
 
 The decision card answers "can this package be issued?" in one place: a status
 label ("Checks clear", "Awaiting owner", "Authorized to issue", "Package issued",
-"Package cannot be issued", "Escalated, do not issue", "Owner denied", "Request
+"Hold, do not issue", "Referred, do not issue", "Owner denied", "Request
 expired"), a headline, one or two sentences, a reference when there is one, and
-the one action the clerk takes next (request, issue, escalate). While the record
-checks are still coming in, it holds its verdict as "Running record checks". The
-strip under it names what the platform checked: record checks, owner
+the one action the clerk takes next (request, issue, refer). The verdict is
+there as soon as the page opens; there is no simulated loading. The strip under it names what the platform checked: record checks, owner
 authorization (with its certificate once approved), and the last recorded event
 on the vehicle's own history. The first and last cells open their tab.
 
@@ -89,21 +88,24 @@ When a check fails, the card tells the worst flag's story (`src/lib/story.ts`),
 names the agencies that reported it and the other flags after it. Identity
 conflicts (an export with no re-entry, an active US title, a duplicate
 registration) name the conflict, not a verdict on the person at the counter:
-either vehicle may be the clone. For the export and the US title, the card adds
-that the Ontario record alone would have shown the vehicle as clear. Escalating
-lists what went with the case and who received it (RCMP and CBSA for federal
-conflicts, the OPP otherwise).
+either vehicle may be the clone, or a record may be incomplete (an unrecorded
+re-entry, a US title not cancelled at import). For the export and the US title,
+the card adds that the Ontario record alone would have shown the vehicle as
+clear. A red card is a hold for review, not a verdict. **Refer for
+investigation** sends the file to MTO Investigations, lists what went with it,
+says who they notify after review (the OPP and CBSA for federal conflicts, the
+OPP otherwise), and tells the clerk not to share the reason with the customer.
 
 Tabs (the tab is in the URL as `?tab=history` or `?tab=ownership`); panels slide
 toward their place in the tab order:
 
-- **Record checks** (default). The nine sources answer one by one as pills,
-  then nine checks, flagged first under "Flagged", the rest under "Passed". Each
-  row reads check, result in bold ("No export on record"), the evidence under it,
-  and its agencies on the right. One severity badge on a failure. Two checks are
+- **Record checks** (default). The nine sources as answered pills, then nine
+  checks in three groups: "High risk" in reds, "Low risk" in ambers, then
+  "Passed". Each row reads check, result in bold ("No export reported"), the
+  evidence under it, and its agencies on the right. Two checks are
   federal: "Import and export record" (Transport Canada RIV and CBSA) and "VIN
   decode match" (NHTSA vPIC against the MTO record). "US title record" asks
-  NMVTIS once for every state. The sequence plays once per record, about 2 s.
+  NMVTIS once for every state.
 - **Vehicle history.** A lifecycle strip first (`src/lib/lifecycle.ts`): built,
   border crossings, registration, renewals folded together, transfers, and the
   records that flag the vehicle (write-off, a second plate, a US title). An open
@@ -149,7 +151,7 @@ digest in `src/lib/ledger.ts` is a deterministic stand-in, not a real hash.
   registration?** with the NVIS and first owner.
 - **Clerk portal** (`/portal`). Summary header, tabs, then the package panel: applicant
   name, licence and mobile, request owner authorization, and once authorized,
-  issue the package. Failed checks block it and escalate to law enforcement.
+  issue the package. Failed checks hold it and refer it for investigation.
 
 ## Demo people
 

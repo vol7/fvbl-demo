@@ -36,10 +36,15 @@ export function ActivityTimeline({ events }: { events: ActivityEvent[] }) {
                 initial={reduceMotion ? false : { opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className="grid grid-cols-[0.625rem_minmax(0,1fr)_auto] items-baseline gap-x-2.5 text-[13px]"
+                // A 1rem lead column, the width of the ledger line's shield above, so the
+                // rail's text starts on one edge.
+                className="grid grid-cols-[1rem_minmax(0,1fr)_auto] items-baseline gap-x-2.5 text-[13px]"
               >
                 <span
-                  className={cn("size-[7px] -translate-y-px rounded-full", DOT[event.tone])}
+                  className={cn(
+                    "size-[7px] -translate-y-px justify-self-center rounded-full",
+                    DOT[event.tone]
+                  )}
                   aria-hidden
                 />
                 <span className="flex min-w-0 flex-col gap-0.5">

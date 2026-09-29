@@ -122,8 +122,6 @@ function VehicleView({
   const now = useClock()
   // Presentational only: when this page was opened, for the activity feed and the ledger.
   const [openedAt] = useState(() => new Date().toISOString())
-  // The record checks play once per record; until then the decision card holds its verdict.
-  const [settled, setSettled] = useState(false)
 
   // The tab lives in the URL so deep links and the hub's shortcuts land on it.
   const [params, setParams] = useSearchParams()
@@ -169,14 +167,10 @@ function VehicleView({
       at: stamp(),
     })
 
-  const checked = settled || tab !== "checks"
   const events = [
     ...registrationActivity(vehicle, registration),
     ...deriveActivity(state, openedAt, OFFICE.clerk, vehicle),
-  ]
-    // The feed does not give the verdict away while the checks are still coming in.
-    .filter((event) => checked || event.id !== "blocked")
-    .sort((a, b) => a.at.localeCompare(b.at))
+  ].sort((a, b) => a.at.localeCompare(b.at))
 
   // The ledger last verified this record a few minutes before the page opened, unless
   // the record itself is newer: a vehicle registered seconds ago was verified just now.
@@ -194,16 +188,14 @@ function VehicleView({
   return (
     <LedgerCheckedAt.Provider value={verifiedAt}>
       <div className="grid items-start gap-x-12 gap-y-8 lg:grid-cols-[minmax(0,1fr)_18rem]">
-        <div className="flex min-w-0 flex-col gap-8">
+        <div className="flex min-w-0 flex-col gap-10">
           <VehicleSummary
             vehicle={vehicle}
             checks={checks}
             state={state}
-            settled={checked}
             onRequest={onRequest}
             onIssue={onIssue}
             onEscalate={onEscalate}
-            onOpenTab={setTab}
           />
           <div className="flex flex-col gap-5">
             <Tabs
@@ -224,7 +216,7 @@ function VehicleView({
             />
             <TabPanel id="vehicle-tab" active={tab} direction={direction}>
               {tab === "checks" ? (
-                <RecordChecks checks={checks} boot={!settled} onSettled={() => setSettled(true)} />
+                <RecordChecks checks={checks} />
               ) : null}
               {tab === "history" ? <VehicleTimeline vehicle={vehicle} /> : null}
               {tab === "ownership" ? (
@@ -233,9 +225,11 @@ function VehicleView({
             </TabPanel>
           </div>
         </div>
+        {/* The shell's <main> is the scroller and its py-8 scrolls with the page, so the
+            offset has to restate that padding for the rail to keep it while pinned. */}
         <aside
           aria-label="Record details"
-          className="flex min-w-0 flex-col gap-6 lg:sticky lg:top-0"
+          className="flex min-w-0 flex-col gap-6 lg:sticky lg:top-8"
         >
           <VehicleDetails
             vehicle={vehicle}

@@ -65,7 +65,12 @@ export function LookupForm({
             setError(null)
           }}
         />
-        <Button type="button" size={large ? "lg" : "default"} onClick={submit}>
+        <Button
+          type="button"
+          size={large ? "lg" : "default"}
+          className="px-4 has-data-[icon=inline-start]:pl-3.5"
+          onClick={submit}
+        >
           <Search data-icon="inline-start" aria-hidden />
           Look up
         </Button>

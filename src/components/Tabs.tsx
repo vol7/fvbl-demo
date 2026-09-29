@@ -75,14 +75,15 @@ const panel = {
   exit: (direction: number) => ({
     opacity: 0,
     x: direction * -SLIDE,
-    transition: { duration: 0.18, ease: "easeIn" as const },
+    transition: { duration: 0.12, ease: "easeIn" as const },
   }),
 } as const
 
 /**
  * The active panel. Keyed by the tab, so a switch remounts the content: the old panel
- * leaves toward where it sits in the tab order and the new one comes in from the other
- * side. `direction` is 1 when moving right through the tabs, -1 when moving left.
+ * leaves toward where it sits in the tab order, then the new one comes in from the
+ * other side. One at a time, so two panels never overlap. `direction` is 1 when moving
+ * right through the tabs, -1 when moving left.
  */
 export function TabPanel({
   id,
@@ -102,7 +103,7 @@ export function TabPanel({
   if (first !== null && active !== first) setFirst(null)
   return (
     <div className="relative">
-      <AnimatePresence mode="popLayout" custom={direction}>
+      <AnimatePresence mode="wait" custom={direction}>
         <motion.div
           key={active}
           role="tabpanel"
