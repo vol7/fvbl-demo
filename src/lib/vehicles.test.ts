@@ -95,7 +95,7 @@ describe("countryOfOrigin", () => {
 
 describe("findVehicle", () => {
   it("is case- and whitespace-insensitive", () => {
-    expect(findVehicle(ca, " 4jgfb8kb5pa812634 ")?.vin).toBe(CLEAN_VIN)
+    expect(findVehicle(ca, " 4jgfb8kbxpa812634 ")?.vin).toBe(CLEAN_VIN)
   })
   it("returns undefined for unknown VINs", () => {
     expect(findVehicle(ca, "1HGCM82633A004352")).toBeUndefined()

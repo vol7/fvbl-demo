@@ -2,13 +2,13 @@ import type { Vehicle } from "@/lib/vehicles"
 
 import { FIRST_OWNER } from "./people"
 
-export const CLEAN_VIN = "4JGFB8KB5PA812634"
-export const CLONED_VIN = "5TDEBRCH7SS041927"
-export const EXPORTED_VIN = "SALWR2SE4NA209311"
+export const CLEAN_VIN = "4JGFB8KBXPA812634"
+export const CLONED_VIN = "5TDEBRCH9SS041927"
+export const EXPORTED_VIN = "SALWR2SEXNA209311"
 /** Registered in Ontario while the same VIN holds an active Pennsylvania title. */
 export const US_TITLE_VIN = "JTJTABGX9R4027418"
 /** Brand new: decodes, but has no registration until a dealer submits one. */
-export const NEW_VIN = "4JGFF5KE9SB412009"
+export const NEW_VIN = "4JGFF5KE3SB412009"
 
 export const DEMO_VEHICLES: Vehicle[] = [
   {

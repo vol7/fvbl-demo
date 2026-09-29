@@ -72,7 +72,7 @@ describe("VehicleSummary", () => {
       "2023 Mercedes-AMG GLE 63 S 4MATIC+"
     )
     expect(screen.getByText("Obsidian Black SUV")).toBeInTheDocument()
-    expect(screen.getByText("4JGFB8KB5PA812634")).toBeInTheDocument()
+    expect(screen.getByText("4JGFB8KBXPA812634")).toBeInTheDocument()
   })
 
   it("idle: the checks are clear and the clerk can request authorization", async () => {

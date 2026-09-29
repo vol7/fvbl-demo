@@ -13,16 +13,16 @@ import {
 
 describe("normalizeVin", () => {
   it("uppercases and strips whitespace", () => {
-    expect(normalizeVin(" 4jgfb8kb5pa 812634 ")).toBe("4JGFB8KB5PA812634")
+    expect(normalizeVin(" 4jgfb8kbxpa 812634 ")).toBe("4JGFB8KBXPA812634")
   })
 })
 
 describe("isValidVin", () => {
   it("accepts a 17-character VIN without I, O, Q", () => {
-    expect(isValidVin("4JGFB8KB5PA812634")).toBe(true)
+    expect(isValidVin("4JGFB8KBXPA812634")).toBe(true)
   })
   it("accepts lowercase input", () => {
-    expect(isValidVin("4jgfb8kb5pa812634")).toBe(true)
+    expect(isValidVin("4jgfb8kbxpa812634")).toBe(true)
   })
   it("rejects wrong length", () => {
     expect(isValidVin("4JGFB8KB5PA81263")).toBe(false)

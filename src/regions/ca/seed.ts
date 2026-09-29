@@ -5,28 +5,28 @@ import type { Seed } from "@/regions/types"
 
 const RECENT_LOOKUPS: RecentLookup[] = [
   {
-    vin: "2T3P1RFV8RW412907",
+    vin: "2T3P1RFVXRW412907",
     plate: "CVEK 771",
     vehicle: "2024 Toyota RAV4 XLE",
     outcome: "clear",
     when: "Yesterday, 4:52 p.m.",
   },
   {
-    vin: "1FTFW1E85PFA31066",
+    vin: "1FTFW1E81PFA31066",
     plate: "AZRT 305",
     vehicle: "2023 Ford F-150 Lariat",
     outcome: "clear",
     when: "Yesterday, 3:18 p.m.",
   },
   {
-    vin: "WBA53BJ0XPCL22841",
+    vin: "WBA53BJ03PCL22841",
     plate: "BKMP 480",
     vehicle: "2023 BMW 530i xDrive",
     outcome: "frozen",
     when: "Yesterday, 11:06 a.m.",
   },
   {
-    vin: "5YJ3E1EB7PF563190",
+    vin: "5YJ3E1EB2PF563190",
     plate: "CHRW 926",
     vehicle: "2023 Tesla Model 3 Long Range",
     outcome: "clear",

@@ -14,9 +14,9 @@ function renderAt(path: string) {
 
 describe("routes", () => {
   it("redirects a legacy path to the same path under /ca, keeping the query", async () => {
-    const router = renderAt("/portal/vehicle/4JGFB8KB5PA812634?tab=history")
+    const router = renderAt("/portal/vehicle/4JGFB8KBXPA812634?tab=history")
     await screen.findByRole("heading", { level: 1 })
-    expect(router.state.location.pathname).toBe("/ca/portal/vehicle/4JGFB8KB5PA812634")
+    expect(router.state.location.pathname).toBe("/ca/portal/vehicle/4JGFB8KBXPA812634")
     expect(router.state.location.search).toBe("?tab=history")
   })
 
