@@ -64,7 +64,7 @@ export function deriveActivity(
       events.push({
         id: "escalated",
         at: state.escalatedAt,
-        title: "Referred for investigation",
+        title: pack.copy.portal.activity.escalatedTitle,
         detail: `Case ${state.caseReference}`,
         tone: "danger",
       })
@@ -86,7 +86,7 @@ export function deriveActivity(
       events.push(sentEvent(state), {
         id: "approved",
         at: state.approvedAt,
-        title: "Owner approved",
+        title: pack.copy.portal.activity.approvedTitle,
         detail: `Reference ${state.authorizationCode}`,
         tone: "success",
       })
@@ -95,18 +95,22 @@ export function deriveActivity(
       events.push(sentEvent(state), {
         id: "frozen",
         at: state.frozenAt,
-        title: state.reason === "denied" ? "Owner denied" : "No response within 24h",
-        detail: "Transaction frozen and flagged for security review",
+        title: pack.copy.portal.activity.frozen[state.reason],
+        detail: pack.copy.portal.activity.frozen.detail(state.reason),
         tone: "warning",
       })
       break
   }
-  if (state.status === "authorized" && state.issued) {
+  // Canada issues only once the owner approved; the US clerk may issue from any
+  // state but a referral, over a hold with a note.
+  if (state.status !== "escalated" && state.issued) {
+    const { issuedTitle, afterReview } = pack.copy.portal.activity
+    const { reference, reviewNote } = state.issued
     events.push({
       id: "issued",
       at: state.issued.at,
-      title: pack.copy.portal.activity.issuedTitle,
-      detail: state.issued.reference,
+      title: reviewNote ? `${issuedTitle} ${afterReview}` : issuedTitle,
+      detail: reviewNote ? `${reference} · “${reviewNote}”` : reference,
       tone: "success",
     })
   }

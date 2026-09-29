@@ -31,6 +31,11 @@ export function formatDate(isoDate: string): string {
   })
 }
 
+/** Times read "4:02 p.m.", so a sentence ending on one takes no second period. */
+export function endsSentence(text: string): string {
+  return text.endsWith(".") ? text : `${text}.`
+}
+
 export function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-CA", {
     hour: "numeric",

@@ -1,11 +1,14 @@
-import { ca } from "@/regions/ca"
 import type { RegionPack } from "@/regions/types"
 
 import { CHECKS, INTEGRATIONS } from "./checks"
 import { DEALER_COPY } from "./copy/dealer"
+import { DECISION } from "./copy/decision"
+import { HUB } from "./copy/hub"
 import { PHONE } from "./copy/phone"
 import { PORTAL } from "./copy/portal"
+import { SIGN_IN } from "./copy/signin"
 import { STORY } from "./copy/story"
+import { FORCE_STATES, forcedSession, type ForceKey } from "./forceStates"
 import { OFFICE } from "./office"
 import { PEOPLE } from "./people"
 import { SEED } from "./seed"
@@ -13,11 +16,9 @@ import { DEMO_VEHICLES } from "./vehicles"
 
 /**
  * US-first: an Ohio county title office, the Ohio title search and the dealer's
- * first title. TODO(US plan, Tasks 5–11): checks, story, policy, copy and force
- * states still play Canada's until their owners replace them.
+ * first title.
  */
 export const us: RegionPack = {
-  ...ca,
   id: "us",
   place: {
     country: "the US",
@@ -34,25 +35,15 @@ export const us: RegionPack = {
   checks: { definitions: CHECKS, integrations: INTEGRATIONS },
   story: STORY,
   policy: { ownerConfirmation: "optional" },
+  forceStates: FORCE_STATES,
+  forcedSession: (key, now) => forcedSession(key as ForceKey, now),
   odometerUnit: "mi",
   plate: { label: "Ohio plate", style: "ohio" },
   sms: { link: (token) => `fvbl.us/c/${token}`, domain: "fvbl.us" },
   copy: {
-    ...ca.copy,
-    // Task 9 replaces the rest of the decision copy.
-    decision: {
-      ...ca.copy.decision,
-      verdict: {
-        idle: "Checks clear",
-        pending: "Awaiting owner",
-        authorized: "Owner confirmed",
-        issued: "Title issued",
-        denied: "Hold for review",
-        timeout: "No reply",
-        blocked: "Hold for review",
-        escalated: "Referred to investigators",
-      },
-    },
+    decision: DECISION,
+    signIn: SIGN_IN,
+    hub: HUB,
     phone: PHONE,
     portal: PORTAL,
     dealer: DEALER_COPY,

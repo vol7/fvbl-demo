@@ -198,6 +198,7 @@ function VehicleView({
       type: "escalate",
       vin,
       canRequest,
+      policy: pack.policy,
       caseReference: generateCaseReference(new Date()),
       at: stamp(),
     })

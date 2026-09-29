@@ -16,6 +16,7 @@ import {
 import { Countdown } from "@/components/Countdown"
 import { LedgerMark } from "@/components/LedgerMark"
 import { RequestDialog, type ApplicantDetails } from "@/components/RequestDialog"
+import { ReviewIssueDialog } from "@/components/ReviewIssueDialog"
 import { Button } from "@/components/ui/button"
 import type { AuthorizationState } from "@/lib/authorization"
 import { failingChecks, highRiskChecks, type Check } from "@/lib/checks"
@@ -90,7 +91,65 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
   const certificates = authorizationCertificates(pack, vehicle, state)
   const last4 = vehicle.owner.phoneLast4
 
+  // Canada issues only once the owner approved. In the US the clerk decides: Issue
+  // title wherever nothing holds the record, and over a hold only with a note.
+  const clerkDecides = pack.policy.ownerConfirmation === "optional"
+  const issueButton = (
+    <Button
+      size="lg"
+      className="bg-emerald-700 px-4 text-white hover:bg-emerald-700/90 has-data-[icon=inline-start]:pl-3.5"
+      onClick={() => onIssue()}
+    >
+      <FileCheck data-icon="inline-start" aria-hidden />
+      {copy.issueAction}
+    </Button>
+  )
+  const holdActions = (
+    <div className="flex flex-col items-end gap-1.5">
+      <Button
+        size="lg"
+        className="bg-destructive px-4 text-white hover:bg-destructive/90 has-data-[icon=inline-start]:pl-3.5"
+        onClick={onEscalate}
+      >
+        <Siren data-icon="inline-start" aria-hidden />
+        {copy.blocked.referAction}
+      </Button>
+      {copy.blocked.issueAfterReview ? (
+        <ReviewIssueDialog copy={copy.blocked.issueAfterReview} onIssue={onIssue} />
+      ) : null}
+    </div>
+  )
+  const hold = (label: string): Body => ({
+    tone: "danger",
+    icon: ShieldAlert,
+    label,
+    title: story?.title ?? copy.blocked.fallbackTitle,
+    text: story?.body ?? "",
+    foot: story?.foot,
+    action: holdActions,
+  })
+
   const body = ((): Body => {
+    if (state.status !== "escalated" && state.issued) {
+      const { issued } = state
+      return {
+        tone: "success",
+        icon: CircleCheck,
+        label: copy.issued.label,
+        title: copy.issued.title,
+        text: (
+          <>
+            {copy.issued.text({
+              clerk: office.clerkFullName,
+              time: formatTime(issued.at),
+              authorizationCode: state.status === "authorized" ? state.authorizationCode : null,
+            })}
+            {issued.reviewNote ? <> {copy.issued.afterReview(issued.reviewNote)}</> : null}
+          </>
+        ),
+        reference: issued.reference,
+      }
+    }
     switch (state.status) {
       case "idle":
         return {
@@ -99,7 +158,14 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
           label: copy.idle.label,
           title: copy.idle.title,
           text: copy.idle.text(n, last4),
-          action: <RequestDialog ownerPhoneLast4={last4} onRequest={onRequest} />,
+          action: clerkDecides ? (
+            <div className="flex flex-col items-end gap-2">
+              {issueButton}
+              <RequestDialog ownerPhoneLast4={last4} onRequest={onRequest} secondary />
+            </div>
+          ) : (
+            <RequestDialog ownerPhoneLast4={last4} onRequest={onRequest} />
+          ),
         }
       case "pending":
         return {
@@ -115,22 +181,9 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
               The link expires in <Countdown expiresAt={state.expiresAt} />.
             </>
           ),
+          action: clerkDecides ? issueButton : undefined,
         }
-      case "authorized": {
-        if (state.issued) {
-          return {
-            tone: "success",
-            icon: CircleCheck,
-            label: copy.issued.label,
-            title: copy.issued.title,
-            text: copy.issued.text(
-              office.clerkFullName,
-              formatTime(state.issued.at),
-              state.authorizationCode
-            ),
-            reference: state.issued.reference,
-          }
-        }
+      case "authorized":
         return {
           tone: "success",
           icon: ShieldCheck,
@@ -146,45 +199,21 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
                 ? copy.authorized.textBuyer(state.requester, formatTime(state.approvedAt))
                 : copy.authorized.textCounter(formatTime(state.approvedAt)),
           reference: state.authorizationCode,
-          action: (
-            <Button
-              size="lg"
-              className="bg-emerald-700 px-4 text-white hover:bg-emerald-700/90 has-data-[icon=inline-start]:pl-3.5"
-              onClick={() => onIssue()}
-            >
-              <FileCheck data-icon="inline-start" aria-hidden />
-              {copy.authorized.issueAction}
-            </Button>
-          ),
+          action: issueButton,
         }
-      }
       case "frozen":
+        // The owner's "Not me" is a hold the US clerk reviews like a failed check.
+        if (clerkDecides && state.reason === "denied") return hold(copy.frozen.labelDenied)
         return {
-          tone: "warning",
-          icon: Snowflake,
+          tone: clerkDecides ? "neutral" : "warning",
+          icon: clerkDecides ? Clock : Snowflake,
           label: state.reason === "denied" ? copy.frozen.labelDenied : copy.frozen.labelTimeout,
           title: state.reason === "denied" ? copy.frozen.titleDenied : copy.frozen.titleTimeout,
-          text: copy.frozen.text(formatTime(state.frozenAt)),
+          text: copy.frozen.text(formatTime(state.frozenAt), state.reason),
+          action: clerkDecides ? issueButton : undefined,
         }
       case "blocked":
-        return {
-          tone: "danger",
-          icon: ShieldAlert,
-          label: copy.blocked.label,
-          title: story?.title ?? copy.blocked.fallbackTitle,
-          text: story?.body ?? "",
-          foot: story?.foot,
-          action: (
-            <Button
-              size="lg"
-              className="bg-destructive px-4 text-white hover:bg-destructive/90 has-data-[icon=inline-start]:pl-3.5"
-              onClick={onEscalate}
-            >
-              <Siren data-icon="inline-start" aria-hidden />
-              {copy.blocked.referAction}
-            </Button>
-          ),
-        }
+        return hold(copy.blocked.label)
       case "escalated":
         return {
           tone: "danger",
@@ -239,7 +268,7 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
         return { value: copy.strip.idle.value, detail: copy.strip.idle.detail(last4) }
       case "pending":
         return {
-          value: "Awaiting reply",
+          value: copy.strip.pending,
           detail: (
             <>
               Expires in <Countdown expiresAt={state.expiresAt} />
@@ -249,7 +278,7 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
       case "authorized": {
         const owner = state.origin === "owner"
         return {
-          value: owner ? "Pre-approved" : "Approved",
+          value: owner ? copy.strip.preapproved : copy.strip.approved,
           detail: (
             <>
               {owner
@@ -258,7 +287,7 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
               {approval ? (
                 <LedgerMark
                   hash={approval}
-                  event={owner ? "Pre-approved by registered owner" : "Owner approved"}
+                  event={owner ? "Pre-approved by registered owner" : copy.strip.approvedEvent}
                   source="FVBL"
                   recordedAt={state.approvedAt}
                   className="ml-1 align-[-3px]"
@@ -270,8 +299,8 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
       }
       case "frozen":
         return state.reason === "denied"
-          ? { value: "Denied", detail: `At ${formatTime(state.frozenAt)}` }
-          : { value: "Expired", detail: "No response in 24 hours" }
+          ? { value: copy.strip.denied, detail: `At ${formatTime(state.frozenAt)}` }
+          : copy.strip.expired
       case "blocked":
       case "escalated":
         return copy.strip.unavailable

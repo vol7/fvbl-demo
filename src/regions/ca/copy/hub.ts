@@ -4,6 +4,7 @@ import type { HubCopy } from "@/regions/types"
 import { CLEAN_VIN, CLONED_VIN, EXPORTED_VIN, NEW_VIN, US_TITLE_VIN } from "../vehicles"
 
 export const HUB: HubCopy = {
+  heading: "FVBL demo · Canada",
   intro:
     "Open each surface in its own window. All windows share one session, so a request from ServiceOntario or the counter shows up on the phone, and the owner’s answer shows up in the portal.",
   /** The README's scenarios, in the README's order. */
@@ -50,4 +51,9 @@ export const HUB: HubCopy = {
     description: "Owner or buyer pre-approval. Record at 1440×900.",
     href: paths.serviceOntario,
   },
+  dealerSurface: {
+    description: "Day one: first registration of a new vehicle. Record at 1440×900.",
+  },
+  scenariosNote:
+    "The registered VINs are listed under recent lookups in the clerk portal; the new one joins them once the dealer's submission is confirmed.",
 }

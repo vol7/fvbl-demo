@@ -49,7 +49,7 @@ export function Sidebar() {
 
       <nav aria-label="Primary" className="mt-3 flex flex-1 flex-col gap-5 overflow-y-auto">
         <div className="flex flex-col gap-0.5">
-          {navItems(paths).map((item) => {
+          {navItems(paths, pack.copy.portal.requests.title).map((item) => {
             const active = isActive(item, pathname)
             return (
               <NavLink

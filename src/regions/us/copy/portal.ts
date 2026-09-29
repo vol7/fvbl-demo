@@ -35,6 +35,29 @@ export const PORTAL: PortalCopy = {
   activity: {
     preapprovedDetail: (code) => `From the owner's title alert, reference ${code}`,
     issuedTitle: "Title issued",
+    afterReview: "after review",
+    approvedTitle: "Owner confirmed the sale",
+    frozen: {
+      denied: "Owner said “Not me”",
+      timeout: "No reply within 24 hours",
+      detail: (reason) =>
+        reason === "denied" ? "Held for review" : "The title doesn't wait on a reply",
+    },
+    escalatedTitle: "Referred to state investigators",
+  },
+  requests: {
+    title: "Owner confirmations",
+    description:
+      "Confirmations asked of registered owners for this office's title applications, last 7 days.",
+    online: (name) => `${name} (title search)`,
+    preapproval: "Registered owner",
+    status: {
+      pending: "Pending",
+      authorized: "Confirmed",
+      issued: "Issued",
+      frozen: "Not me",
+      expired: "No reply",
+    },
   },
   ledger: { name: "FVBL Ohio", issuedKind: "title.issued", issuedTitle: "Title issued" },
 }

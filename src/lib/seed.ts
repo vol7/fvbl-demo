@@ -22,7 +22,8 @@ export type RequestRow = {
   vehicle: string
   plate: string
   applicant: string
-  status: "Authorized" | "Issued" | "Pending" | "Frozen" | "Expired"
+  /** As the region labels it: `pack.copy.portal.requests.status`. */
+  status: string
   when: string
 }
 

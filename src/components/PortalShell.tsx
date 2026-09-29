@@ -14,7 +14,9 @@ function useCrumbs(): Crumb[] {
   const matches = useMatches()
   const [session] = useSession()
   const paths = useRegionPaths()
-  const nav = navItems(paths).find((item) => isActive(item, pathname))
+  const nav = navItems(paths, pack.copy.portal.requests.title).find((item) =>
+    isActive(item, pathname)
+  )
   const crumbs: Crumb[] = nav ? [{ label: nav.label, to: nav.to }] : []
   const vehicleMatch = matches.find((m) => m.params.vin)
   if (vehicleMatch?.params.vin) {

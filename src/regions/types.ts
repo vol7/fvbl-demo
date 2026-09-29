@@ -190,7 +190,19 @@ export type DecisionCopy = {
   /** The card's accessible name: "Package decision". */
   ariaLabel: string
   verdict: VerdictLabels
+  /** Beside the plate for a high-value model. */
+  highValueNote: string
+  /** The clerk's button that hands over the document: "Issue package", "Issue title". */
+  issueAction: string
   idle: { label: string; title: string; text: (checks: number, last4: string) => string }
+  /** The dialog that texts the owner from the counter. */
+  request: {
+    action: string
+    title: string
+    description: (last4: string) => string
+    applicantLabel: string
+    send: string
+  }
   pending: {
     label: string
     title: string
@@ -201,7 +213,10 @@ export type DecisionCopy = {
   issued: {
     label: string
     title: string
-    text: (clerk: string, time: string, authorizationCode: string) => string
+    /** `authorizationCode` is null when the clerk issued without an owner's approval (US). */
+    text: (p: { clerk: string; time: string; authorizationCode: string | null }) => string
+    /** The clerk's note when the document was issued over a hold. */
+    afterReview: (note: string) => string
   }
   authorized: {
     label: string
@@ -210,16 +225,30 @@ export type DecisionCopy = {
     textOwner: (approvedOn: string, validUntil: string) => string
     textBuyer: (requester: string, time: string) => string
     textCounter: (time: string) => string
-    issueAction: string
   }
   frozen: {
     labelDenied: string
     labelTimeout: string
     titleDenied: string
     titleTimeout: string
-    text: (time: string) => string
+    text: (time: string, reason: "denied" | "timeout") => string
   }
-  blocked: { label: string; fallbackTitle: string; referAction: string }
+  blocked: {
+    label: string
+    fallbackTitle: string
+    referAction: string
+    /**
+     * Issuing over a hold with the clerk's one-line reason. Only where the clerk
+     * decides (US); absent, a hold has no issue action.
+     */
+    issueAfterReview?: {
+      action: string
+      title: string
+      description: string
+      noteLabel: string
+      confirm: string
+    }
+  }
   escalated: {
     label: string
     title: string
@@ -238,6 +267,13 @@ export type DecisionCopy = {
     authorization: string
     lastEvent: string
     idle: { value: string; detail: (last4: string) => string }
+    pending: string
+    approved: string
+    preapproved: string
+    /** The certificate's event name for the owner's approval. */
+    approvedEvent: string
+    denied: string
+    expired: { value: string; detail: string }
     unavailable: { value: string; detail: string }
   }
 }
@@ -386,10 +422,16 @@ export type SignInVariant = {
 export type SignInCopy = { clerk: SignInVariant; dealer: SignInVariant }
 
 export type HubCopy = {
+  /** "FVBL demo · Canada". */
+  heading: string
   intro: string
   scenarios: { n: number; title: string; vin: string; route: string; outcome: string }[]
   /** The buyer-facing surface, which differs per country. */
   publicSurface: { title: string; description: string; href: string }
+  /** What the dealer card says the dealer does on day one. */
+  dealerSurface: { description: string }
+  /** Under the scenarios table's title. */
+  scenariosNote: string
 }
 
 export type PortalCopy = {
@@ -403,7 +445,23 @@ export type PortalCopy = {
   historyTitle: Record<EventKind, string>
   timeline: { entered: (from: string) => string; exported: string; notBackSince: string }
   ownersExported: (date: string, noTransfer: boolean) => string
-  activity: { preapprovedDetail: (code: string) => string; issuedTitle: string }
+  activity: {
+    preapprovedDetail: (code: string) => string
+    issuedTitle: string
+    /** Said after the issued title when the clerk issued over a hold. */
+    afterReview: string
+    approvedTitle: string
+    frozen: { denied: string; timeout: string; detail: (reason: "denied" | "timeout") => string }
+    escalatedTitle: string
+  }
+  /** The Requests page: requests sent to owners from this office. */
+  requests: {
+    title: string
+    description: string
+    online: (name: string) => string
+    preapproval: string
+    status: { pending: string; authorized: string; issued: string; frozen: string; expired: string }
+  }
   ledger: {
     /** The chain's name on a certificate: "FVBL Ontario". */
     name: string

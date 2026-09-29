@@ -20,7 +20,8 @@ import type { RegionPack } from "@/regions/types"
 function liveRow(pack: RegionPack, vin: string, auth: AuthorizationState): RequestRow | null {
   const vehicle = findVehicle(pack, vin)
   if (!vehicle) return null
-  const online = (name: string, origin: string) => (origin === "buyer" ? `${name} (online)` : name)
+  const copy = pack.copy.portal.requests
+  const online = (name: string, origin: string) => (origin === "buyer" ? copy.online(name) : name)
   switch (auth.status) {
     case "pending":
       return {
@@ -28,7 +29,7 @@ function liveRow(pack: RegionPack, vin: string, auth: AuthorizationState): Reque
         vehicle: vehicleTitle(vehicle),
         plate: plateLabel(vehicle.plate),
         applicant: online(auth.requester, auth.origin),
-        status: "Pending",
+        status: auth.issued ? copy.status.issued : copy.status.pending,
         when: `Today, ${formatTime(auth.sentAt)}`,
       }
     case "authorized":
@@ -36,11 +37,8 @@ function liveRow(pack: RegionPack, vin: string, auth: AuthorizationState): Reque
         reference: auth.authorizationCode,
         vehicle: vehicleTitle(vehicle),
         plate: plateLabel(vehicle.plate),
-        applicant:
-          auth.origin === "owner"
-            ? "Registered owner (pre-approval)"
-            : online(auth.requester, auth.origin),
-        status: auth.issued ? "Issued" : "Authorized",
+        applicant: auth.origin === "owner" ? copy.preapproval : online(auth.requester, auth.origin),
+        status: auth.issued ? copy.status.issued : copy.status.authorized,
         when: `Today, ${formatTime(auth.approvedAt)}`,
       }
     case "frozen":
@@ -49,7 +47,11 @@ function liveRow(pack: RegionPack, vin: string, auth: AuthorizationState): Reque
         vehicle: vehicleTitle(vehicle),
         plate: plateLabel(vehicle.plate),
         applicant: online(auth.requester, auth.origin),
-        status: auth.reason === "timeout" ? "Expired" : "Frozen",
+        status: auth.issued
+          ? copy.status.issued
+          : auth.reason === "timeout"
+            ? copy.status.expired
+            : copy.status.frozen,
         when: `Today, ${formatTime(auth.frozenAt)}`,
       }
     default:
@@ -69,8 +71,8 @@ export function Requests() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Authorization requests"
-        description="Owner authorizations requested from this office in the last 7 days."
+        title={pack.copy.portal.requests.title}
+        description={pack.copy.portal.requests.description}
       />
       <Card className="gap-0 py-0">
         <CardContent className="px-0">

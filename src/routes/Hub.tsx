@@ -1,5 +1,6 @@
 import { CarFront, Check, Copy, ExternalLink, Globe, Monitor, Smartphone } from "lucide-react"
 import { useState } from "react"
+import { Link } from "react-router"
 
 import { OutcomeBadge } from "@/components/OutcomeBadge"
 import { OwnerActionButtons } from "@/components/DemoControls"
@@ -14,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { plateLabel } from "@/lib/format"
+import { paths as rootPaths } from "@/lib/paths"
 import { activeAuthorization, registrationState, useSession } from "@/lib/session"
 import { findVehicle, vehicleTitle } from "@/lib/vehicles"
 import { useRegion } from "@/regions"
@@ -75,9 +77,12 @@ export function Hub() {
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
         <div className="flex flex-col gap-1">
           <div className="text-sm text-muted-foreground">
-            Recording hub · not part of the product
+            <Link to={rootPaths.picker} className="underline-offset-4 hover:underline">
+              All demos
+            </Link>{" "}
+            · Recording hub · not part of the product
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight">FVBL demo</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{hub.heading}</h1>
           <p className="text-sm text-muted-foreground">{hub.intro}</p>
         </div>
 
@@ -88,9 +93,7 @@ export function Hub() {
                 <CarFront className="size-5" aria-hidden />
               </div>
               <CardTitle>Dealer portal</CardTitle>
-              <CardDescription>
-                Day one: first registration of a new vehicle. Record at 1440×900.
-              </CardDescription>
+              <CardDescription>{hub.dealerSurface.description}</CardDescription>
             </CardHeader>
             <CardContent className="flex-row flex-wrap gap-2">
               <Button onClick={() => open(paths.dealer.signIn, 1440, 900)}>
@@ -163,10 +166,7 @@ export function Hub() {
         <Card className="gap-0 py-0">
           <CardHeader className="border-b py-4">
             <CardTitle>Scenarios</CardTitle>
-            <CardDescription>
-              The registered VINs are listed under recent lookups in the clerk portal; the new one
-              joins them once the dealer's submission is confirmed.
-            </CardDescription>
+            <CardDescription>{hub.scenariosNote}</CardDescription>
           </CardHeader>
           <CardContent className="px-0 pb-1">
             <Table>

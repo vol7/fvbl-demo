@@ -3,7 +3,8 @@
 Clickable prototype of FVBL: a dealer's first registration of a new vehicle, a
 ServiceOntario pre-approval flow, the clerk portal, and the phone that confirms
 both. Built for a screen-recorded demo video
-and for a live walkthrough. No backend, no persistence beyond the browser,
+and for a live walkthrough. It plays two countries: Canada (Ontario) and the US
+(Ohio), one app under a region prefix (see [Regions](#regions)). No backend, no persistence beyond the browser,
 invented data. Specs and plans live in `docs/superpowers/`.
 
 ## Run
@@ -13,24 +14,44 @@ invented data. Specs and plans live in `docs/superpowers/`.
 
 ## Recording
 
-Open **http://localhost:5173/** (the hub, not part of the product; `/demo`
-redirects here). It opens each surface in its own window and shows the live
-session:
+Open **http://localhost:5173/** and pick a country. That opens its hub,
+**`/ca`** or **`/us`** (not part of the product; `/demo` redirects to `/ca`). The
+hub opens each surface in its own window and shows the live session:
 
-| Surface | Route | Record at |
-| --- | --- | --- |
-| Dealer portal | `/dealer` (sign-in → `/dealer/register`) | 1440×900 |
-| ServiceOntario (public) | `/serviceontario` → `/uvip` | 1440×900 |
-| Clerk portal | `/portal` (sign-in → `/portal/home`) | 1440×900 |
-| Phone (owner or dealership) | `/phone` (thread) → `/phone/confirm` | 390×844 |
+| Surface | Canada | US | Record at |
+| --- | --- | --- | --- |
+| Dealer portal | `/ca/dealer` (sign-in → `/ca/dealer/register`) | `/us/dealer` | 1440×900 |
+| Public page | `/serviceontario` → `/ca/uvip` | `/us/ohio` (Ohio title search) | 1440×900 |
+| Clerk portal | `/ca/portal` (sign-in → `/ca/portal/home`) | `/us/portal` | 1440×900 |
+| Phone (owner or dealership) | `/ca/phone` (thread) → `/ca/phone/confirm` | `/us/phone` | 390×844 |
 
-All windows share one session. `localStorage` is the single source of truth,
+All windows of one country share one session. `localStorage` is the single source of truth,
 keyed by VIN, and windows only ping each other to re-read it, so browsing never
 changes state and several vehicles can hold state at once. The phone follows the
 most recent request, and becomes the dealership's phone when that request is a
 dealer's first registration. Use the hub's **Reset session** between takes, or **Force
 state** to jump straight to one beat. Illegal transitions are logged to the
 console in dev as `[fvbl] ignored …`.
+
+## Regions
+
+Every surface lives under `/ca/...` or `/us/...`. The first segment picks a
+region pack in `src/regions/<ca|us>/`: vehicles, people, office, record checks,
+stories, policy and every string that differs. Shared components read it with
+`useRegion()`; `lib` functions take it as their first argument. A guard test
+fails if Canadian wording (MTO, Ontario, licence, colour…) leaks into shared
+code.
+
+- **Legacy routes redirect to `/ca`.** `/portal`, `/dealer`, `/phone` and `/uvip`
+  go to the same path under `/ca`, query string kept, so older links and the
+  saved ServiceOntario page keep working.
+- **Each region has its own session**, `fvbl-demo:session:v2:ca` and
+  `…:us`, with its own sync channel. Resetting a US take never touches a
+  Canadian setup. A session saved before regions moves to Canada once.
+- **The rules differ.** In Canada the package needs the owner's authorization.
+  In the US the owner's confirmation is evidence, not a gate: the clerk can
+  issue a title without one, and only "Not me" or a failed check holds it for
+  review. FVBL informs; the clerk decides (`docs/us-version.md`).
 
 The shot list is `docs/screenplay.md`. Title cards and the final cut are a
 Remotion project in `video/` (see `video/README.md`): drop CleanShot exports
@@ -61,6 +82,20 @@ The four registered VINs are the first rows under "Recent lookups" so you can
 click instead of typing; the new one joins them once the dealer's submission is
 confirmed. The video covers scenario 3 and scenario 2; the others are
 there for the live walkthrough.
+
+### US demo VINs
+
+| Scenario | VIN | What happens |
+| --- | --- | --- |
+| 1 · Owner confirms the sale | `4JGFB8KB4PA305518` | 2023 Mercedes-AMG GLE 53, Ohio plate `JKR 4821`. On the Ohio title search the buyer sees "Title active in Ohio" and taps **Ask the owner to confirm**; the owner's title alert opens the confirm page; **Approve**. At the county title office the checks clear, including **Owner confirmed the sale** with its certificate, and the clerk issues the title. |
+| 2 · "Not me" | `4JGFB8KB4PA305518` | Same request, but the owner taps **Not me**. The buyer's page turns red; the clerk sees **Hold for review**. Protection against title theft. |
+| 3 · Exported, no re-entry | `1GNSKRKD3RR173602` | 2024 Chevrolet Tahoe. CBP recorded an export through Laredo with no re-entry. The border check fails; the clerk refers it to state investigators. |
+| 4 · One VIN, two countries | `2HKRS6H89NH408215` | 2022 Honda CR-V built in Ontario. A Georgia title is presented in Ohio for a VIN the ledger shows on an active Ontario registration. |
+| 5 · Salvage re-titled clean | `1FTFW1E89MFA52937` | 2021 Ford F-150. Branded salvage in Kentucky, then titled clean in Indiana. The NMVTIS check and the title brand history both fail. |
+| 6 · New vehicle · dealer first title | `4JGFB5KB9TA051846` | 2026 Mercedes-Benz GLE 450. The dealer submits the first title from the manufacturer's certificate of origin, with the first owner's title alerts on; the dealership's phone confirms; the clerk's Unregistered VIN card resolves live. |
+
+Every red card ends "Your office decides whether to issue." A missing
+confirmation is neutral; it never holds a title.
 
 ## The vehicle page
 
@@ -130,7 +165,9 @@ digest in `src/lib/ledger.ts` is a deterministic stand-in, not a real hash.
 
 ## What each surface does
 
-- **Dealer portal** (`/dealer` → `/dealer/register`). FVBL's dealer side, a
+Canada's surfaces below; the US ones follow the same shape (see [US demo VINs](#us-demo-vins) and `docs/us-version.md`).
+
+- **Dealer portal** (`/ca/dealer` → `/ca/dealer/register`). FVBL's dealer side, a
   sibling of the clerk portal: decode a VIN, confirm the New Vehicle Information
   Statement with one check mark, review, **Submit to ministry**. The page then
   witnesses the session: awaiting confirmation, then *Registration recorded* with
@@ -138,18 +175,18 @@ digest in `src/lib/ledger.ts` is a deterministic stand-in, not a real hash.
   shares the clerk portal's inset frame and status cards; the client is sending
   reference for the real dealer portal, and that reskin lands in
   `src/components/dealer/DealerShell.tsx`.
-- **ServiceOntario** (`/serviceontario/` → `/uvip`). The owner verifies with a
+- **ServiceOntario** (`/serviceontario/` → `/ca/uvip`). The owner verifies with a
   licence number and a photo and puts a 30-day authorization on file, or a buyer
   enters their name, licence and mobile and the owner is texted. The public side
   never shows the plate; the VIN is the identifier and the registered owner is
   masked.
-- **Phone** (`/phone`). The owner's SMS carries the vehicle, the plate (safe on
+- **Phone** (`/ca/phone`). The owner's SMS carries the vehicle, the plate (safe on
   the owner's side), the requester's name and a 16-character link. The link opens
   a one-page approve/decline; the browser back chevron is the only way back.
   During a first registration the same surface is the dealership's phone: the
   text reads the submission back and the link opens **Confirm a first
   registration?** with the NVIS and first owner.
-- **Clerk portal** (`/portal`). Summary header, tabs, then the package panel: applicant
+- **Clerk portal** (`/ca/portal`). Summary header, tabs, then the package panel: applicant
   name, licence and mobile, request owner authorization, and once authorized,
   issue the package. Failed checks hold it and refer it for investigation.
 
@@ -164,15 +201,33 @@ digest in `src/lib/ledger.ts` is a deterministic stand-in, not a real hash.
 | Dealer (new GLE 450) | Mercedes-Benz Downtown · Sofia Marchetti, dealer principal · No. 47-1182 · NVIS 2026-MB-0187342 | — | ending 2204 |
 | First registered owner (new GLE 450) | Léa Tremblay | `T4418-22067-90315` | ending 7731 |
 
-All invented. Never use a real client or contact name here.
+### US demo people
+
+| Role | Name | License | Mobile |
+| --- | --- | --- | --- |
+| Registered owner (GLE 53) | Rachel Novak | `RN482917` | ending 0138 |
+| Buyer | Tyler Brooks (the owner sees "Tyler B.") | `TB730164` | ending 0172 |
+| Registered owner (Tahoe) | Marcus Hale | — | ending 0147 |
+| Registered owner (CR-V) | Devon Price | — | ending 0116 |
+| Registered owner (F-150) | Kyle Brennan | — | ending 0164 |
+| Dealer (new GLE 450) | Scioto Ridge Motorcars · Maria Delgado, dealer principal · No. OH-D 20417 · MCO 2026-0418826 | — | ending 0155 |
+| First owner (new GLE 450) | Jordan Whitfield, title alerts on | `JW551208` | ending 0193 |
+| Title clerk | Denise Harmon, Franklin County Title Office · Columbus, Counter 3 | — | — |
+
+All invented. Never use a real client or contact name here. The dealership's
+name was checked against Ohio dealers so it matches none of them.
 
 ## Demo controls
 
 Press `Shift+D` on a vehicle page to open the hidden panel: owner approves,
 owner denies, simulate 24h timeout, reset session. Approve and deny act on
 whatever the phone is showing, so they confirm or decline a dealer submission
-too. The hub at `/` always shows the same buttons plus **Force state**, which
-includes **Dealer submitted** and **Vehicle registered** for the day-one beat.
+too. Each hub (`/ca`, `/us`) always shows the same buttons plus **Force
+state** for its own session. Canada's includes **Dealer submitted** and
+**Vehicle registered** for the day-one beat. The US list follows the cut:
+**Dealer submitted**, **Title recorded**, **Buyer asked**, **Owner confirmed**,
+**Owner said "Not me"**, **No reply**, **Title issued**, **Held for review**,
+**Referred**.
 
 ## Hosting
 

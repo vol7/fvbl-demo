@@ -4,7 +4,8 @@ import type { RegionPaths } from "./paths"
 
 export type NavItem = { to: string; label: string; icon: LucideIcon; match?: RegExp }
 
-export function navItems(p: RegionPaths): NavItem[] {
+/** `requests` is the region's name for the Requests page ("Authorization requests"). */
+export function navItems(p: RegionPaths, requests: string): NavItem[] {
   return [
     { to: p.portal.home, label: "Home", icon: Home },
     {
@@ -13,7 +14,7 @@ export function navItems(p: RegionPaths): NavItem[] {
       icon: Car,
       match: new RegExp(`^${p.portal.prefix}/(lookup|vehicle)`),
     },
-    { to: p.portal.requests, label: "Authorization requests", icon: ShieldCheck },
+    { to: p.portal.requests, label: requests, icon: ShieldCheck },
     { to: p.portal.cases, label: "Cases", icon: FileWarning },
   ]
 }

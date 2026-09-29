@@ -33,6 +33,27 @@ export const PORTAL: PortalCopy = {
   activity: {
     preapprovedDetail: (code) => `Online through ServiceOntario, reference ${code}`,
     issuedTitle: "Package issued",
+    afterReview: "after review",
+    approvedTitle: "Owner approved",
+    frozen: {
+      denied: "Owner denied",
+      timeout: "No response within 24h",
+      detail: () => "Transaction frozen and flagged for security review",
+    },
+    escalatedTitle: "Referred for investigation",
+  },
+  requests: {
+    title: "Authorization requests",
+    description: "Owner authorizations requested from this office in the last 7 days.",
+    online: (name) => `${name} (online)`,
+    preapproval: "Registered owner (pre-approval)",
+    status: {
+      pending: "Pending",
+      authorized: "Authorized",
+      issued: "Issued",
+      frozen: "Frozen",
+      expired: "Expired",
+    },
   },
   ledger: { name: "FVBL Ontario", issuedKind: "package.issued", issuedTitle: "Package issued" },
 }

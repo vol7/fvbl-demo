@@ -46,7 +46,13 @@ export type SessionAction =
   | { type: "preapprove"; vin: string; owner: string; authorizationCode: string; at: string }
   | { type: "buyerRequest"; vin: string; buyer: string; otp: string; link: string; at: string }
   | Targeted<Extract<AuthorizationAction, { type: "request" }> & { canRequest: boolean }>
-  | Targeted<Extract<AuthorizationAction, { type: "escalate" }> & { canRequest: boolean }>
+  | Targeted<
+      Extract<AuthorizationAction, { type: "escalate" }> & {
+        canRequest: boolean
+        /** The region's rule: the US clerk may also refer an owner's "Not me". */
+        policy?: Policy
+      }
+    >
   | Targeted<Extract<AuthorizationAction, { type: "approve" | "deny" | "timeout" }>>
   | Targeted<
       Extract<AuthorizationAction, { type: "issue" }> & {
@@ -166,13 +172,19 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
       const next = authorizationReducer(base, rest, policy)
       return next === base ? state : withSlot(state, vin, next)
     }
-    case "request":
-    case "escalate": {
+    case "request": {
       const { vin, canRequest, ...rest } = action
       const base = state.authorizations[vin] ?? initialState(canRequest)
       const next = authorizationReducer(base, rest)
       if (next === base) return state
-      return withSlot(state, vin, next, action.type === "request")
+      return withSlot(state, vin, next, true)
+    }
+    case "escalate": {
+      const { vin, canRequest, policy, ...rest } = action
+      const base = state.authorizations[vin] ?? initialState(canRequest)
+      const next = authorizationReducer(base, rest, policy)
+      if (next === base) return state
+      return withSlot(state, vin, next, false)
     }
     default: {
       const { vin, ...rest } = action

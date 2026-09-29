@@ -190,7 +190,12 @@ export function authorizationReducer(
       return { ...state, issued: note ? { ...issued, reviewNote: note } : issued }
     }
     case "escalate": {
-      if (state.status !== "blocked") return state
+      // A US clerk may also refer the owner's "Not me"; in Canada that stays frozen.
+      const notMe =
+        policy.ownerConfirmation === "optional" &&
+        state.status === "frozen" &&
+        state.reason === "denied"
+      if (state.status !== "blocked" && !notMe) return state
       return {
         status: "escalated",
         caseReference: action.caseReference,

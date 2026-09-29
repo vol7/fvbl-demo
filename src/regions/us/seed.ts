@@ -40,7 +40,7 @@ const REQUEST_ROWS: RequestRow[] = [
     vehicle: "2024 Honda Accord EX-L",
     plate: "KDM 5193",
     applicant: "A. Kowalski",
-    status: "Authorized",
+    status: "Confirmed",
     when: "Yesterday, 4:52 p.m.",
   },
   {
@@ -48,7 +48,7 @@ const REQUEST_ROWS: RequestRow[] = [
     vehicle: "2023 Chevrolet Silverado 1500 LT",
     plate: "JPX 2276",
     applicant: "B. Ramirez",
-    status: "Authorized",
+    status: "Confirmed",
     when: "Yesterday, 2:38 p.m.",
   },
   {
@@ -56,7 +56,7 @@ const REQUEST_ROWS: RequestRow[] = [
     vehicle: "2023 BMW X3 xDrive30i",
     plate: "HRL 8830",
     applicant: "C. Mitchell",
-    status: "Frozen",
+    status: "Not me",
     when: "Yesterday, 11:02 a.m.",
   },
   {
@@ -64,7 +64,7 @@ const REQUEST_ROWS: RequestRow[] = [
     vehicle: "2022 Toyota RAV4 XLE",
     plate: "HGT 6614",
     applicant: "D. Okonkwo",
-    status: "Expired",
+    status: "No reply",
     when: "Sep 24, 9:40 a.m.",
   },
 ]

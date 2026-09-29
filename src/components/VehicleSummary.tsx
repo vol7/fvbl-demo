@@ -9,6 +9,7 @@ import type { AuthorizationState } from "@/lib/authorization"
 import type { Check as RecordCheck } from "@/lib/checks"
 import { plateLabel } from "@/lib/format"
 import { vehicleTitle, type Vehicle } from "@/lib/vehicles"
+import { useRegion } from "@/regions"
 
 export type VehicleTab = "checks" | "history" | "ownership"
 
@@ -55,6 +56,7 @@ export function VehicleSummary({
   onIssue: (reviewNote?: string) => void
   onEscalate: () => void
 }) {
+  const pack = useRegion()
   const title = vehicleTitle(vehicle)
   const trimAt = title.lastIndexOf(vehicle.trim)
   return (
@@ -69,7 +71,7 @@ export function VehicleSummary({
           )}
           {vehicle.riskTier === "high-value" ? (
             <span className="text-[13px] text-muted-foreground">
-              High-value model, owner authorization required
+              {pack.copy.decision.highValueNote}
             </span>
           ) : null}
         </div>

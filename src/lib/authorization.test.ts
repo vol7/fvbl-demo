@@ -332,3 +332,19 @@ describe("issue under the US policy", () => {
     ).toBe(idle)
   })
 })
+
+describe("escalate after the owner's Not me", () => {
+  const denied = () => authorizationReducer(pending(), { type: "deny", at: T1 })
+  const escalate = { type: "escalate", caseReference: "FVBL-1", at: T1 } as const
+
+  it("refers it in the US, where the clerk reviews it like a failed check", () => {
+    expect(
+      authorizationReducer(denied(), escalate, { ownerConfirmation: "optional" })
+    ).toMatchObject({ status: "escalated", caseReference: "FVBL-1" })
+  })
+
+  it("leaves it frozen in Canada", () => {
+    const state = denied()
+    expect(authorizationReducer(state, escalate)).toBe(state)
+  })
+})

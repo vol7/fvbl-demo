@@ -1,3 +1,5 @@
+import { endsSentence } from "@/lib/format"
+
 /**
  * The buyer's page at `/us/ohio`: a mock of Ohio's title search with one added
  * step, asking the owner to confirm. It shows title status only; the owner's name
@@ -56,7 +58,7 @@ export const TITLE_SEARCH = {
   confirmed: {
     heading: "Owner confirmed",
     text: (time: string) =>
-      `The registered owner confirmed this sale at ${time}. The seller signs the title over to you in front of a notary, and you title the vehicle at any county title office.`,
+      `The registered owner confirmed this sale at ${endsSentence(time)} The seller signs the title over to you in front of a notary, and you title the vehicle at any county title office.`,
   },
   notMe: {
     heading: "The owner said this isn't their sale",

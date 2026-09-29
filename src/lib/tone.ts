@@ -10,6 +10,9 @@ export function toneFor(label: string): Tone {
     case "issued":
     case "package issued":
     case "closed":
+    case "confirmed":
+    case "owner confirmed":
+    case "title issued":
       return "success"
     case "blocked":
     case "cannot be issued":
@@ -18,6 +21,9 @@ export function toneFor(label: string): Tone {
     case "escalated":
     case "referred, do not issue":
     case "referred for investigation":
+    case "hold for review":
+    case "referred to investigators":
+    case "not me":
       return "danger"
     case "pending":
     case "awaiting owner":
