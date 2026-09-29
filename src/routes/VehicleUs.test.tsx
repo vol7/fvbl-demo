@@ -79,26 +79,16 @@ describe("US vehicle page: the county title clerk decides", () => {
     expect(within(card()).getByRole("button", { name: "Issue title" })).toBeVisible()
   })
 
-  it("holds for review on a failed check; refer is first, issuing needs a note", async () => {
+  it("holds for review on a failed check: it informs, and referring is the one action", () => {
     renderVehicle(EXPORTED_VIN)
     expect(within(card()).getByText("Hold for review")).toBeInTheDocument()
     expect(within(card()).getByText(/Your office decides whether to issue\./)).toBeInTheDocument()
-    expect(within(card()).queryByRole("button", { name: "Issue title" })).toBeNull()
-    expectNoGateWords()
-
-    await userEvent.click(within(card()).getByRole("button", { name: /issue after review/i }))
-    const confirm = await screen.findByRole("button", { name: "Issue title" })
-    expect(confirm).toBeDisabled()
-    await userEvent.type(screen.getByLabelText("Reason for issuing"), "   ")
-    expect(confirm).toBeDisabled()
-    await userEvent.type(screen.getByLabelText("Reason for issuing"), "Re-entry confirmed by CBP")
-    await userEvent.click(confirm)
-
-    expect(await within(card()).findByText("Ohio title issued")).toBeInTheDocument()
     expect(
-      within(card()).getByText(/Issued after review: “Re-entry confirmed by CBP”/)
-    ).toBeInTheDocument()
-    expect(issuedOf(EXPORTED_VIN)?.reviewNote).toBe("Re-entry confirmed by CBP")
+      within(card())
+        .getAllByRole("button")
+        .map((b) => b.textContent?.trim())
+    ).toEqual(["Refer to investigators"])
+    expectNoGateWords()
   })
 
   it("refers to state investigators without telling the customer why", async () => {

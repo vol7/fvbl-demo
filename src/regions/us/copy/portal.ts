@@ -35,7 +35,6 @@ export const PORTAL: PortalCopy = {
   activity: {
     preapprovedDetail: (code) => `From the owner's title alert, reference ${code}`,
     issuedTitle: "Title issued",
-    afterReview: "after review",
     approvedTitle: "Owner confirmed the sale",
     frozen: {
       denied: "Owner said “Not me”",

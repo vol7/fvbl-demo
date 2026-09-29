@@ -53,7 +53,7 @@ export function VehicleSummary({
   checks: RecordCheck[]
   state: AuthorizationState
   onRequest: (applicant: ApplicantDetails) => void
-  onIssue: (reviewNote?: string) => void
+  onIssue: () => void
   onEscalate: () => void
 }) {
   const pack = useRegion()

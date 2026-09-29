@@ -102,15 +102,13 @@ export function deriveActivity(
       break
   }
   // Canada issues only once the owner approved; the US clerk may issue from any
-  // state but a referral, over a hold with a note.
+  // state but a hold or a referral.
   if (state.status !== "escalated" && state.issued) {
-    const { issuedTitle, afterReview } = pack.copy.portal.activity
-    const { reference, reviewNote } = state.issued
     events.push({
       id: "issued",
       at: state.issued.at,
-      title: reviewNote ? `${issuedTitle} ${afterReview}` : issuedTitle,
-      detail: reviewNote ? `${reference} · “${reviewNote}”` : reference,
+      title: pack.copy.portal.activity.issuedTitle,
+      detail: state.issued.reference,
       tone: "success",
     })
   }

@@ -33,7 +33,6 @@ export const PORTAL: PortalCopy = {
   activity: {
     preapprovedDetail: (code) => `Online through ServiceOntario, reference ${code}`,
     issuedTitle: "Package issued",
-    afterReview: "after review",
     approvedTitle: "Owner approved",
     frozen: {
       denied: "Owner denied",

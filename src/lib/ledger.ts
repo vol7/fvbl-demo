@@ -248,17 +248,10 @@ function authorizationDrafts(
       )
       break
   }
-  // After the switch so the US clerk's title, issued from any state but a referral,
-  // lands on the chain too. The note is hashed with it; Canada's payload is unchanged.
+  // After the switch so the US clerk's title, issued from any state but a hold or a
+  // referral, lands on the chain too. Canada's payload is unchanged.
   if (state.status !== "escalated" && state.issued) {
-    const { reference, reviewNote } = state.issued
-    entry(
-      "issued",
-      state.issued.at,
-      issuedKind,
-      reviewNote ? `${issuedTitle} ${pack.copy.portal.activity.afterReview}` : issuedTitle,
-      reviewNote ? `${reference}|${reviewNote}` : reference
-    )
+    entry("issued", state.issued.at, issuedKind, issuedTitle, state.issued.reference)
   }
   return out
 }

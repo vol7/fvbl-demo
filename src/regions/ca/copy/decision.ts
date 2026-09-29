@@ -41,7 +41,6 @@ export const DECISION: DecisionCopy = {
     title: "Used Vehicle Information Package issued",
     text: ({ clerk, time, authorizationCode }) =>
       `${clerk} issued the package at ${time} under authorization ${authorizationCode}.`,
-    afterReview: (note) => `Issued after review: “${note}”`,
   },
   authorized: {
     label: "Authorized to issue",

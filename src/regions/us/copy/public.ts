@@ -6,13 +6,11 @@ import { endsSentence } from "@/lib/format"
  * and number, the vehicle's history and NMVTIS data never reach the buyer.
  */
 export const TITLE_SEARCH = {
-  watermark: "Concept mock-up. Not a government page.",
   shell: {
     state: "Ohio",
     service: "Vehicle titles",
     nav: ["Titles", "Registration", "Help"],
     footer: ["Accessibility", "Privacy", "Contact"],
-    footnote: "Concept mock-up for a product demonstration.",
   },
   crumbs: ["Vehicle titles", "Title search"],
 

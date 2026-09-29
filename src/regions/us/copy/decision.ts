@@ -48,7 +48,6 @@ export const DECISION: DecisionCopy = {
     title: "Ohio title issued",
     text: ({ clerk, time, authorizationCode }) =>
       `${clerk} issued the title at ${at(time)}${authorizationCode ? ` The owner's confirmation ${authorizationCode} is on file.` : ""}`,
-    afterReview: (note) => `Issued after review: “${note}”`,
   },
   authorized: {
     label: "Owner confirmed",
@@ -73,14 +72,6 @@ export const DECISION: DecisionCopy = {
     label: "Hold for review",
     fallbackTitle: "A record check needs review",
     referAction: "Refer to investigators",
-    issueAfterReview: {
-      action: "Issue after review…",
-      title: "Issue the title after review",
-      description:
-        "Your office decides. Say in one line why you're issuing; the note goes on the ledger with the title.",
-      noteLabel: "Reason for issuing",
-      confirm: "Issue title",
-    },
   },
   escalated: {
     label: "Referred to investigators",

@@ -16,7 +16,6 @@ import {
 import { Countdown } from "@/components/Countdown"
 import { LedgerMark } from "@/components/LedgerMark"
 import { RequestDialog, type ApplicantDetails } from "@/components/RequestDialog"
-import { ReviewIssueDialog } from "@/components/ReviewIssueDialog"
 import { Button } from "@/components/ui/button"
 import type { AuthorizationState } from "@/lib/authorization"
 import { failingChecks, highRiskChecks, type Check } from "@/lib/checks"
@@ -57,7 +56,7 @@ type Props = {
   checks: Check[]
   state: AuthorizationState
   onRequest: (applicant: ApplicantDetails) => void
-  onIssue: (reviewNote?: string) => void
+  onIssue: () => void
   onEscalate: () => void
 }
 
@@ -114,9 +113,6 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
         <Siren data-icon="inline-start" aria-hidden />
         {copy.blocked.referAction}
       </Button>
-      {copy.blocked.issueAfterReview ? (
-        <ReviewIssueDialog copy={copy.blocked.issueAfterReview} onIssue={onIssue} />
-      ) : null}
     </div>
   )
   const hold = (label: string): Body => ({
@@ -144,7 +140,6 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
               time: formatTime(issued.at),
               authorizationCode: state.status === "authorized" ? state.authorizationCode : null,
             })}
-            {issued.reviewNote ? <> {copy.issued.afterReview(issued.reviewNote)}</> : null}
           </>
         ),
         reference: issued.reference,

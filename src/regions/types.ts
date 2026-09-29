@@ -215,8 +215,6 @@ export type DecisionCopy = {
     title: string
     /** `authorizationCode` is null when the clerk issued without an owner's approval (US). */
     text: (p: { clerk: string; time: string; authorizationCode: string | null }) => string
-    /** The clerk's note when the document was issued over a hold. */
-    afterReview: (note: string) => string
   }
   authorized: {
     label: string
@@ -237,17 +235,6 @@ export type DecisionCopy = {
     label: string
     fallbackTitle: string
     referAction: string
-    /**
-     * Issuing over a hold with the clerk's one-line reason. Only where the clerk
-     * decides (US); absent, a hold has no issue action.
-     */
-    issueAfterReview?: {
-      action: string
-      title: string
-      description: string
-      noteLabel: string
-      confirm: string
-    }
   }
   escalated: {
     label: string
@@ -448,8 +435,6 @@ export type PortalCopy = {
   activity: {
     preapprovedDetail: (code: string) => string
     issuedTitle: string
-    /** Said after the issued title when the clerk issued over a hold. */
-    afterReview: string
     approvedTitle: string
     frozen: { denied: string; timeout: string; detail: (reason: "denied" | "timeout") => string }
     escalatedTitle: string

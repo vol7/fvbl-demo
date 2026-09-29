@@ -10,8 +10,8 @@ export type Policy = { ownerConfirmation: "required" | "optional" }
 
 export const REQUIRED: Policy = { ownerConfirmation: "required" }
 
-/** The issued document. `reviewNote` is the clerk's reason for issuing over a hold. */
-export type Issued = { at: string; reference: string; reviewNote?: string }
+/** The issued document. */
+export type Issued = { at: string; reference: string }
 
 export type AuthorizationState =
   | { status: "idle"; issued?: Issued }
@@ -58,7 +58,7 @@ export type AuthorizationAction =
   | { type: "approve"; authorizationCode: string; at: string }
   | { type: "deny"; at: string }
   | { type: "timeout"; at: string }
-  | { type: "issue"; reference: string; at: string; reviewNote?: string }
+  | { type: "issue"; reference: string; at: string }
   | { type: "escalate"; caseReference: string; at: string }
   | { type: "reset"; canRequest: boolean }
 
@@ -112,15 +112,14 @@ export function buyerPendingState(input: {
 
 /**
  * Where the clerk may issue. Canada: only once the owner approved. US: anywhere
- * but a referral; over a hold (failed checks or the owner's "Not me") only with
- * the clerk's review note.
+ * but a hold (failed checks or the owner's "Not me") or a referral.
  */
-function canIssue(state: AuthorizationState, reviewNote: string | undefined, policy: Policy) {
+function canIssue(state: AuthorizationState, policy: Policy) {
   if (state.status === "escalated" || state.issued) return false
   if (policy.ownerConfirmation === "required") return state.status === "authorized"
   const held =
     state.status === "blocked" || (state.status === "frozen" && state.reason === "denied")
-  return !held || Boolean(reviewNote?.trim())
+  return !held
 }
 
 export function authorizationReducer(
@@ -184,10 +183,9 @@ export function authorizationReducer(
       }
     }
     case "issue": {
-      if (state.status === "escalated" || !canIssue(state, action.reviewNote, policy)) return state
+      if (state.status === "escalated" || !canIssue(state, policy)) return state
       const issued: Issued = { at: action.at, reference: action.reference }
-      const note = action.reviewNote?.trim()
-      return { ...state, issued: note ? { ...issued, reviewNote: note } : issued }
+      return { ...state, issued }
     }
     case "escalate": {
       // A US clerk may also refer the owner's "Not me"; in Canada that stays frozen.

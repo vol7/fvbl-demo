@@ -12,7 +12,7 @@ const THEME = {
 
 /**
  * Generic state-government chrome for the Ohio title search. Deliberately not a
- * copy of the real BMV site, and watermarked on every screen as a mock-up.
+ * copy of the real BMV site. The video's cards carry the mock-up notice.
  */
 export function StateShell({
   crumbs,
@@ -24,13 +24,6 @@ export function StateShell({
   const copy = TITLE_SEARCH.shell
   return (
     <div style={THEME} className="flex min-h-svh flex-col bg-background text-foreground">
-      <div
-        role="note"
-        className="sticky top-0 z-50 bg-amber-300 px-6 py-1.5 text-center text-sm font-semibold text-amber-950"
-      >
-        {TITLE_SEARCH.watermark}
-      </div>
-
       <header className="bg-primary text-primary-foreground">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6">
           <div className="flex items-baseline gap-3">
@@ -68,7 +61,6 @@ export function StateShell({
               <span key={item}>{item}</span>
             ))}
           </div>
-          <span className="text-xs">{copy.footnote}</span>
         </div>
       </footer>
     </div>

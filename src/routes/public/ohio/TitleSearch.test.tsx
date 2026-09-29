@@ -32,11 +32,6 @@ function expectNoOwner() {
 }
 
 describe("Ohio title search", () => {
-  it("carries the mock-up watermark", () => {
-    renderPage()
-    expect(screen.getByText("Concept mock-up. Not a government page.")).toBeInTheDocument()
-  })
-
   it("is US only", () => {
     const router = createMemoryRouter(routes, { initialEntries: ["/ca/ohio"] })
     render(<RouterProvider router={router} />)
