@@ -7,6 +7,7 @@ import { allPass, evaluateChecks } from "@/lib/checks"
 import { isValidVin, normalizeVin } from "@/lib/format"
 import { submitOnEnter } from "@/lib/submitOnEnter"
 import { findVehicle, vehicleTitle, type Vehicle } from "@/lib/vehicles"
+import { useRegion } from "@/regions"
 
 const INVALID = "Enter the 17-character VIN (letters I, O and Q are not used)."
 const NOT_FOUND = "We could not find an Ontario registration for this VIN."
@@ -20,15 +21,16 @@ export function VinStep({
   onFound: (vehicle: Vehicle) => void
   cta?: string
 }) {
+  const pack = useRegion()
   const [vin, setVin] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [found, setFound] = useState<Vehicle | null>(null)
 
   function lookup() {
     if (!isValidVin(vin)) return setError(INVALID)
-    const vehicle = findVehicle(normalizeVin(vin))
+    const vehicle = findVehicle(pack, normalizeVin(vin))
     if (!vehicle) return setError(NOT_FOUND)
-    if (!allPass(evaluateChecks(vehicle))) return setError(NOT_ELIGIBLE)
+    if (!allPass(evaluateChecks(pack, vehicle))) return setError(NOT_ELIGIBLE)
     setError(null)
     setFound(vehicle)
   }

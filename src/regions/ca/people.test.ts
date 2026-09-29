@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest"
 
-import { BUYER, OWNER, maskLicence } from "./people"
+import { maskLicence } from "@/lib/people"
+
+import { BUYER, OWNER } from "./people"
 
 describe("maskLicence", () => {
   it("keeps the leading letter and the last four characters", () => {

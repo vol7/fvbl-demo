@@ -5,12 +5,12 @@ import { Countdown } from "@/components/Countdown"
 import { LookupForm } from "@/components/LookupForm"
 import { Plate } from "@/components/Plate"
 import { formatTime } from "@/lib/format"
-import { OFFICE } from "@/lib/office"
-import { OUTCOME_LABEL, recentRows, TODAY_STATS, type Outcome } from "@/lib/seed"
+import { OUTCOME_LABEL, recentRows, type Outcome } from "@/lib/seed"
 import { useSession } from "@/lib/session"
 import { cn } from "@/lib/utils"
 import { findVehicle, vehicleTitle } from "@/lib/vehicles"
 import { useRegionPaths } from "@/regions/context"
+import { useRegion } from "@/regions"
 
 const OUTCOME_DOT: Record<Outcome, string> = {
   clear: "bg-emerald-500",
@@ -54,21 +54,22 @@ function SectionTitle({
  * you left off. The demo vehicles are the first rows under Recent lookups.
  */
 export function Home() {
+  const pack = useRegion()
   const paths = useRegionPaths()
   const [session] = useSession()
   const slots = Object.entries(session.authorizations)
   const pending = slots.flatMap(([vin, auth]) => {
-    const vehicle = findVehicle(vin)
+    const vehicle = findVehicle(pack, vin)
     return auth.status === "pending" && vehicle
       ? [{ vehicle, sentAt: auth.sentAt, expiresAt: auth.expiresAt, requester: auth.requester }]
       : []
   })
   const casesOpened =
-    TODAY_STATS.casesOpened + slots.filter(([, a]) => a.status === "escalated").length
-  const rows = recentRows(session).slice(0, 6)
+    pack.seed.todayStats.casesOpened + slots.filter(([, a]) => a.status === "escalated").length
+  const rows = recentRows(pack, session).slice(0, 6)
 
   const stats: [string, number, string][] = [
-    ["Lookups today", TODAY_STATS.lookups, "Across this office"],
+    ["Lookups today", pack.seed.todayStats.lookups, "Across this office"],
     [
       "Awaiting an owner",
       pending.length,
@@ -81,10 +82,10 @@ export function Home() {
     <div className="mx-auto flex w-full max-w-[66rem] flex-col gap-10">
       <header className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold tracking-tight">
-          Good day, {OFFICE.clerkFullName.split(" ")[0]}
+          Good day, {pack.office.clerkFullName.split(" ")[0]}
         </h1>
         <p className="text-sm text-muted-foreground">
-          {todayLabel()} at {OFFICE.name}, {OFFICE.counter}
+          {todayLabel()} at {pack.office.name}, {pack.office.counter}
         </p>
       </header>
 
@@ -94,8 +95,7 @@ export function Home() {
         </h2>
         <LookupForm size="lg" hideLabel />
         <p className="text-[13px] text-muted-foreground">
-          Every lookup checks the VIN with 9 sources, including Transport Canada, CBSA and NMVTIS,
-          before a package can be issued.
+          {pack.copy.portal.homeLede(pack.checks.integrations.length)}
         </p>
       </section>
 
@@ -126,7 +126,7 @@ export function Home() {
           </SectionTitle>
           <ul className="divide-y overflow-hidden rounded-xl border bg-card shadow-xs">
             {rows.map((row) => {
-              const plated = findVehicle(row.vin)?.plate ?? (row.live ? null : row.plate)
+              const plated = findVehicle(pack, row.vin)?.plate ?? (row.live ? null : row.plate)
               const inner = (
                 <>
                   <span className="w-[5.5rem] shrink-0">

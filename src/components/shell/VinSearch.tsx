@@ -8,9 +8,11 @@ import { submitOnEnter } from "@/lib/submitOnEnter"
 import { cn } from "@/lib/utils"
 import { findVehicle } from "@/lib/vehicles"
 import { useRegionPaths } from "@/regions/context"
+import { useRegion } from "@/regions"
 
 /** VIN search for the sidebar. ⌘K or Ctrl+K focuses it from anywhere in the portal. */
 export function VinSearch() {
+  const pack = useRegion()
   const paths = useRegionPaths()
   const navigate = useNavigate()
   const ref = useRef<HTMLInputElement>(null)
@@ -30,7 +32,7 @@ export function VinSearch() {
 
   function submit() {
     const normalized = normalizeVin(vin)
-    if (!isValidVin(normalized) || !findVehicle(normalized)) {
+    if (!isValidVin(normalized) || !findVehicle(pack, normalized)) {
       setInvalid(true)
       return
     }

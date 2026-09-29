@@ -2,12 +2,14 @@ import { render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
 
-import { CLEAN_VIN, EXPORTED_VIN, findVehicle } from "@/lib/vehicles"
+import { findVehicle } from "@/lib/vehicles"
 import { VehicleTimeline } from "./VehicleTimeline"
+import { CLEAN_VIN, EXPORTED_VIN } from "@/regions/ca/vehicles"
+import { ca } from "@/regions/ca"
 
 describe("VehicleTimeline", () => {
   it("shows the life at a glance, then every event by year, ending where it was built", () => {
-    render(<VehicleTimeline vehicle={findVehicle(CLEAN_VIN)!} />)
+    render(<VehicleTimeline vehicle={findVehicle(ca, CLEAN_VIN)!} />)
     const stops = within(screen.getByRole("region", { name: "Lifecycle" })).getAllByRole("listitem")
     expect(stops.map((s) => s.textContent)).toEqual([
       "BuiltUnited States",
@@ -30,7 +32,7 @@ describe("VehicleTimeline", () => {
   })
 
   it("puts a certificate on every ledger event and opens it", async () => {
-    render(<VehicleTimeline vehicle={findVehicle(CLEAN_VIN)!} />)
+    render(<VehicleTimeline vehicle={findVehicle(ca, CLEAN_VIN)!} />)
     const certificates = screen.getAllByRole("button", { name: /blockchain certificate for/i })
     expect(certificates).toHaveLength(7)
     await userEvent.click(
@@ -43,7 +45,7 @@ describe("VehicleTimeline", () => {
   })
 
   it("marks the open export and the gap after it", () => {
-    render(<VehicleTimeline vehicle={findVehicle(EXPORTED_VIN)!} />)
+    render(<VehicleTimeline vehicle={findVehicle(ca, EXPORTED_VIN)!} />)
     const [newest] = within(screen.getByRole("region", { name: "2025" })).getAllByRole("listitem")
     expect(newest).toHaveTextContent("Exported from Canada")
     expect(newest).toHaveTextContent("Port of Montréal, QC, with no re-entry on record")
@@ -52,7 +54,7 @@ describe("VehicleTimeline", () => {
   })
 
   it("never shows a person", () => {
-    const vehicle = findVehicle(CLEAN_VIN)!
+    const vehicle = findVehicle(ca, CLEAN_VIN)!
     const { container } = render(<VehicleTimeline vehicle={vehicle} />)
     expect(container.textContent).not.toContain("Okafor")
     expect(container.textContent).not.toContain(vehicle.plate)

@@ -2,10 +2,12 @@ import { render, screen, within } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
 import { evaluateChecks } from "@/lib/checks"
-import { CLEAN_VIN, CLONED_VIN, EXPORTED_VIN, findVehicle } from "@/lib/vehicles"
+import { findVehicle } from "@/lib/vehicles"
 import { RecordChecks } from "./RecordChecks"
+import { CLEAN_VIN, CLONED_VIN, EXPORTED_VIN } from "@/regions/ca/vehicles"
+import { ca } from "@/regions/ca"
 
-const checksFor = (vin: string) => evaluateChecks(findVehicle(vin)!)
+const checksFor = (vin: string) => evaluateChecks(ca, findVehicle(ca, vin)!)
 
 describe("RecordChecks", () => {
   it("lists every source and nine passing checks for the clean vehicle", () => {

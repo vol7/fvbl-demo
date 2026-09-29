@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest"
 
 import { deriveActivity, registrationActivity } from "./activity"
-import { bornVehicle, CLEAN_VIN, findVehicle, NEW_VIN } from "./vehicles"
+import { bornVehicle, findVehicle } from "./vehicles"
+import { CLEAN_VIN, NEW_VIN } from "@/regions/ca/vehicles"
+import { ca } from "@/regions/ca"
 
 const T0 = "2026-09-04T18:10:00.000Z"
 const T1 = "2026-09-04T18:14:00.000Z"
@@ -9,17 +11,18 @@ const T2 = "2026-09-04T18:16:30.000Z"
 
 describe("deriveActivity", () => {
   it("is empty when nothing is open", () => {
-    expect(deriveActivity({ status: "idle" }, null, "M. Chen")).toEqual([])
+    expect(deriveActivity(ca, { status: "idle" }, null, "M. Chen")).toEqual([])
   })
 
   it("has only the lookup when idle", () => {
-    const events = deriveActivity({ status: "idle" }, T0, "M. Chen")
+    const events = deriveActivity(ca, { status: "idle" }, T0, "M. Chen")
     expect(events.map((e) => e.id)).toEqual(["lookup"])
     expect(events[0].detail).toBe("Lookup by M. Chen")
   })
 
   it("lists lookup, request and approval in order", () => {
     const events = deriveActivity(
+      ca,
       {
         status: "authorized",
         origin: "clerk",
@@ -40,6 +43,7 @@ describe("deriveActivity", () => {
 
   it("describes a denial as a warning", () => {
     const events = deriveActivity(
+      ca,
       {
         status: "frozen",
         origin: "clerk",
@@ -58,6 +62,7 @@ describe("deriveActivity", () => {
 
   it("shows a single pre-approval event for an owner-origin authorization", () => {
     const events = deriveActivity(
+      ca,
       {
         status: "authorized",
         origin: "owner",
@@ -77,6 +82,7 @@ describe("deriveActivity", () => {
 
   it("names the buyer for a buyer-origin request", () => {
     const events = deriveActivity(
+      ca,
       {
         status: "pending",
         origin: "buyer",
@@ -95,6 +101,7 @@ describe("deriveActivity", () => {
 
   it("lists blocked then escalated for a cloned vehicle", () => {
     const events = deriveActivity(
+      ca,
       { status: "escalated", caseReference: "FVBL-2026-09-04-0001", escalatedAt: T2 },
       T0,
       "M. Chen"
@@ -104,6 +111,7 @@ describe("deriveActivity", () => {
 
   it("adds a package issued event once the clerk hands it over", () => {
     const events = deriveActivity(
+      ca,
       {
         status: "authorized",
         origin: "clerk",
@@ -125,6 +133,7 @@ describe("deriveActivity", () => {
 
   it("stamps on-chain events with a certificate when given the vehicle", () => {
     const events = deriveActivity(
+      ca,
       {
         status: "authorized",
         origin: "clerk",
@@ -139,7 +148,7 @@ describe("deriveActivity", () => {
       },
       T0,
       "M. Chen",
-      findVehicle(CLEAN_VIN)
+      findVehicle(ca, CLEAN_VIN)
     )
     const byId = Object.fromEntries(events.map((e) => [e.id, e]))
     expect(byId.lookup.certificate).toBeUndefined()
@@ -166,13 +175,13 @@ describe("registrationActivity", () => {
   }
 
   it("is empty for a vehicle that was not born in this session", () => {
-    expect(registrationActivity(findVehicle(CLEAN_VIN)!, { status: "none" })).toEqual([])
-    expect(registrationActivity(findVehicle(NEW_VIN)!, { status: "none" })).toEqual([])
+    expect(registrationActivity(ca, findVehicle(ca, CLEAN_VIN)!, { status: "none" })).toEqual([])
+    expect(registrationActivity(ca, findVehicle(ca, NEW_VIN)!, { status: "none" })).toEqual([])
   })
 
   it("records the first registration with the dealer, the reference and a certificate", () => {
-    const born = bornVehicle(findVehicle(NEW_VIN)!, registered)
-    const [event] = registrationActivity(born, registered)
+    const born = bornVehicle(ca, findVehicle(ca, NEW_VIN)!, registered)
+    const [event] = registrationActivity(ca, born, registered)
     expect(event).toMatchObject({
       id: "registered",
       at: registered.registeredAt,

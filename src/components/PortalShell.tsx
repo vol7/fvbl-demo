@@ -6,8 +6,10 @@ import { isActive, navItems } from "@/lib/nav"
 import { registrationState, useSession } from "@/lib/session"
 import { bornVehicle, findVehicle } from "@/lib/vehicles"
 import { useRegionPaths } from "@/regions/context"
+import { useRegion } from "@/regions"
 
 function useCrumbs(): Crumb[] {
+  const pack = useRegion()
   const { pathname } = useLocation()
   const matches = useMatches()
   const [session] = useSession()
@@ -16,8 +18,10 @@ function useCrumbs(): Crumb[] {
   const crumbs: Crumb[] = nav ? [{ label: nav.label, to: nav.to }] : []
   const vehicleMatch = matches.find((m) => m.params.vin)
   if (vehicleMatch?.params.vin) {
-    const found = findVehicle(vehicleMatch.params.vin)
-    const vehicle = found ? bornVehicle(found, registrationState(session, found.vin)) : undefined
+    const found = findVehicle(pack, vehicleMatch.params.vin)
+    const vehicle = found
+      ? bornVehicle(pack, found, registrationState(session, found.vin))
+      : undefined
     crumbs.push({
       label: !vehicle
         ? "Not found"

@@ -2,6 +2,7 @@ import { generateAuthorizationCode } from "@/lib/authorization"
 import { generateRegistrationRef } from "@/lib/registration"
 import { useSession } from "@/lib/session"
 import { liveThread } from "@/lib/thread"
+import { useRegion } from "@/regions"
 
 /**
  * Phone-side actions against the active request, for the hidden panel and the hub.
@@ -9,8 +10,9 @@ import { liveThread } from "@/lib/thread"
  * or the dealership's registration. Only a UVIP request can time out.
  */
 export function useOwnerActions() {
+  const pack = useRegion()
   const [session, dispatch] = useSession()
-  const thread = liveThread(session)
+  const thread = liveThread(pack, session)
   const vin = thread?.vehicle.vin
   const registration = thread?.kind === "registration"
   const now = () => new Date().toISOString()

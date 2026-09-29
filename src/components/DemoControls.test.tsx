@@ -3,8 +3,8 @@ import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
 
 import { getSessionStore } from "@/lib/session"
-import { CLEAN_VIN, NEW_VIN } from "@/lib/vehicles"
 import { DemoControls, OwnerActionButtons } from "./DemoControls"
+import { CLEAN_VIN, NEW_VIN } from "@/regions/ca/vehicles"
 
 function openPending() {
   const store = getSessionStore()

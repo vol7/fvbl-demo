@@ -15,52 +15,9 @@ import {
 } from "@/components/ui/table"
 import { plateLabel } from "@/lib/format"
 import { activeAuthorization, registrationState, useSession } from "@/lib/session"
-import { FORCE_STATES, forcedSession } from "@/lib/forceStates"
-import {
-  CLEAN_VIN,
-  CLONED_VIN,
-  EXPORTED_VIN,
-  findVehicle,
-  NEW_VIN,
-  US_TITLE_VIN,
-  vehicleTitle,
-} from "@/lib/vehicles"
-import { paths as sitePaths } from "@/lib/paths"
+import { findVehicle, vehicleTitle } from "@/lib/vehicles"
+import { useRegion } from "@/regions"
 import { useRegionPaths } from "@/regions/context"
-
-/** The README's scenarios, in the README's order. */
-const SCENARIOS: { n: number; title: string; vin: string; route: string; outcome: string }[] = [
-  { n: 1, title: "Clean vehicle", vin: CLEAN_VIN, route: "Clerk lookup", outcome: "Clear" },
-  {
-    n: 2,
-    title: "Cloned VIN",
-    vin: CLONED_VIN,
-    route: "Clerk lookup → escalate",
-    outcome: "Blocked",
-  },
-  {
-    n: 3,
-    title: "Buyer pre-request",
-    vin: CLEAN_VIN,
-    route: "ServiceOntario → owner approves on phone → clerk lookup",
-    outcome: "Authorized",
-  },
-  { n: 4, title: "Exported vehicle", vin: EXPORTED_VIN, route: "Clerk lookup", outcome: "Blocked" },
-  {
-    n: 5,
-    title: "US title conflict",
-    vin: US_TITLE_VIN,
-    route: "Clerk lookup",
-    outcome: "Blocked",
-  },
-  {
-    n: 6,
-    title: "New vehicle · dealer first registration",
-    vin: NEW_VIN,
-    route: "Dealer portal → dealership confirms on phone → clerk lookup",
-    outcome: "Registered",
-  },
-]
 
 function CopyButton({ value }: { value: string }) {
   const [copied, setCopied] = useState(false)
@@ -104,10 +61,12 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 export function Hub() {
+  const pack = useRegion()
+  const { hub } = pack.copy
   const paths = useRegionPaths()
   const [session, dispatch] = useSession()
   const active = activeAuthorization(session)
-  const vehicle = session.activeVin ? findVehicle(session.activeVin) : undefined
+  const vehicle = session.activeVin ? findVehicle(pack, session.activeVin) : undefined
   const auth = active?.state
   const registration = session.activeVin ? registrationState(session, session.activeVin) : null
 
@@ -119,11 +78,7 @@ export function Hub() {
             Recording hub · not part of the product
           </div>
           <h1 className="text-2xl font-semibold tracking-tight">FVBL demo</h1>
-          <p className="text-sm text-muted-foreground">
-            Open each surface in its own window. All windows share one session, so a request from
-            ServiceOntario or the counter shows up on the phone, and the owner&rsquo;s answer shows
-            up in the portal.
-          </p>
+          <p className="text-sm text-muted-foreground">{hub.intro}</p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -152,15 +107,15 @@ export function Hub() {
               <div className="mb-1 flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <Globe className="size-5" aria-hidden />
               </div>
-              <CardTitle>ServiceOntario (public)</CardTitle>
-              <CardDescription>Owner or buyer pre-approval. Record at 1440×900.</CardDescription>
+              <CardTitle>{hub.publicSurface.title}</CardTitle>
+              <CardDescription>{hub.publicSurface.description}</CardDescription>
             </CardHeader>
             <CardContent className="flex-row flex-wrap gap-2">
-              <Button onClick={() => open(sitePaths.serviceOntario, 1440, 900)}>
+              <Button onClick={() => open(hub.publicSurface.href, 1440, 900)}>
                 <ExternalLink data-icon="inline-start" aria-hidden />
                 Open window
               </Button>
-              <a href={sitePaths.serviceOntario} className={buttonVariants({ variant: "outline" })}>
+              <a href={hub.publicSurface.href} className={buttonVariants({ variant: "outline" })}>
                 Open here
               </a>
             </CardContent>
@@ -224,8 +179,8 @@ export function Hub() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {SCENARIOS.map((s) => {
-                  const v = findVehicle(s.vin)!
+                {hub.scenarios.map((s) => {
+                  const v = findVehicle(pack, s.vin)!
                   return (
                     <TableRow key={s.n}>
                       <TableCell className="pl-6 font-medium whitespace-normal">
@@ -294,12 +249,12 @@ export function Hub() {
                 re-shooting one beat without replaying the whole flow.
               </p>
               <div className="mt-1 flex flex-wrap gap-2">
-                {FORCE_STATES.map(({ key, label }) => (
+                {pack.forceStates.map(({ key, label }) => (
                   <Button
                     key={key}
                     variant="outline"
                     size="sm"
-                    onClick={() => dispatch({ type: "force", session: forcedSession(key) })}
+                    onClick={() => dispatch({ type: "force", session: pack.forcedSession(key) })}
                   >
                     {label}
                   </Button>

@@ -4,9 +4,11 @@ import { describe, expect, it, vi } from "vitest"
 
 import type { AuthorizationState } from "@/lib/authorization"
 import { evaluateChecks } from "@/lib/checks"
-import { CLEAN_VIN, CLONED_VIN, EXPORTED_VIN, findVehicle } from "@/lib/vehicles"
+import { findVehicle } from "@/lib/vehicles"
 import { verdictLabel } from "@/lib/verdict"
 import { VehicleSummary } from "./VehicleSummary"
+import { CLEAN_VIN, CLONED_VIN, EXPORTED_VIN } from "@/regions/ca/vehicles"
+import { ca } from "@/regions/ca"
 
 const T0 = "2026-09-12T14:00:00.000Z"
 const T1 = "2026-09-12T14:05:00.000Z"
@@ -20,12 +22,12 @@ const clerk = {
 }
 
 function renderSummary(vin: string, state: AuthorizationState) {
-  const vehicle = findVehicle(vin)!
+  const vehicle = findVehicle(ca, vin)!
   const handlers = { onRequest: vi.fn(), onIssue: vi.fn(), onEscalate: vi.fn() }
   render(
     <VehicleSummary
       vehicle={vehicle}
-      checks={evaluateChecks(vehicle)}
+      checks={evaluateChecks(ca, vehicle)}
       state={state}
       {...handlers}
     />

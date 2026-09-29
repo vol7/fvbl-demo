@@ -4,8 +4,8 @@ import { Link, NavLink, Outlet } from "react-router"
 import { FvblMark } from "@/components/FvblMark"
 import { TopBar } from "@/components/shell/TopBar"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { DEALER } from "@/lib/people"
 import { useRegionPaths } from "@/regions/context"
+import { useRegion } from "@/regions"
 
 /**
  * The dealer's side of FVBL: a sibling of the clerk portal with one job. Same inset
@@ -14,6 +14,7 @@ import { useRegionPaths } from "@/regions/context"
  * land here alone.
  */
 export function DealerShell() {
+  const pack = useRegion()
   const paths = useRegionPaths()
   return (
     <div className="flex h-svh overflow-hidden bg-muted/70">
@@ -25,32 +26,34 @@ export function DealerShell() {
           <FvblMark className="h-7 w-auto" />
           <span className="flex min-w-0 flex-col leading-tight">
             <span className="text-sm font-semibold">FVBL</span>
-            <span className="truncate text-xs text-muted-foreground">{DEALER.name}</span>
+            <span className="truncate text-xs text-muted-foreground">
+              {pack.people.dealer.name}
+            </span>
           </span>
         </Link>
 
         <nav aria-label="Primary" className="mt-5 flex flex-1 flex-col gap-0.5">
-          <div className="px-2 pb-1 text-xs text-muted-foreground">Registrations</div>
+          <div className="px-2 pb-1 text-xs text-muted-foreground">{pack.copy.dealer.navLabel}</div>
           <NavLink
             to={paths.dealer.register}
             aria-current="page"
             className="flex h-8 items-center gap-2.5 rounded-md bg-foreground/[0.06] px-2 text-sm font-medium text-foreground"
           >
             <CarFront className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
-            Register a new vehicle
+            {pack.copy.dealer.navItem}
           </NavLink>
         </nav>
 
         <div className="flex items-center gap-2.5 px-2 pt-2">
           <Avatar>
             <AvatarFallback className="bg-primary/10 text-xs font-medium text-primary">
-              SM
+              {pack.people.dealer.principalInitials}
             </AvatarFallback>
           </Avatar>
           <div className="flex min-w-0 flex-1 flex-col leading-tight">
-            <span className="truncate text-sm font-medium">{DEALER.principal}</span>
+            <span className="truncate text-sm font-medium">{pack.people.dealer.principal}</span>
             <span className="truncate text-xs text-muted-foreground">
-              Dealer no. {DEALER.number}
+              Dealer no. {pack.people.dealer.number}
             </span>
           </div>
           <Link
@@ -65,7 +68,7 @@ export function DealerShell() {
       </aside>
 
       <div className="my-2 mr-2 flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl bg-background shadow-sm ring-1 ring-foreground/[0.06]">
-        <TopBar crumbs={[{ label: "Register a new vehicle" }]} />
+        <TopBar crumbs={[{ label: pack.copy.dealer.navItem }]} />
         <main className="min-h-0 flex-1 overflow-y-auto">
           <div className="mx-auto w-full max-w-[46rem] px-8 py-10">
             <Outlet />

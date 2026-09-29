@@ -11,36 +11,41 @@ import { Label } from "@/components/ui/label"
 import { generateLinkToken, generateOtp } from "@/lib/authorization"
 import { formatOdometer, formatTime, isValidVin, normalizeVin } from "@/lib/format"
 import { historyCertificates } from "@/lib/ledger"
-import { DEALER, FIRST_OWNER, maskLicence } from "@/lib/people"
+import { maskLicence } from "@/lib/people"
 import { NO_REGISTRATION, type Submission } from "@/lib/registration"
 import { registrationState, useSession } from "@/lib/session"
-import { smsLink } from "@/lib/sms"
 import { cn } from "@/lib/utils"
 import { submitOnEnter } from "@/lib/submitOnEnter"
 import {
   bornVehicle,
   countryOfOrigin,
   findVehicle,
-  NEW_VIN,
   vehicleTitle,
   type Vehicle,
 } from "@/lib/vehicles"
 import { ReviewRow } from "@/routes/public/UvipOwner"
+import { useRegion } from "@/regions"
 import { useRegionPaths } from "@/regions/context"
-
-const STEPS = ["Vehicle", "NVIS and delivery", "Review"]
+import type { RegionPack } from "@/regions/types"
 
 const INVALID = "Enter the 17-character VIN (letters I, O and Q are not used)."
-const UNKNOWN = "This VIN does not decode. Check the NVIS and try again."
 const ALREADY =
   "This VIN already has a registration on file. Use a transfer, not a first registration."
 
-const SUBMISSION: Submission = {
-  dealer: DEALER.name,
-  dealerMobileLast4: DEALER.mobileLast4,
-  nvis: DEALER.nvis,
-  deliveryKm: 12,
-  firstOwner: FIRST_OWNER.name,
+/** What the dealer submits. Prefilled in the demo; only the statement's check mark is live. */
+function submissionFor({ people }: RegionPack): Submission {
+  return {
+    dealer: people.dealer.name,
+    dealerMobileLast4: people.dealer.mobileLast4,
+    nvis: people.dealer.nvis,
+    deliveryKm: 12,
+    firstOwner: people.firstOwner.name,
+  }
+}
+
+/** The region's brand-new vehicle: it decodes but has no history yet. */
+function newVin(pack: RegionPack): string {
+  return pack.vehicles.find((v) => v.history.length === 0)?.vin ?? ""
 }
 
 const TONE = {
@@ -97,11 +102,17 @@ function StatusCard({
 
 /** First registration of a brand-new vehicle: the birth of the VIN, from the dealer's side. */
 export function Register() {
+  const pack = useRegion()
+  const copy = pack.copy.dealer
+  const { dealer, firstOwner } = pack.people
+  const submission = submissionFor(pack)
+  const steps = ["Vehicle", copy.statement.title, "Review"]
+  const km = (value: number) => formatOdometer(value, pack.odometerUnit)
   const paths = useRegionPaths()
   const [session, dispatch] = useSession()
   const reduceMotion = useReducedMotion()
   const [step, setStep] = useState(0)
-  const [vin, setVin] = useState<string>(NEW_VIN)
+  const [vin, setVin] = useState<string>(() => newVin(pack))
   const [error, setError] = useState<string | null>(null)
   const [vehicle, setVehicle] = useState<Vehicle | null>(null)
   const [nvisConfirmed, setNvisConfirmed] = useState(false)
@@ -112,8 +123,8 @@ export function Register() {
   function decode() {
     const normalized = normalizeVin(vin)
     if (!isValidVin(normalized)) return setError(INVALID)
-    const found = findVehicle(normalized)
-    if (!found) return setError(UNKNOWN)
+    const found = findVehicle(pack, normalized)
+    if (!found) return setError(copy.unknownVin)
     if (found.history.length > 0 || registrationState(session, found.vin).status === "registered") {
       return setError(ALREADY)
     }
@@ -126,7 +137,7 @@ export function Register() {
     dispatch({
       type: "submitRegistration",
       vin: vehicle.vin,
-      submission: SUBMISSION,
+      submission,
       otp: generateOtp(),
       link: generateLinkToken(),
       at: new Date().toISOString(),
@@ -144,11 +155,8 @@ export function Register() {
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-1.5">
-        <h1 className="text-2xl font-semibold tracking-tight">Register a new vehicle</h1>
-        <p className="text-sm text-muted-foreground">
-          First registration with the ministry, from the New Vehicle Information Statement. You
-          confirm the submission from the dealership's registered mobile.
-        </p>
+        <h1 className="text-2xl font-semibold tracking-tight">{copy.title}</h1>
+        <p className="text-sm text-muted-foreground">{copy.lede}</p>
       </div>
 
       {submitted && vehicle && registration.status !== "none" ? (
@@ -158,8 +166,8 @@ export function Register() {
               tone="info"
               icon={Clock}
               label="Awaiting confirmation"
-              title="Submitted to the ministry"
-              text={`A text went to the dealership's registered mobile ending ${registration.dealerMobileLast4}. The registration is recorded once it is confirmed there; the link expires in 24 hours.`}
+              title={copy.pending.title}
+              text={copy.pending.text(registration.dealerMobileLast4)}
             >
               <dl className="divide-y">
                 <ReviewRow label="Vehicle" value={vehicleTitle(vehicle)} />
@@ -170,7 +178,7 @@ export function Register() {
                 <ReviewRow label="Submitted as" value={registration.dealer} />
                 <ReviewRow
                   label="Link"
-                  value={<span className="font-mono">{smsLink(registration.link)}</span>}
+                  value={<span className="font-mono">{pack.sms.link(registration.link)}</span>}
                 />
               </dl>
             </StatusCard>
@@ -180,9 +188,9 @@ export function Register() {
             <StatusCard
               tone="success"
               icon={CircleCheck}
-              label="Confirmed from the dealership's mobile"
-              title="Registration recorded"
-              text="The ministry has the first registration and the vehicle's ledger is open."
+              label={copy.registered.label}
+              title={copy.registered.title}
+              text={copy.registered.text}
               reference={registration.registrationRef}
             >
               <dl className="divide-y">
@@ -200,11 +208,13 @@ export function Register() {
                   label="Ledger"
                   value={
                     <span className="inline-flex items-center gap-1.5">
-                      First registration and delivery odometer
+                      {copy.registered.ledger}
                       <LedgerMark
-                        hash={historyCertificates(bornVehicle(vehicle, registration))[0]}
-                        event="First registration"
-                        source="MTO"
+                        hash={
+                          historyCertificates(pack, bornVehicle(pack, vehicle, registration))[0]
+                        }
+                        event={copy.registered.ledgerEvent}
+                        source={pack.place.registry.agency}
                         recordedAt={registration.registeredAt}
                       />
                     </span>
@@ -226,9 +236,9 @@ export function Register() {
             <StatusCard
               tone="neutral"
               icon={Undo2}
-              label="Declined from the dealership's mobile"
-              title="Submission withdrawn"
-              text="Nothing was recorded with the ministry."
+              label={copy.declined.label}
+              title={copy.declined.title}
+              text={copy.declined.text}
             >
               <div className="py-4">
                 <Button type="button" variant="outline" onClick={startOver}>
@@ -240,7 +250,7 @@ export function Register() {
         </>
       ) : (
         <>
-          <StepHeader steps={STEPS} current={step} />
+          <StepHeader steps={steps} current={step} />
           <StepPanel step={step}>
             {step === 0 ? (
               <div className="flex flex-col gap-5">
@@ -270,7 +280,7 @@ export function Register() {
                     id="dealer-vin-hint"
                     className={`text-sm ${error ? "text-destructive" : "text-muted-foreground"}`}
                   >
-                    {error ?? "As printed on the New Vehicle Information Statement."}
+                    {error ?? copy.vinHint}
                   </p>
                 </div>
 
@@ -325,11 +335,8 @@ export function Register() {
                 }}
               >
                 <div className="flex flex-col gap-1">
-                  <h2 className="text-lg font-semibold">NVIS and delivery</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Confirm the statement that came with the vehicle. Delivery details are from your
-                    dealer management system.
-                  </p>
+                  <h2 className="text-lg font-semibold">{copy.statement.title}</h2>
+                  <p className="text-sm text-muted-foreground">{copy.statement.lede}</p>
                 </div>
 
                 <label className="flex cursor-pointer items-start gap-3 rounded-xl border bg-card p-4 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
@@ -339,35 +346,29 @@ export function Register() {
                     checked={nvisConfirmed}
                     onChange={(e) => setNvisConfirmed(e.target.checked)}
                   />
-                  <span className="font-medium">
-                    I confirm the New Vehicle Information Statement for this VIN is in hand and
-                    matches the vehicle.
-                  </span>
+                  <span className="font-medium">{copy.statement.confirm}</span>
                 </label>
 
                 <dl className="divide-y rounded-xl border bg-card px-5">
                   <ReviewRow
-                    label="NVIS number"
-                    value={<span className="font-mono tracking-wider">{SUBMISSION.nvis}</span>}
+                    label={copy.statement.documentLabel}
+                    value={<span className="font-mono tracking-wider">{submission.nvis}</span>}
                   />
+                  <ReviewRow label="Delivery odometer" value={km(submission.deliveryKm)} />
                   <ReviewRow
-                    label="Delivery odometer"
-                    value={formatOdometer(SUBMISSION.deliveryKm)}
-                  />
-                  <ReviewRow
-                    label="First registered owner"
+                    label={copy.statement.firstOwnerLabel}
                     value={
                       <span className="flex flex-col items-end">
-                        <span>{FIRST_OWNER.name}</span>
+                        <span>{firstOwner.name}</span>
                         <span className="font-mono text-xs tracking-wider text-muted-foreground">
-                          {maskLicence(FIRST_OWNER.licence)}
+                          {maskLicence(firstOwner.licence)}
                         </span>
                       </span>
                     }
                   />
                   <ReviewRow
                     label="Submitting as"
-                    value={`${DEALER.name}, dealer no. ${DEALER.number}`}
+                    value={`${dealer.name}, dealer no. ${dealer.number}`}
                   />
                 </dl>
 
@@ -385,11 +386,9 @@ export function Register() {
             {step === 2 && vehicle ? (
               <div className="flex flex-col gap-5">
                 <div className="flex flex-col gap-1">
-                  <h2 className="text-lg font-semibold">Review and submit</h2>
+                  <h2 className="text-lg font-semibold">{copy.review.title}</h2>
                   <p className="text-sm text-muted-foreground">
-                    The registration is pushed to the ministry as a dealer submission and must be
-                    confirmed from the dealership's registered mobile ending{" "}
-                    {SUBMISSION.dealerMobileLast4}.
+                    {copy.review.text(submission.dealerMobileLast4)}
                   </p>
                 </div>
                 <dl className="divide-y rounded-xl border bg-card px-5">
@@ -399,22 +398,19 @@ export function Register() {
                     value={<span className="font-mono tracking-wider">{vehicle.vin}</span>}
                   />
                   <ReviewRow
-                    label="NVIS"
-                    value={<span className="font-mono tracking-wider">{SUBMISSION.nvis}</span>}
+                    label={copy.review.documentLabel}
+                    value={<span className="font-mono tracking-wider">{submission.nvis}</span>}
                   />
-                  <ReviewRow
-                    label="Delivery odometer"
-                    value={formatOdometer(SUBMISSION.deliveryKm)}
-                  />
-                  <ReviewRow label="First registered owner" value={FIRST_OWNER.name} />
-                  <ReviewRow label="Submitted by" value={DEALER.name} />
+                  <ReviewRow label="Delivery odometer" value={km(submission.deliveryKm)} />
+                  <ReviewRow label={copy.statement.firstOwnerLabel} value={firstOwner.name} />
+                  <ReviewRow label="Submitted by" value={dealer.name} />
                 </dl>
                 <div className="flex gap-2">
                   <Button type="button" variant="outline" size="lg" onClick={() => setStep(1)}>
                     Back
                   </Button>
                   <Button type="button" size="lg" onClick={submit}>
-                    Submit to ministry
+                    {copy.review.submit}
                   </Button>
                 </div>
               </div>

@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest"
 
 import { FORCE_STATES, forcedSession } from "./forceStates"
-import { activeAuthorization, EMPTY_SESSION, sessionReducer } from "./session"
-import { CLEAN_VIN, CLONED_VIN, findVehicle, NEW_VIN } from "./vehicles"
+import { activeAuthorization, EMPTY_SESSION, sessionReducer } from "@/lib/session"
+import { findVehicle } from "@/lib/vehicles"
+
+import { ca } from "."
+import { CLEAN_VIN, CLONED_VIN, NEW_VIN } from "./vehicles"
 
 const NOW = new Date("2026-09-09T14:00:00.000Z")
 
@@ -15,7 +18,7 @@ describe("forcedSession", () => {
         continue
       }
       expect(s.activeVin, key).not.toBeNull()
-      expect(findVehicle(s.activeVin!), key).toBeDefined()
+      expect(findVehicle(ca, s.activeVin!), key).toBeDefined()
       if (key === "dealerSubmitted" || key === "vehicleRegistered") {
         expect(s.registrations[s.activeVin!], key).toBeDefined()
         continue

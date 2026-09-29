@@ -13,6 +13,7 @@ import {
 import { OUTCOME_LABEL, recentRows } from "@/lib/seed"
 import { useSession } from "@/lib/session"
 import { useRegionPaths } from "@/regions/context"
+import { useRegion } from "@/regions"
 
 export function RecentLookupsTable({
   limit,
@@ -21,10 +22,11 @@ export function RecentLookupsTable({
   limit?: number
   compact?: boolean
 }) {
+  const pack = useRegion()
   const paths = useRegionPaths()
   const navigate = useNavigate()
   const [session] = useSession()
-  const rows = recentRows(session).slice(0, limit)
+  const rows = recentRows(pack, session).slice(0, limit)
   return (
     <Table>
       <TableHeader>

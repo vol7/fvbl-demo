@@ -4,6 +4,7 @@ import { SecretValue } from "@/components/SecretValue"
 import { formatDate, formatOdometer, formatRelative } from "@/lib/format"
 import { officeLabel } from "@/lib/ledger"
 import { sortedHistory, type Vehicle } from "@/lib/vehicles"
+import { useRegion } from "@/regions"
 
 /**
  * The record's facts as a property list for the rail. Owner details stay hidden
@@ -20,6 +21,7 @@ export function VehicleDetails({
   verifiedAt: Date
   now: Date
 }) {
+  const pack = useRegion()
   const registration = sortedHistory(vehicle)
     .filter((e) => e.kind === "firstRegistration" || e.kind === "transfer")
     .at(-1)
@@ -31,7 +33,7 @@ export function VehicleDetails({
     ],
     ["Registered", vehicle.registeredOn ? formatDate(vehicle.registeredOn) : "Not registered"],
     ["Office", registration ? officeLabel(registration.office) : "None"],
-    ["Odometer", formatOdometer(vehicle.odometerKm)],
+    ["Odometer", formatOdometer(vehicle.odometerKm, pack.odometerUnit)],
     ["Last inspection", vehicle.lastInspection ? formatDate(vehicle.lastInspection) : "None yet"],
     ["Active lien", vehicle.records.lien ? vehicle.records.lien.holder : "None"],
   ]

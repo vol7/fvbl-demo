@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest"
 
 import { lifecycleStops } from "./lifecycle"
-import { CLEAN_VIN, CLONED_VIN, EXPORTED_VIN, findVehicle, US_TITLE_VIN } from "./vehicles"
+import { findVehicle } from "./vehicles"
+import { CLEAN_VIN, CLONED_VIN, EXPORTED_VIN, US_TITLE_VIN } from "@/regions/ca/vehicles"
+import { ca } from "@/regions/ca"
 
 const summary = (vin: string) =>
-  lifecycleStops(findVehicle(vin)!).map((s) => `${s.title} [${s.lines.join(" / ")}] ${s.tone}`)
+  lifecycleStops(ca, findVehicle(ca, vin)!).map(
+    (s) => `${s.title} [${s.lines.join(" / ")}] ${s.tone}`
+  )
 
 describe("lifecycleStops", () => {
   it("tells a clean life from the factory to the last renewal", () => {
@@ -17,7 +21,7 @@ describe("lifecycleStops", () => {
   })
 
   it("folds consecutive renewals and ends an open export on the gap", () => {
-    const stops = lifecycleStops(findVehicle(EXPORTED_VIN)!)
+    const stops = lifecycleStops(ca, findVehicle(ca, EXPORTED_VIN)!)
     expect(stops.map((s) => s.title)).toEqual([
       "Built",
       "Entered Canada",

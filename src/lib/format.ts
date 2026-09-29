@@ -15,9 +15,11 @@ export function maskName(fullName: string): string {
     .join(" ")
 }
 
-export function formatOdometer(km: number): string {
-  const grouped = km.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")
-  return `${grouped} km`
+/** A reading in the region's unit: "31 240 km" or "19,410 mi". */
+export function formatOdometer(value: number, unit: "km" | "mi"): string {
+  const separator = unit === "km" ? " " : ","
+  const grouped = value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, separator)
+  return `${grouped} ${unit}`
 }
 
 export function formatDate(isoDate: string): string {
@@ -48,7 +50,7 @@ export function formatRelative(from: Date | string, now: Date = new Date()): str
   return `${days} day${days === 1 ? "" : "s"} ago`
 }
 
-/** A plate, or the phrase the portal uses for a vehicle the ministry has not plated yet. */
+/** A plate, or the phrase the portal uses for a vehicle the registry has not plated yet. */
 export function plateLabel(plate: string | null): string {
   return plate ?? "Not yet plated"
 }

@@ -7,6 +7,7 @@ import { useClock } from "@/hooks/useClock"
 import { formatDate, formatRelative, formatTime } from "@/lib/format"
 import { shortHash } from "@/lib/ledger"
 import { cn } from "@/lib/utils"
+import { useRegion } from "@/regions"
 
 type Props = {
   hash: string
@@ -32,6 +33,7 @@ function recorded(iso: string): string {
  * recorded, by whom and when, and that the record still matches it.
  */
 export function LedgerMark({ hash, event, source, recordedAt, label, className }: Props) {
+  const pack = useRegion()
   const checkedAt = useContext(LedgerCheckedAt)
   const now = useClock()
   const [copied, setCopied] = useState(false)
@@ -92,7 +94,7 @@ export function LedgerMark({ hash, event, source, recordedAt, label, className }
             </button>
           </dd>
           <dt className="text-muted-foreground">Ledger</dt>
-          <dd>FVBL Ontario</dd>
+          <dd>{pack.copy.portal.ledger.name}</dd>
         </dl>
         <p className="mt-3 flex items-center gap-2 rounded-md bg-emerald-50 px-2.5 py-2 font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
           <CircleCheck className="size-4 shrink-0" aria-hidden />

@@ -1,8 +1,8 @@
 /**
  * First registration of a brand-new vehicle by a dealer: the birth of the VIN.
  *
- * A separate machine from `authorization`: a registration is not a UVIP
- * request and never shares its slot. The dealer submits with the NVIS in hand;
+ * A separate machine from `authorization`: a registration is not an owner
+ * authorization and never shares its slot. The dealer submits with the NVIS in hand;
  * the submission is confirmed from the dealership's registered mobile through
  * the same SMS link the owner flow uses.
  */
@@ -45,7 +45,7 @@ export const REGISTRATION_WINDOW_MS = 24 * 60 * 60 * 1000
 
 export const NO_REGISTRATION: RegistrationState = { status: "none" }
 
-/** The MTO office string for a dealer-channel submission. */
+/** The registry office string for a dealer-channel submission. */
 export function dealerOffice(dealer: string): string {
   return `Dealer channel · ${dealer}`
 }
@@ -89,7 +89,7 @@ export function registrationReducer(
   }
 }
 
-/** Reference printed once the ministry records the registration, e.g. FVBL-R-2026-09-15-0417. */
+/** Reference printed once the registry records the registration, e.g. FVBL-R-2026-09-15-0417. */
 export function generateRegistrationRef(date: Date, random: () => number = Math.random): string {
   const mm = String(date.getMonth() + 1).padStart(2, "0")
   const dd = String(date.getDate()).padStart(2, "0")

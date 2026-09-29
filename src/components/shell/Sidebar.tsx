@@ -5,11 +5,11 @@ import { FvblMark } from "@/components/FvblMark"
 import { VinSearch } from "@/components/shell/VinSearch"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { isActive, navItems } from "@/lib/nav"
-import { OFFICE } from "@/lib/office"
 import { recentRows } from "@/lib/seed"
 import { useSession } from "@/lib/session"
 import { cn } from "@/lib/utils"
 import { useRegionPaths } from "@/regions/context"
+import { useRegion } from "@/regions"
 
 const itemClass = (active: boolean) =>
   cn(
@@ -24,10 +24,11 @@ const itemClass = (active: boolean) =>
  * workspace, search lives here, and the demo vehicles are one click away under Recent.
  */
 export function Sidebar() {
+  const pack = useRegion()
   const paths = useRegionPaths()
   const { pathname } = useLocation()
   const [session] = useSession()
-  const recent = recentRows(session).filter((row) => row.live)
+  const recent = recentRows(pack, session).filter((row) => row.live)
 
   return (
     <aside className="flex h-svh w-60 shrink-0 flex-col px-2 py-2.5">
@@ -38,7 +39,7 @@ export function Sidebar() {
         <FvblMark className="h-7 w-auto" />
         <span className="flex min-w-0 flex-col leading-tight">
           <span className="text-sm font-semibold">FVBL</span>
-          <span className="truncate text-xs text-muted-foreground">{OFFICE.name}</span>
+          <span className="truncate text-xs text-muted-foreground">{pack.office.name}</span>
         </span>
       </Link>
 
@@ -96,12 +97,12 @@ export function Sidebar() {
       <div className="flex items-center gap-2.5 px-2 pt-2">
         <Avatar>
           <AvatarFallback className="bg-primary/10 text-xs font-medium text-primary">
-            {OFFICE.initials}
+            {pack.office.initials}
           </AvatarFallback>
         </Avatar>
         <div className="flex min-w-0 flex-1 flex-col leading-tight">
-          <span className="truncate text-sm font-medium">{OFFICE.clerkFullName}</span>
-          <span className="truncate text-xs text-muted-foreground">{OFFICE.counter}</span>
+          <span className="truncate text-sm font-medium">{pack.office.clerkFullName}</span>
+          <span className="truncate text-xs text-muted-foreground">{pack.office.counter}</span>
         </div>
         <Link
           to={paths.portal.signIn}

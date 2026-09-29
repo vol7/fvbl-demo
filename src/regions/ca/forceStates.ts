@@ -2,10 +2,11 @@ import {
   AUTHORIZATION_WINDOW_MS,
   PREAPPROVAL_VALIDITY_MS,
   type AuthorizationState,
-} from "./authorization"
+} from "@/lib/authorization"
+import { dealerOffice, REGISTRATION_WINDOW_MS, type RegistrationState } from "@/lib/registration"
+import type { SessionState } from "@/lib/session"
+
 import { BUYER, DEALER, FIRST_OWNER } from "./people"
-import { dealerOffice, REGISTRATION_WINDOW_MS, type RegistrationState } from "./registration"
-import type { SessionState } from "./session"
 import { CLEAN_VIN, CLONED_VIN, NEW_VIN } from "./vehicles"
 
 /** Demo-control shortcuts: jump the session straight to a state for a re-shoot. */

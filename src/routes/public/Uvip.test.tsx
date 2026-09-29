@@ -4,9 +4,9 @@ import { createMemoryRouter, RouterProvider } from "react-router"
 import { describe, expect, it } from "vitest"
 
 import { getSessionStore } from "@/lib/session"
-import { CLEAN_VIN, CLONED_VIN } from "@/lib/vehicles"
 import { UvipBuyer } from "./UvipBuyer"
 import { UvipOwner } from "./UvipOwner"
+import { CLEAN_VIN, CLONED_VIN } from "@/regions/ca/vehicles"
 
 function renderAt(path: string, element: React.ReactNode) {
   const router = createMemoryRouter([{ path, element }], { initialEntries: [path] })

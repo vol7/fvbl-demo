@@ -1,7 +1,8 @@
 import { Check, CircleAlert, CircleX, type LucideIcon } from "lucide-react"
 
-import { failingChecks, INTEGRATIONS, type Check as RecordCheck } from "@/lib/checks"
+import { failingChecks, type Check as RecordCheck } from "@/lib/checks"
 import { cn } from "@/lib/utils"
+import { useRegion } from "@/regions"
 
 type Tone = "high" | "low" | "pass"
 
@@ -58,6 +59,7 @@ const TONE: Record<
  * risk, passed. The pills only say that a source answered; what it found is in the rows.
  */
 export function RecordChecks({ checks }: { checks: RecordCheck[] }) {
+  const pack = useRegion()
   const failing = failingChecks(checks)
   const high = failing.filter((c) => c.severity === "high")
   const low = failing.filter((c) => c.severity === "low")
@@ -118,10 +120,10 @@ export function RecordChecks({ checks }: { checks: RecordCheck[] }) {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
         <p className="text-[13px] font-medium text-foreground">
-          All {INTEGRATIONS.length} sources answered
+          All {pack.checks.integrations.length} sources answered
         </p>
         <ul aria-label="Sources" className="flex flex-wrap gap-1.5">
-          {INTEGRATIONS.map((source) => (
+          {pack.checks.integrations.map((source) => (
             <li
               key={source.name}
               title={source.detail}

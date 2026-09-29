@@ -1,3 +1,5 @@
+import type { RegionPack } from "@/regions/types"
+
 import { daysBetween, formatDate, formatDuration, formatOdometer } from "./format"
 import { isDealerChannel, officeLabel } from "./ledger"
 import { openExport, sortedHistory, type Vehicle, type VehicleEvent } from "./vehicles"
@@ -32,7 +34,7 @@ const within = (date: string, since: string, until: string | null) =>
  * owner can be revealed, and that happens in the view. Notes say what happened on
  * each owner's watch, in whole sentences.
  */
-export function ownershipPeriods(vehicle: Vehicle, today: string): Ownership[] {
+export function ownershipPeriods(pack: RegionPack, vehicle: Vehicle, today: string): Ownership[] {
   const history = sortedHistory(vehicle)
   const starts = history.filter(
     (e): e is Start => e.kind === "firstRegistration" || e.kind === "transfer"
@@ -51,7 +53,7 @@ export function ownershipPeriods(vehicle: Vehicle, today: string): Ownership[] {
           notes.push({
             tone: "bad",
             kind: "exported",
-            text: `CBSA recorded a vehicle with this VIN leaving Canada on ${formatDate(e.date)}, while it was registered to this owner.${e === open && until === null ? " The MTO has no sale or transfer on file." : ""}`,
+            text: pack.copy.portal.ownersExported(formatDate(e.date), e === open && until === null),
           })
         }
       }
@@ -115,7 +117,8 @@ export function ownershipPeriods(vehicle: Vehicle, today: string): Ownership[] {
               ? "New, dealer submission"
               : "New vehicle",
         office: officeLabel(start.office),
-        odometerAtStart: reading?.kind === "odometer" ? formatOdometer(reading.km) : null,
+        odometerAtStart:
+          reading?.kind === "odometer" ? formatOdometer(reading.km, pack.odometerUnit) : null,
         notes,
       }
     })

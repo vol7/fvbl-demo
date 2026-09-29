@@ -1,13 +1,15 @@
 import { describe, expect, it } from "vitest"
 
 import { ownershipPeriods } from "./owners"
-import { CLEAN_VIN, CLONED_VIN, EXPORTED_VIN, findVehicle } from "./vehicles"
+import { findVehicle } from "./vehicles"
+import { CLEAN_VIN, CLONED_VIN, EXPORTED_VIN } from "@/regions/ca/vehicles"
+import { ca } from "@/regions/ca"
 
 const TODAY = "2026-09-23"
 
 describe("ownershipPeriods", () => {
   it("has one current owner for the clean vehicle, with its renewal", () => {
-    const [owner, ...rest] = ownershipPeriods(findVehicle(CLEAN_VIN)!, TODAY)
+    const [owner, ...rest] = ownershipPeriods(ca, findVehicle(ca, CLEAN_VIN)!, TODAY)
     expect(rest).toEqual([])
     expect(owner).toMatchObject({
       number: 1,
@@ -25,7 +27,7 @@ describe("ownershipPeriods", () => {
   })
 
   it("puts the export on the current owner's watch, with no sale on file", () => {
-    const [owner] = ownershipPeriods(findVehicle(EXPORTED_VIN)!, TODAY)
+    const [owner] = ownershipPeriods(ca, findVehicle(ca, EXPORTED_VIN)!, TODAY)
     expect(owner.notes).toEqual([
       {
         tone: "bad",
@@ -36,7 +38,7 @@ describe("ownershipPeriods", () => {
   })
 
   it("lists owners newest first and ties the transfer to the write-off", () => {
-    const [current, first] = ownershipPeriods(findVehicle(CLONED_VIN)!, TODAY)
+    const [current, first] = ownershipPeriods(ca, findVehicle(ca, CLONED_VIN)!, TODAY)
     expect(current).toMatchObject({ number: 2, current: true, acquired: "Transfer" })
     expect(current.notes[0].text).toBe(
       "The transfer came 67 days after the insurer write-off. On the same day, this VIN became active on plate CRHM 118."

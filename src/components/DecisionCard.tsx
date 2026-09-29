@@ -18,13 +18,13 @@ import { LedgerMark } from "@/components/LedgerMark"
 import { RequestDialog, type ApplicantDetails } from "@/components/RequestDialog"
 import { Button } from "@/components/ui/button"
 import type { AuthorizationState } from "@/lib/authorization"
-import { failingChecks, highRiskChecks, INTEGRATIONS, type Check } from "@/lib/checks"
+import { failingChecks, highRiskChecks, type Check } from "@/lib/checks"
 import { formatDate, formatTime } from "@/lib/format"
-import { authorizationCertificates, HISTORY_TITLE, ledgerEntries } from "@/lib/ledger"
-import { OFFICE } from "@/lib/office"
+import { authorizationCertificates, ledgerEntries } from "@/lib/ledger"
 import { recordStory } from "@/lib/story"
 import { cn } from "@/lib/utils"
 import { sortedHistory, type Vehicle } from "@/lib/vehicles"
+import { useRegion } from "@/regions"
 
 type Tone = "neutral" | "success" | "info" | "warning" | "danger"
 
@@ -75,16 +75,19 @@ type Body = {
 }
 
 /**
- * The answer to "can this package be issued?", with the reason and the one thing the
+ * The answer to "can this be issued?", with the reason and the one thing the
  * clerk does next. The strip underneath names what the platform checked: the record
  * checks, the owner's consent, and the vehicle's last recorded event.
  */
 export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEscalate }: Props) {
+  const pack = useRegion()
+  const copy = pack.copy.decision
+  const { office } = pack
   const n = checks.length
   const failing = failingChecks(checks)
   const high = highRiskChecks(checks)
-  const story = recordStory(vehicle, checks)
-  const certificates = authorizationCertificates(vehicle, state)
+  const story = recordStory(pack, vehicle, checks)
+  const certificates = authorizationCertificates(pack, vehicle, state)
   const last4 = vehicle.owner.phoneLast4
 
   const body = ((): Body => {
@@ -93,22 +96,22 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
         return {
           tone: "success",
           icon: CircleCheck,
-          label: "Checks clear",
-          title: "Ready to request owner authorization",
-          text: `All ${n} record checks passed. The registered owner gets a text at the phone ending in ${last4} with a link to approve or decline.`,
+          label: copy.idle.label,
+          title: copy.idle.title,
+          text: copy.idle.text(n, last4),
           action: <RequestDialog ownerPhoneLast4={last4} onRequest={onRequest} />,
         }
       case "pending":
         return {
           tone: "info",
           icon: Clock,
-          label: "Awaiting owner",
-          title: "Waiting for the registered owner",
+          label: copy.pending.label,
+          title: copy.pending.title,
           text: (
             <>
               {state.origin === "buyer"
-                ? `${state.requester} requested it online through ServiceOntario at ${formatTime(state.sentAt)}.`
-                : `A text went to the phone ending in ${last4} at ${formatTime(state.sentAt)}.`}{" "}
+                ? copy.pending.fromBuyer(state.requester, formatTime(state.sentAt))
+                : copy.pending.fromCounter(last4, formatTime(state.sentAt))}{" "}
               The link expires in <Countdown expiresAt={state.expiresAt} />.
             </>
           ),
@@ -118,26 +121,30 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
           return {
             tone: "success",
             icon: CircleCheck,
-            label: "Package issued",
-            title: "Used Vehicle Information Package issued",
-            text: `${OFFICE.clerkFullName} issued the package at ${formatTime(state.issued.at)} under authorization ${state.authorizationCode}.`,
+            label: copy.issued.label,
+            title: copy.issued.title,
+            text: copy.issued.text(
+              office.clerkFullName,
+              formatTime(state.issued.at),
+              state.authorizationCode
+            ),
             reference: state.issued.packageNumber,
           }
         }
         return {
           tone: "success",
           icon: ShieldCheck,
-          label: "Authorized to issue",
-          title:
-            state.origin === "owner"
-              ? "The registered owner pre-approved this sale"
-              : "The registered owner approved this request",
+          label: copy.authorized.label,
+          title: state.origin === "owner" ? copy.authorized.titleOwner : copy.authorized.titleOther,
           text:
             state.origin === "owner"
-              ? `The owner pre-approved it online through ServiceOntario on ${formatDate(state.approvedAt.slice(0, 10))}. The approval is valid until ${formatDate(state.validUntil.slice(0, 10))}.`
+              ? copy.authorized.textOwner(
+                  formatDate(state.approvedAt.slice(0, 10)),
+                  formatDate(state.validUntil.slice(0, 10))
+                )
               : state.origin === "buyer"
-                ? `${state.requester} requested it online through ServiceOntario. The owner approved it at ${formatTime(state.approvedAt)} from the link in the text message.`
-                : `The owner approved it at ${formatTime(state.approvedAt)} from the link in the text message.`,
+                ? copy.authorized.textBuyer(state.requester, formatTime(state.approvedAt))
+                : copy.authorized.textCounter(formatTime(state.approvedAt)),
           reference: state.authorizationCode,
           action: (
             <Button
@@ -146,7 +153,7 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
               onClick={onIssue}
             >
               <FileCheck data-icon="inline-start" aria-hidden />
-              Issue package
+              {copy.authorized.issueAction}
             </Button>
           ),
         }
@@ -155,19 +162,16 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
         return {
           tone: "warning",
           icon: Snowflake,
-          label: state.reason === "denied" ? "Owner denied" : "Request expired",
-          title:
-            state.reason === "denied"
-              ? "The registered owner denied this request"
-              : "The owner did not respond within 24 hours",
-          text: `The transaction is frozen and flagged for security review. Recorded at ${formatTime(state.frozenAt)}.`,
+          label: state.reason === "denied" ? copy.frozen.labelDenied : copy.frozen.labelTimeout,
+          title: state.reason === "denied" ? copy.frozen.titleDenied : copy.frozen.titleTimeout,
+          text: copy.frozen.text(formatTime(state.frozenAt)),
         }
       case "blocked":
         return {
           tone: "danger",
           icon: ShieldAlert,
-          label: "Hold, do not issue",
-          title: story?.title ?? "A record check failed",
+          label: copy.blocked.label,
+          title: story?.title ?? copy.blocked.fallbackTitle,
           text: story?.body ?? "",
           foot: story?.foot,
           action: (
@@ -177,7 +181,7 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
               onClick={onEscalate}
             >
               <Siren data-icon="inline-start" aria-hidden />
-              Refer for investigation
+              {copy.blocked.referAction}
             </Button>
           ),
         }
@@ -185,10 +189,15 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
         return {
           tone: "danger",
           icon: ShieldAlert,
-          label: "Referred, do not issue",
-          title: "Referred to MTO Investigations",
-          // Who and when once, what happens next once.
-          text: `${story?.title ?? "A record check failed"}. ${OFFICE.clerkFullName} referred it at ${formatTime(state.escalatedAt)} from ${OFFICE.counter.replace(" ", "\u00a0")}.${story ? ` MTO Investigations notifies ${story.notifyAfterReview} after review.` : ""}`,
+          label: copy.escalated.label,
+          title: copy.escalated.title,
+          text: copy.escalated.text({
+            story: story?.title ?? copy.blocked.fallbackTitle,
+            clerk: office.clerkFullName,
+            time: formatTime(state.escalatedAt),
+            counter: office.counter.replace(" ", "\u00a0"),
+            notifyAfterReview: story?.notifyAfterReview ?? null,
+          }),
           referenceLabel: "Case",
           reference: state.caseReference,
           extra: (
@@ -198,11 +207,10 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
                   className="mt-0.5 size-4 shrink-0 text-destructive"
                   aria-hidden
                 />
-                Tell the customer the record needs verifying. Do not share the reason.
+                {copy.escalated.customerNote}
               </p>
               <p className="pl-6 text-muted-foreground">
-                Sent with the file: the vehicle record and history, {n} record check results and{" "}
-                {ledgerEntries(vehicle, state).length} ledger certificates.
+                {copy.escalated.sentWith(n, ledgerEntries(pack, vehicle, state).length)}
               </p>
             </div>
           ),
@@ -222,13 +230,13 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
           value: `${failing.length} of ${n} failed`,
           detail: high.length ? `${high.length} high risk` : `${failing.length} low risk`,
         }
-      : { value: `All ${n} passed`, detail: `${INTEGRATIONS.length} sources answered` }
+      : { value: `All ${n} passed`, detail: `${pack.checks.integrations.length} sources answered` }
 
   const approval = certificates.approved ?? certificates.preapproved
   const authCell = ((): Cell => {
     switch (state.status) {
       case "idle":
-        return { value: "Not yet requested", detail: `Texts the phone ending in ${last4}` }
+        return { value: copy.strip.idle.value, detail: copy.strip.idle.detail(last4) }
       case "pending":
         return {
           value: "Awaiting reply",
@@ -266,7 +274,7 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
           : { value: "Expired", detail: "No response in 24 hours" }
       case "blocked":
       case "escalated":
-        return { value: "Unavailable", detail: "Until the checks clear" }
+        return copy.strip.unavailable
     }
   })()
 
@@ -275,7 +283,7 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
     .at(-1)
 
   return (
-    <section aria-label="Package decision" className="flex flex-col gap-3">
+    <section aria-label={copy.ariaLabel} className="flex flex-col gap-3">
       <div
         role="status"
         className={cn(
@@ -311,12 +319,12 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <StripCell icon={ListChecks} label="Record checks" {...checksCell} />
-        <StripCell icon={UserRound} label="Owner authorization" {...authCell} />
+        <StripCell icon={ListChecks} label={copy.strip.checks} {...checksCell} />
+        <StripCell icon={UserRound} label={copy.strip.authorization} {...authCell} />
         <StripCell
           icon={History}
-          label="Last recorded event"
-          value={lastEvent ? HISTORY_TITLE[lastEvent.kind] : "Nothing recorded"}
+          label={copy.strip.lastEvent}
+          value={lastEvent ? pack.copy.portal.historyTitle[lastEvent.kind] : "Nothing recorded"}
           detail={lastEvent ? formatDate(lastEvent.date) : "No events on the ledger yet"}
         />
       </div>

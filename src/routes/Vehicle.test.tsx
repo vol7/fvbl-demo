@@ -4,9 +4,9 @@ import { createMemoryRouter, RouterProvider } from "react-router"
 import { describe, expect, it } from "vitest"
 
 import { getSessionStore } from "@/lib/session"
-import { CLEAN_VIN, CLONED_VIN, EXPORTED_VIN, NEW_VIN } from "@/lib/vehicles"
 import { Vehicle } from "./Vehicle"
 import { regionPaths } from "@/lib/paths"
+import { CLEAN_VIN, CLONED_VIN, EXPORTED_VIN, NEW_VIN } from "@/regions/ca/vehicles"
 
 const paths = regionPaths("ca")
 

@@ -6,9 +6,10 @@ import { StatusBar } from "@/components/phone/PhoneChrome"
 import { formatDate, formatTime } from "@/lib/format"
 import { useSession } from "@/lib/session"
 import { liveThread, type Thread } from "@/lib/thread"
-import { smsLink } from "@/lib/sms"
 import { cn } from "@/lib/utils"
+import { fill } from "@/lib/fill"
 import { vehicleTitle } from "@/lib/vehicles"
+import { useRegion } from "@/regions"
 
 const BUBBLE_ENTER = { duration: 0.22, ease: "easeOut" } as const
 
@@ -18,8 +19,8 @@ function Bubble({
   caption,
   delay = 0,
 }: {
-  /** The ministry's messages sit left; whoever holds the phone (owner or dealership) sits right. */
-  from: "mto" | "them"
+  /** The sender's messages sit left; whoever holds the phone (owner or dealership) sits right. */
+  from: "sender" | "them"
   children: React.ReactNode
   caption?: string
   delay?: number
@@ -54,6 +55,7 @@ function Separator({ children }: { children: React.ReactNode }) {
 }
 
 function Header() {
+  const { phone } = useRegion().copy
   return (
     <div className="flex flex-col items-center gap-1 border-b border-black/10 bg-[#f6f6f7]/95 px-4 pt-1 pb-2.5 backdrop-blur">
       <div className="flex w-full items-center justify-between">
@@ -65,11 +67,11 @@ function Header() {
       </div>
       <div className="-mt-5 flex flex-col items-center gap-1">
         {/* Business sender: iOS shows the sender's icon, not a contact initial. The texts come
-            from MTO, a name the owner already trusts; an unfamiliar "FVBL" reads as phishing. */}
+            from a name the owner already trusts; an unfamiliar "FVBL" reads as phishing. */}
         <span className="flex size-12 items-center justify-center rounded-[11px] bg-gradient-to-b from-[#0b3a6b] to-[#081527] text-[15px] font-bold tracking-wide text-white shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.18)]">
-          MTO
+          {phone.senderIcon}
         </span>
-        <span className="text-[12px] text-black">MTO ›</span>
+        <span className="text-[12px] text-black">{phone.sender} ›</span>
       </div>
     </div>
   )
@@ -77,15 +79,14 @@ function Header() {
 
 /** An older service message, so the thread does not start with the live request. */
 function ContextBubble({ thread }: { thread: Thread | null }) {
+  const { phone } = useRegion().copy
   if (thread?.kind === "registration") {
     // The dealership's phone: its previous registration, another vehicle.
+    const { date, text } = phone.dealerHistory
     return (
       <>
-        <Separator>{formatDate("2026-09-08")}</Separator>
-        <Bubble from="mto">
-          MTO: Registration FVBL-R-2026-09-08-2291 for a 2026 Mercedes-Benz GLC 300 4MATIC was
-          recorded on {formatDate("2026-09-08")}. Reply STOP to opt out of service messages.
-        </Bubble>
+        <Separator>{formatDate(date)}</Separator>
+        <Bubble from="sender">{fill(text, { date: formatDate(date) })}</Bubble>
       </>
     )
   }
@@ -98,10 +99,7 @@ function ContextBubble({ thread }: { thread: Thread | null }) {
   return (
     <>
       <Separator>{formatDate(renewed)}</Separator>
-      <Bubble from="mto">
-        MTO: Your Ontario registration for plate {plate} was renewed on {formatDate(renewed)}. No
-        action is needed. Reply STOP to opt out of service messages.
-      </Bubble>
+      <Bubble from="sender">{phone.ownerHistory(plate, formatDate(renewed))}</Bubble>
     </>
   )
 }
@@ -115,43 +113,56 @@ function RegistrationThread({
   onOpen: () => void
 }) {
   const { vehicle, state } = thread
+  const pack = useRegion()
+  const { phone } = pack.copy
   return (
     <>
       <Separator>Today {formatTime(state.sentAt)}</Separator>
-      <Bubble from="mto">
-        MTO: {state.dealer} submitted the first registration of a {vehicleTitle(vehicle)} (VIN …
-        {vehicle.vin.slice(-4)}) to the ministry. Confirm this submission:{" "}
-        <button
-          type="button"
-          onClick={onOpen}
-          className="font-normal break-all text-[#0a84ff] underline decoration-[#0a84ff]/60 underline-offset-2"
-        >
-          {smsLink(state.link)}
-        </button>
-        . Expires in 24 hours.
+      <Bubble from="sender">
+        {fill(
+          phone.registrationRequest(state.dealer, vehicleTitle(vehicle), vehicle.vin.slice(-4)),
+          {
+            link: <SmsLink onClick={onOpen}>{pack.sms.link(state.link)}</SmsLink>,
+          }
+        )}
       </Bubble>
 
       {state.status === "registered" ? (
-        <Bubble from="mto" delay={0.3}>
-          Confirmed. Registration{" "}
-          <span className="font-semibold tracking-wide">{state.registrationRef}</span> is recorded
-          and the vehicle's ledger has been opened.
+        <Bubble from="sender" delay={0.3}>
+          {fill(phone.registrationConfirmed, {
+            ref: <span className="font-semibold tracking-wide">{state.registrationRef}</span>,
+          })}
         </Bubble>
       ) : null}
 
       {state.status === "declined" ? (
-        <Bubble from="mto" delay={0.3}>
-          Understood. The submission has been withdrawn. Nothing was recorded.
+        <Bubble from="sender" delay={0.3}>
+          {phone.registrationDeclined}
         </Bubble>
       ) : null}
     </>
   )
 }
 
+/** The tappable link inside a text. */
+function SmsLink({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="font-normal break-all text-[#0a84ff] underline decoration-[#0a84ff]/60 underline-offset-2"
+    >
+      {children}
+    </button>
+  )
+}
+
 export function PhoneScreen() {
+  const pack = useRegion()
+  const { phone } = pack.copy
   const [session] = useSession()
   const navigate = useNavigate()
-  const thread = liveThread(session)
+  const thread = liveThread(pack, session)
 
   return (
     <div
@@ -184,41 +195,44 @@ export function PhoneScreen() {
                 initial={false}
               >
                 <Separator>Today {formatTime(thread.state.sentAt)}</Separator>
-                <Bubble from="mto">
-                  MTO: A Used Vehicle Information Package was requested for your{" "}
-                  {vehicleTitle(thread.vehicle)} (plate {thread.vehicle.plate}) by{" "}
-                  {thread.state.requester}. Review and approve or decline:{" "}
-                  <button
-                    type="button"
-                    onClick={() => navigate("confirm")}
-                    className="font-normal break-all text-[#0a84ff] underline decoration-[#0a84ff]/60 underline-offset-2"
-                  >
-                    {smsLink(thread.state.link)}
-                  </button>
-                  . Expires in 24 hours.
+                <Bubble from="sender">
+                  {fill(
+                    phone.authorizationRequest(
+                      vehicleTitle(thread.vehicle),
+                      thread.vehicle.plate ?? "",
+                      thread.state.requester
+                    ),
+                    {
+                      link: (
+                        <SmsLink onClick={() => navigate("confirm")}>
+                          {pack.sms.link(thread.state.link)}
+                        </SmsLink>
+                      ),
+                    }
+                  )}
                 </Bubble>
 
                 {thread.state.status === "authorized" ? (
-                  <Bubble from="mto" delay={0.3}>
-                    Thanks — your authorization has been recorded. Reference{" "}
-                    <span className="font-semibold tracking-wide">
-                      {thread.state.authorizationCode}
-                    </span>
-                    . It is valid for 30 days.
+                  <Bubble from="sender" delay={0.3}>
+                    {fill(phone.authorized, {
+                      code: (
+                        <span className="font-semibold tracking-wide">
+                          {thread.state.authorizationCode}
+                        </span>
+                      ),
+                    })}
                   </Bubble>
                 ) : null}
 
                 {thread.state.status === "frozen" && thread.state.reason === "denied" ? (
-                  <Bubble from="mto" delay={0.3}>
-                    Understood. The request was declined and the transaction has been flagged for
-                    review. No package will be issued.
+                  <Bubble from="sender" delay={0.3}>
+                    {phone.denied}
                   </Bubble>
                 ) : null}
 
                 {thread.state.status === "frozen" && thread.state.reason === "timeout" ? (
-                  <Bubble from="mto" delay={0.2}>
-                    This request expired with no response. The transaction has been frozen and
-                    flagged for review.
+                  <Bubble from="sender" delay={0.2}>
+                    {phone.timeout}
                   </Bubble>
                 ) : null}
               </motion.div>

@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { BUYER } from "@/lib/people"
+import { useRegion } from "@/regions"
 
 /** What the clerk types before requesting owner authorization. */
 export type ApplicantDetails = { name: string; licence: string; mobile: string }
@@ -61,13 +61,16 @@ export function RequestDialog({
   ownerPhoneLast4: string
   onRequest: (applicant: ApplicantDetails) => void
 }) {
-  const [name, setName] = useState<string>(BUYER.name)
-  const [licence, setLicence] = useState<string>(BUYER.licence)
-  const [mobile, setMobile] = useState<string>(BUYER.mobile)
+  const pack = useRegion()
+  const [name, setName] = useState<string>(pack.people.buyer.name)
+  const [licence, setLicence] = useState<string>(pack.people.buyer.licence)
+  const [mobile, setMobile] = useState<string>(pack.people.buyer.mobile)
 
   return (
     <Dialog>
-      <DialogTrigger render={<Button size="lg" className="px-4 has-data-[icon=inline-start]:pl-3.5" />}>
+      <DialogTrigger
+        render={<Button size="lg" className="px-4 has-data-[icon=inline-start]:pl-3.5" />}
+      >
         <Send data-icon="inline-start" aria-hidden />
         Request owner authorization
       </DialogTrigger>
@@ -84,7 +87,7 @@ export function RequestDialog({
           <div className="grid gap-4 sm:grid-cols-2">
             <Field
               id="applicant-licence"
-              label="Driver's licence"
+              label={pack.copy.portal.request.licenceLabel}
               value={licence}
               onChange={setLicence}
               mono

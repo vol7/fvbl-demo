@@ -19,11 +19,10 @@ import {
   generateCaseReference,
   generateLinkToken,
   generateOtp,
-  generatePackageNumber,
+  generateIssuedNumber,
 } from "@/lib/authorization"
 import { allPass, evaluateChecks } from "@/lib/checks"
 import { ledgerEntries } from "@/lib/ledger"
-import { OFFICE } from "@/lib/office"
 import type { RegistrationState } from "@/lib/registration"
 import { registrationState, useSession, vehicleState } from "@/lib/session"
 import {
@@ -33,6 +32,7 @@ import {
   type Vehicle as VehicleRecord,
 } from "@/lib/vehicles"
 import { useRegionPaths } from "@/regions/context"
+import { useRegion } from "@/regions"
 
 const TABS: VehicleTab[] = ["checks", "history", "ownership"]
 
@@ -41,13 +41,14 @@ function isTab(value: string | null): value is VehicleTab {
 }
 
 export function Vehicle() {
+  const pack = useRegion()
   const paths = useRegionPaths()
   const { vin = "" } = useParams<{ vin: string }>()
   const [session] = useSession()
-  const found = findVehicle(vin)
+  const found = findVehicle(pack, vin)
   const registration = registrationState(session, found?.vin ?? vin)
   // The registry's view: a confirmed dealer submission becomes the first history events.
-  const vehicle = found ? bornVehicle(found, registration) : undefined
+  const vehicle = found ? bornVehicle(pack, found, registration) : undefined
 
   if (!vehicle) {
     return (
@@ -69,7 +70,7 @@ export function Vehicle() {
   return <VehicleView key={vehicle.vin} vehicle={vehicle} registration={registration} />
 }
 
-/** The VIN decodes but the ministry has never registered it. Nothing to check yet. */
+/** The VIN decodes but the registry has never registered it. Nothing to check yet. */
 function UnregisteredVehicle({
   vehicle,
   registration,
@@ -77,6 +78,7 @@ function UnregisteredVehicle({
   vehicle: VehicleRecord
   registration: RegistrationState
 }) {
+  const pack = useRegion()
   const paths = useRegionPaths()
   return (
     <Card className="mx-auto max-w-lg">
@@ -92,8 +94,8 @@ function UnregisteredVehicle({
         </div>
         <p className="text-sm text-muted-foreground">
           This VIN decodes to a {vehicle.year} {vehicle.make} {vehicle.model} but has{" "}
-          <span className="font-medium text-foreground">no registration on file</span> with the
-          ministry or any other jurisdiction. Record checks run once it is registered.
+          <span className="font-medium text-foreground">{pack.copy.portal.unregistered.title}</span>{" "}
+          {pack.copy.portal.unregistered.text}
         </p>
         {registration.status === "pending" ? (
           <p
@@ -118,7 +120,8 @@ function VehicleView({
   vehicle: VehicleRecord
   registration: RegistrationState
 }) {
-  const checks = useMemo(() => evaluateChecks(vehicle), [vehicle])
+  const pack = useRegion()
+  const checks = useMemo(() => evaluateChecks(pack, vehicle), [pack, vehicle])
   const canRequest = allPass(checks)
   const [session, dispatch] = useSession()
   const now = useClock()
@@ -159,7 +162,12 @@ function VehicleView({
       at: stamp(),
     })
   const onIssue = () =>
-    dispatch({ type: "issue", vin, packageNumber: generatePackageNumber(new Date()), at: stamp() })
+    dispatch({
+      type: "issue",
+      vin,
+      packageNumber: generateIssuedNumber(pack.references.issued, new Date()),
+      at: stamp(),
+    })
   const onEscalate = () =>
     dispatch({
       type: "escalate",
@@ -170,8 +178,8 @@ function VehicleView({
     })
 
   const events = [
-    ...registrationActivity(vehicle, registration),
-    ...deriveActivity(state, openedAt, OFFICE.clerk, vehicle),
+    ...registrationActivity(pack, vehicle, registration),
+    ...deriveActivity(pack, state, openedAt, pack.office.clerk, vehicle),
   ].sort((a, b) => a.at.localeCompare(b.at))
 
   // The ledger last verified this record a few minutes before the page opened, unless
@@ -233,7 +241,7 @@ function VehicleView({
         >
           <VehicleDetails
             vehicle={vehicle}
-            ledgerEvents={ledgerEntries(vehicle, state).length}
+            ledgerEvents={ledgerEntries(pack, vehicle, state).length}
             verifiedAt={verifiedAt}
             now={now}
           />

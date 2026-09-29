@@ -31,6 +31,8 @@ import {
   type Vehicle,
   type VehicleEvent,
 } from "@/lib/vehicles"
+import { useRegion } from "@/regions"
+import type { RegionPack } from "@/regions/types"
 
 const EVENT_ICON: Record<VehicleEvent["kind"], LucideIcon> = {
   import: PlaneLanding,
@@ -57,14 +59,14 @@ const STOP_ICON: Record<StopKind, LucideIcon> = {
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
-function titleFor(event: VehicleEvent): string {
+function titleFor(pack: RegionPack, event: VehicleEvent): string {
   switch (event.kind) {
     case "import":
-      return `Entered Canada from ${event.from}`
+      return pack.copy.portal.timeline.entered(event.from)
     case "customsEntry":
       return "Cleared customs"
     case "export":
-      return "Exported from Canada"
+      return pack.copy.portal.timeline.exported
     case "firstRegistration":
       return "First registration"
     case "transfer":
@@ -72,7 +74,7 @@ function titleFor(event: VehicleEvent): string {
     case "renewal":
       return "Registration renewed"
     case "odometer":
-      return `Odometer ${formatOdometer(event.km)}`
+      return `Odometer ${formatOdometer(event.km, pack.odometerUnit)}`
   }
 }
 
@@ -183,20 +185,21 @@ const ROW = {
 } as const
 
 /**
- * The vehicle's chronology across Transport Canada, CBSA and the MTO. The strip on top
+ * The vehicle's chronology across border agencies and the registry. The strip on top
  * is the life at a glance; the list is every event, newest first, grouped by year.
  * Milestones get an icon tile, renewals and readings are lighter lines, and every
  * entry carries its ledger certificate. The list ends on where the vehicle was built,
  * from the VIN decode, which is not on the ledger.
  */
 export function VehicleTimeline({ vehicle }: { vehicle: Vehicle }) {
+  const pack = useRegion()
   const reduceMotion = useReducedMotion()
   const checkedAt = useContext(LedgerCheckedAt)
   const now = useClock()
   const history = sortedHistory(vehicle)
-  const certificates = historyCertificates(vehicle)
+  const certificates = historyCertificates(pack, vehicle)
   const flagged = openExport(vehicle)
-  const stops = lifecycleStops(vehicle)
+  const stops = lifecycleStops(pack, vehicle)
 
   // Newest first. On a shared date the event leads and its odometer reading follows,
   // so a reading sits under the renewal or delivery it was taken at.
@@ -280,7 +283,7 @@ export function VehicleTimeline({ vehicle }: { vehicle: Vehicle }) {
                             bad && "text-destructive"
                           )}
                         >
-                          {titleFor(event)}
+                          {titleFor(pack, event)}
                         </span>
                         <span className="text-[13px] text-muted-foreground">
                           {detailFor(event, bad)}
@@ -297,7 +300,7 @@ export function VehicleTimeline({ vehicle }: { vehicle: Vehicle }) {
                       <span className="pt-0.5">
                         <LedgerMark
                           hash={hash}
-                          event={titleFor(event)}
+                          event={titleFor(pack, event)}
                           source={event.agency}
                           recordedAt={event.date}
                         />

@@ -2,12 +2,6 @@ import { describe, expect, it } from "vitest"
 
 import { isValidVin } from "./format"
 import {
-  CLEAN_VIN,
-  CLONED_VIN,
-  DEMO_VEHICLES,
-  EXPORTED_VIN,
-  NEW_VIN,
-  US_TITLE_VIN,
   bornVehicle,
   countryOfOrigin,
   findVehicle,
@@ -15,6 +9,15 @@ import {
   openExport,
   vehicleTitle,
 } from "./vehicles"
+import {
+  CLEAN_VIN,
+  CLONED_VIN,
+  DEMO_VEHICLES,
+  EXPORTED_VIN,
+  NEW_VIN,
+  US_TITLE_VIN,
+} from "@/regions/ca/vehicles"
+import { ca } from "@/regions/ca"
 
 describe("DEMO_VEHICLES", () => {
   it("contains five vehicles with valid, unique VINs", () => {
@@ -25,9 +28,9 @@ describe("DEMO_VEHICLES", () => {
   })
 
   it("has a clean Mercedes, a cloned Highlander and an exported Range Rover", () => {
-    const clean = findVehicle(CLEAN_VIN)!
-    const cloned = findVehicle(CLONED_VIN)!
-    const exported = findVehicle(EXPORTED_VIN)!
+    const clean = findVehicle(ca, CLEAN_VIN)!
+    const cloned = findVehicle(ca, CLONED_VIN)!
+    const exported = findVehicle(ca, EXPORTED_VIN)!
     expect(clean.make).toBe("Mercedes-AMG")
     expect(Object.values(clean.records).every((r) => r === null)).toBe(true)
     expect(cloned.model).toBe("Highlander")
@@ -41,7 +44,7 @@ describe("DEMO_VEHICLES", () => {
   })
 
   it("has a Lexus whose only flag is an active Pennsylvania title", () => {
-    const lexus = findVehicle(US_TITLE_VIN)!
+    const lexus = findVehicle(ca, US_TITLE_VIN)!
     expect(lexus.make).toBe("Lexus")
     const { usTitle, ...rest } = lexus.records
     expect(usTitle).toEqual({ state: "Pennsylvania", issuedOn: "2025-07-22" })
@@ -67,8 +70,8 @@ describe("DEMO_VEHICLES", () => {
 
 describe("openExport", () => {
   it("is null unless the last border event is an export", () => {
-    expect(openExport(findVehicle(CLEAN_VIN)!)).toBeNull()
-    expect(openExport(findVehicle(EXPORTED_VIN)!)).toMatchObject({
+    expect(openExport(findVehicle(ca, CLEAN_VIN)!)).toBeNull()
+    expect(openExport(findVehicle(ca, EXPORTED_VIN)!)).toMatchObject({
       kind: "export",
       port: "Port of Montréal, QC",
     })
@@ -77,31 +80,31 @@ describe("openExport", () => {
 
 describe("odometerEvents", () => {
   it("returns readings oldest first", () => {
-    const km = odometerEvents(findVehicle(CLEAN_VIN)!).map((e) => e.km)
+    const km = odometerEvents(findVehicle(ca, CLEAN_VIN)!).map((e) => e.km)
     expect(km).toEqual([42, 14880, 31240])
   })
 })
 
 describe("countryOfOrigin", () => {
   it("names the country the VIN decode says the vehicle was built in", () => {
-    expect(countryOfOrigin(findVehicle(CLEAN_VIN)!)).toBe("United States")
-    expect(countryOfOrigin(findVehicle(EXPORTED_VIN)!)).toBe("United Kingdom")
-    expect(countryOfOrigin(findVehicle(US_TITLE_VIN)!)).toBe("Japan")
+    expect(countryOfOrigin(findVehicle(ca, CLEAN_VIN)!)).toBe("United States")
+    expect(countryOfOrigin(findVehicle(ca, EXPORTED_VIN)!)).toBe("United Kingdom")
+    expect(countryOfOrigin(findVehicle(ca, US_TITLE_VIN)!)).toBe("Japan")
   })
 })
 
 describe("findVehicle", () => {
   it("is case- and whitespace-insensitive", () => {
-    expect(findVehicle(" 4jgfb8kb5pa812634 ")?.vin).toBe(CLEAN_VIN)
+    expect(findVehicle(ca, " 4jgfb8kb5pa812634 ")?.vin).toBe(CLEAN_VIN)
   })
   it("returns undefined for unknown VINs", () => {
-    expect(findVehicle("1HGCM82633A004352")).toBeUndefined()
+    expect(findVehicle(ca, "1HGCM82633A004352")).toBeUndefined()
   })
 })
 
 describe("vehicleTitle", () => {
   it("joins year, make, model and trim", () => {
-    expect(vehicleTitle(findVehicle(CLEAN_VIN)!)).toBe("2023 Mercedes-AMG GLE 63 S 4MATIC+")
+    expect(vehicleTitle(findVehicle(ca, CLEAN_VIN)!)).toBe("2023 Mercedes-AMG GLE 63 S 4MATIC+")
   })
 })
 
@@ -123,7 +126,7 @@ describe("the unborn vehicle", () => {
   }
 
   it("decodes but has no plate, no registration and no history", () => {
-    const v = findVehicle(NEW_VIN)!
+    const v = findVehicle(ca, NEW_VIN)!
     expect(v.year).toBe(2026)
     expect(v.plate).toBeNull()
     expect(v.registeredOn).toBeNull()
@@ -132,15 +135,15 @@ describe("the unborn vehicle", () => {
   })
 
   it("bornVehicle is the identity for authored vehicles and while unregistered", () => {
-    const clean = findVehicle(CLEAN_VIN)!
-    expect(bornVehicle(clean, { status: "none" })).toBe(clean)
-    expect(bornVehicle(clean, registered)).toBe(clean)
-    const unborn = findVehicle(NEW_VIN)!
-    expect(bornVehicle(unborn, { status: "none" })).toBe(unborn)
+    const clean = findVehicle(ca, CLEAN_VIN)!
+    expect(bornVehicle(ca, clean, { status: "none" })).toBe(clean)
+    expect(bornVehicle(ca, clean, registered)).toBe(clean)
+    const unborn = findVehicle(ca, NEW_VIN)!
+    expect(bornVehicle(ca, unborn, { status: "none" })).toBe(unborn)
   })
 
   it("bornVehicle gives the newborn its first registration and delivery odometer", () => {
-    const born = bornVehicle(findVehicle(NEW_VIN)!, registered)
+    const born = bornVehicle(ca, findVehicle(ca, NEW_VIN)!, registered)
     expect(born.history).toEqual([
       {
         kind: "firstRegistration",

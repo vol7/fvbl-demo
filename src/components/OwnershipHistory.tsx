@@ -13,6 +13,7 @@ import { formatDate } from "@/lib/format"
 import { ownershipPeriods, type OwnerNote } from "@/lib/owners"
 import { cn } from "@/lib/utils"
 import type { Vehicle } from "@/lib/vehicles"
+import { useRegion } from "@/regions"
 
 const NOTE_ICON: Record<OwnerNote["kind"], LucideIcon> = {
   renewed: RefreshCw,
@@ -35,7 +36,8 @@ const shortDate = (iso: string) => formatDate(iso).replace(/^(\w{3})\w*/, "$1")
  * Only the current owner can be revealed; previous owners stay redacted.
  */
 export function OwnershipHistory({ vehicle, today }: { vehicle: Vehicle; today: string }) {
-  const owners = ownershipPeriods(vehicle, today)
+  const pack = useRegion()
+  const owners = ownershipPeriods(pack, vehicle, today)
   return (
     <ol className="relative flex flex-col gap-3.5 before:absolute before:top-6 before:bottom-6 before:left-[11px] before:w-[1.5px] before:bg-border">
       {owners.map((owner) => (

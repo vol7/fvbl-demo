@@ -11,12 +11,14 @@ import {
 } from "@/components/ui/table"
 import type { AuthorizationState } from "@/lib/authorization"
 import { formatTime, plateLabel } from "@/lib/format"
-import { REQUEST_ROWS, type RequestRow } from "@/lib/seed"
+import type { RequestRow } from "@/lib/seed"
 import { useSession } from "@/lib/session"
 import { findVehicle, vehicleTitle } from "@/lib/vehicles"
+import { useRegion } from "@/regions"
+import type { RegionPack } from "@/regions/types"
 
-function liveRow(vin: string, auth: AuthorizationState): RequestRow | null {
-  const vehicle = findVehicle(vin)
+function liveRow(pack: RegionPack, vin: string, auth: AuthorizationState): RequestRow | null {
+  const vehicle = findVehicle(pack, vin)
   if (!vehicle) return null
   const online = (name: string, origin: string) => (origin === "buyer" ? `${name} (online)` : name)
   switch (auth.status) {
@@ -56,12 +58,13 @@ function liveRow(vin: string, auth: AuthorizationState): RequestRow | null {
 }
 
 export function Requests() {
+  const pack = useRegion()
   const [session] = useSession()
   const live = Object.entries(session.authorizations).flatMap(([vin, auth]) => {
-    const row = liveRow(vin, auth)
+    const row = liveRow(pack, vin, auth)
     return row ? [row] : []
   })
-  const rows = [...live, ...REQUEST_ROWS]
+  const rows = [...live, ...pack.seed.requestRows]
 
   return (
     <div className="flex flex-col gap-6">

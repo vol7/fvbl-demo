@@ -194,9 +194,13 @@ export function generateLinkToken(random: () => number = Math.random): string {
   return pick("abcdefghjkmnpqrstuvwxyz23456789", 16, random)
 }
 
-/** Document number printed on the issued package, e.g. UVIP-2026-09-09-4821. */
-export function generatePackageNumber(date: Date, random: () => number = Math.random): string {
-  return `UVIP-${stamp(date)}-${String(Math.floor(random() * 10000)).padStart(4, "0")}`
+/** Number printed on the issued document, e.g. UVIP-2026-09-09-4821 (`pack.references.issued`). */
+export function generateIssuedNumber(
+  prefix: string,
+  date: Date,
+  random: () => number = Math.random
+): string {
+  return `${prefix}-${stamp(date)}-${String(Math.floor(random() * 10000)).padStart(4, "0")}`
 }
 
 export function generateCaseReference(date: Date, random: () => number = Math.random): string {

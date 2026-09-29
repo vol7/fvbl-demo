@@ -9,6 +9,7 @@ import { isValidVin, normalizeVin } from "@/lib/format"
 import { submitOnEnter } from "@/lib/submitOnEnter"
 import { findVehicle } from "@/lib/vehicles"
 import { useRegionPaths } from "@/regions/context"
+import { useRegion } from "@/regions"
 
 export const INVALID_MESSAGE = "Enter a 17-character VIN (letters I, O and Q are not used)."
 export const NOT_FOUND_MESSAGE = "No record found for this VIN."
@@ -21,6 +22,7 @@ export function LookupForm({
   size?: "default" | "lg"
   hideLabel?: boolean
 }) {
+  const pack = useRegion()
   const paths = useRegionPaths()
   const navigate = useNavigate()
   const [vin, setVin] = useState("")
@@ -33,7 +35,7 @@ export function LookupForm({
       return
     }
     const normalized = normalizeVin(vin)
-    if (!findVehicle(normalized)) {
+    if (!findVehicle(pack, normalized)) {
       setError(NOT_FOUND_MESSAGE)
       return
     }

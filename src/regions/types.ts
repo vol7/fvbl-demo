@@ -1,3 +1,8 @@
+import type { Check, CheckDefinition } from "@/lib/checks"
+import type { CaseRow, RecentLookup, RequestRow } from "@/lib/seed"
+import type { SessionState } from "@/lib/session"
+import type { EventKind, RegistryAgency, Vehicle } from "@/lib/vehicles"
+
 /** Which country's demo a surface plays: the first segment of every route. */
 export type RegionId = "ca" | "us"
 
@@ -5,4 +10,311 @@ export const REGION_IDS: readonly RegionId[] = ["ca", "us"]
 
 export function isRegionId(value: string | undefined): value is RegionId {
   return REGION_IDS.includes(value as RegionId)
+}
+
+/**
+ * Everything that differs between the Canadian and the US demo: data, copy and the
+ * few rules that change. Shared components read it with `useRegion()`; pure `lib`
+ * functions take it as their first argument.
+ *
+ * Each pack lives in `src/regions/<id>/`, one file per concern so separate people
+ * can own them:
+ *
+ *   index.ts          assembles the pack
+ *   office.ts         the counter the clerk portal signs into
+ *   people.ts         owner, buyer, dealer, first owner
+ *   vehicles.ts       demo vehicles and their VINs
+ *   seed.ts           the static rows that make the portal look in use
+ *   checks.ts         record checks: labels, sources, agencies, evaluation
+ *   forceStates.ts    the hub's Force state shortcuts
+ *   copy/decision.ts  the decision card on the vehicle page
+ *   copy/phone.ts     the SMS thread and the confirm page
+ *   copy/dealer.ts    the dealer's first registration (or first title)
+ *   copy/signin.ts    both sign-in pages
+ *   copy/hub.ts       the recording hub
+ *   copy/story.ts     the worst flag's story on a failed record
+ *   copy/portal.ts    everything else in the clerk portal: home, cases, history,
+ *                     activity, ledger and certificate wording
+ */
+export type RegionPack = {
+  id: RegionId
+
+  place: {
+    /** The country the portal stands in: "Entered Canada", "Not back in Canada since". */
+    country: string
+    /** The registry that owns the record, as its chip on an event and in a sentence. */
+    registry: { agency: RegistryAgency; inSentence: string }
+  }
+
+  office: Office
+  people: People
+  /** Demo vehicles, in the order the portal's Recent lists them. */
+  vehicles: Vehicle[]
+  seed: Seed
+
+  checks: {
+    /** In display order when nothing fails. Failures are pulled to the front. */
+    definitions: CheckDefinition[]
+    /** Every integration the portal consults, in the order the header lists them. */
+    integrations: { name: string; detail: string }[]
+  }
+
+  policy: {
+    /**
+     * Canada needs the owner's approval before the package is issued. In the US
+     * the owner's confirmation is evidence, not a gate (US plan, Task 5).
+     */
+    ownerConfirmation: "required" | "optional"
+  }
+
+  odometerUnit: OdometerUnit
+  plate: {
+    /** Read out for the plate chip: "Ontario plate". */
+    label: string
+    style: "ontario" | "ohio"
+  }
+  sms: {
+    /** Owner-facing link shown in the text and the confirm page's address bar. */
+    link: (token: string) => string
+    /** Shown in the address bar when no request is live. */
+    domain: string
+  }
+  references: {
+    /** Prefix of the issued document's number: "UVIP" for UVIP-2026-09-09-4821. */
+    issued: string
+  }
+
+  forceStates: { key: string; label: string }[]
+  forcedSession: (key: string, now?: Date) => SessionState
+
+  story: StoryCopy
+  copy: {
+    decision: DecisionCopy
+    phone: PhoneCopy
+    dealer: DealerCopy
+    signIn: SignInCopy
+    hub: HubCopy
+    portal: PortalCopy
+  }
+}
+
+export type OdometerUnit = "km" | "mi"
+
+export type Office = {
+  name: string
+  shortName: string
+  clerk: string
+  clerkFullName: string
+  initials: string
+  role: string
+  counter: string
+}
+
+export type People = {
+  owner: { name: string; licence: string; mobile: string; mobileLast4: string }
+  buyer: { name: string; shortName: string; licence: string; mobile: string; mobileLast4: string }
+  dealer: {
+    name: string
+    principal: string
+    principalInitials: string
+    number: string
+    mobile: string
+    mobileLast4: string
+    /** The source document's number: the NVIS in Canada. */
+    nvis: string
+  }
+  firstOwner: { name: string; licence: string; mobile: string; mobileLast4: string }
+}
+
+export type Seed = {
+  recentLookups: RecentLookup[]
+  requestRows: RequestRow[]
+  caseRows: CaseRow[]
+  todayStats: { lookups: number; casesOpened: number }
+  /** "Today, 9:41 a.m." for each demo vehicle under Recent lookups, in order. */
+  demoLookupTimes: string[]
+}
+
+/** What `recordStory` needs from a region to tell the worst flag. */
+export type StoryCopy = {
+  tell: (check: Check, vehicle: Vehicle) => StoryTelling
+  /** Agencies as a clerk says them: "the MTO", everything else by name. */
+  agencyName: (agency: string) => string
+}
+
+export type StoryTelling = {
+  title: string
+  body: string
+  /** Said after the reporting agencies, e.g. what the local record alone would show. */
+  footnote?: string
+  /** Who the investigators notify once they have reviewed a referral. */
+  notifyAfterReview: string
+}
+
+/**
+ * Templates may carry `{slot}` placeholders that the component fills with a node
+ * (a link, a bold reference). See `fill` in `@/lib/fill`.
+ */
+export type Template = string
+
+export type DecisionCopy = {
+  /** The card's accessible name: "Package decision". */
+  ariaLabel: string
+  idle: { label: string; title: string; text: (checks: number, last4: string) => string }
+  pending: {
+    label: string
+    title: string
+    /** Before "The link expires in …". */
+    fromBuyer: (requester: string, time: string) => string
+    fromCounter: (last4: string, time: string) => string
+  }
+  issued: {
+    label: string
+    title: string
+    text: (clerk: string, time: string, authorizationCode: string) => string
+  }
+  authorized: {
+    label: string
+    titleOwner: string
+    titleOther: string
+    textOwner: (approvedOn: string, validUntil: string) => string
+    textBuyer: (requester: string, time: string) => string
+    textCounter: (time: string) => string
+    issueAction: string
+  }
+  frozen: {
+    labelDenied: string
+    labelTimeout: string
+    titleDenied: string
+    titleTimeout: string
+    text: (time: string) => string
+  }
+  blocked: { label: string; fallbackTitle: string; referAction: string }
+  escalated: {
+    label: string
+    title: string
+    text: (p: {
+      story: string
+      clerk: string
+      time: string
+      counter: string
+      notifyAfterReview: string | null
+    }) => string
+    customerNote: string
+    sentWith: (checks: number, certificates: number) => string
+  }
+  strip: {
+    checks: string
+    authorization: string
+    lastEvent: string
+    idle: { value: string; detail: (last4: string) => string }
+    unavailable: { value: string; detail: string }
+  }
+}
+
+export type PhoneCopy = {
+  /** The business sender's name and the letters on its icon. */
+  sender: string
+  senderIcon: string
+  /** The owner's older service message: `{plate}`, `{date}`. */
+  ownerHistory: (plate: string, date: string) => string
+  /** The dealership's older service message, with its date. */
+  dealerHistory: { date: string; text: string }
+  /** `{link}` is the tappable link. */
+  registrationRequest: (dealer: string, vehicle: string, vinLast4: string) => Template
+  /** `{ref}` is the registration reference. */
+  registrationConfirmed: Template
+  registrationDeclined: string
+  /** `{link}` is the tappable link. */
+  authorizationRequest: (vehicle: string, plate: string, requester: string) => Template
+  /** `{code}` is the authorization code. */
+  authorized: Template
+  denied: string
+  timeout: string
+
+  confirm: {
+    headerOwner: string
+    headerDealer: string
+    askTitle: string
+    askLede: string
+    approve: string
+    decline: string
+    recorded: string
+    approvedTitle: string
+    approvedText: (vehicle: string, validUntil: string) => string
+    declinedTitle: string
+    declinedText: (vehicle: string) => string
+    registration: {
+      askTitle: string
+      askLede: (dealer: string) => string
+      /** Row label for the source document's number: "NVIS". */
+      documentLabel: string
+      firstOwnerLabel: string
+      recorded: string
+      recordedTitle: string
+      recordedText: (vehicle: string) => string
+      declinedTitle: string
+      declinedText: (vehicle: string) => string
+    }
+  }
+}
+
+export type DealerCopy = {
+  title: string
+  lede: string
+  vinHint: string
+  /** The VIN does not decode. */
+  unknownVin: string
+  pending: { title: string; text: (last4: string) => string }
+  registered: { label: string; title: string; text: string; ledger: string; ledgerEvent: string }
+  declined: { label: string; title: string; text: string }
+  statement: {
+    title: string
+    lede: string
+    confirm: string
+    documentLabel: string
+    firstOwnerLabel: string
+  }
+  review: { title: string; text: (last4: string) => string; documentLabel: string; submit: string }
+  navLabel: string
+  navItem: string
+}
+
+export type SignInVariant = {
+  headline: string
+  lede: string
+  points: [string, string]
+  audience: string
+  title: string
+  subtitle: string
+}
+
+export type SignInCopy = { clerk: SignInVariant; dealer: SignInVariant }
+
+export type HubCopy = {
+  intro: string
+  scenarios: { n: number; title: string; vin: string; route: string; outcome: string }[]
+  /** The buyer-facing surface, which differs per country. */
+  publicSurface: { title: string; description: string; href: string }
+}
+
+export type PortalCopy = {
+  homeLede: (sources: number) => string
+  casesDescription: string
+  /** The live row a referral adds to Cases. */
+  liveCase: { reason: string; routedTo: string }
+  unregistered: { title: string; text: string }
+  request: { licenceLabel: string }
+  /** Titles of history events, keyed by event kind. */
+  historyTitle: Record<EventKind, string>
+  timeline: { entered: (from: string) => string; exported: string; notBackSince: string }
+  ownersExported: (date: string, noTransfer: boolean) => string
+  activity: { preapprovedDetail: (code: string) => string; issuedTitle: string }
+  ledger: {
+    /** The chain's name on a certificate: "FVBL Ontario". */
+    name: string
+    /** The kind is hashed into the certificate, so it never changes for a region. */
+    issuedKind: string
+    issuedTitle: string
+  }
 }

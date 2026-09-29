@@ -1,3 +1,5 @@
+import type { RegionPack } from "@/regions/types"
+
 import type { AuthorizationState } from "./authorization"
 import { authorizationCertificates, historyCertificates, type AuthorizationEventId } from "./ledger"
 import type { RegistrationState } from "./registration"
@@ -19,6 +21,7 @@ export type ActivityEvent = {
  * ("Record retrieved", "Held for review") never get one.
  */
 export function deriveActivity(
+  pack: RegionPack,
   state: AuthorizationState,
   openedAt: string | null,
   clerk: string,
@@ -75,7 +78,7 @@ export function deriveActivity(
           id: "preapproved",
           at: state.approvedAt,
           title: "Pre-approved by registered owner",
-          detail: `Online through ServiceOntario, reference ${state.authorizationCode}`,
+          detail: pack.copy.portal.activity.preapprovedDetail(state.authorizationCode),
           tone: "success",
         })
         break
@@ -102,13 +105,13 @@ export function deriveActivity(
     events.push({
       id: "issued",
       at: state.issued.at,
-      title: "Package issued",
+      title: pack.copy.portal.activity.issuedTitle,
       detail: state.issued.packageNumber,
       tone: "success",
     })
   }
   if (vehicle) {
-    const certificates = authorizationCertificates(vehicle, state)
+    const certificates = authorizationCertificates(pack, vehicle, state)
     for (const event of events) {
       const hash = certificates[event.id as AuthorizationEventId]
       if (hash) event.certificate = hash
@@ -122,6 +125,7 @@ export function deriveActivity(
  * certificate of the chain's first entry. Pass the born vehicle.
  */
 export function registrationActivity(
+  pack: RegionPack,
   vehicle: Vehicle,
   registration: RegistrationState
 ): ActivityEvent[] {
@@ -133,7 +137,7 @@ export function registrationActivity(
       title: "First registration recorded",
       detail: `Submitted by ${registration.dealer}, confirmed from the dealership mobile ending ${registration.dealerMobileLast4}. Reference ${registration.registrationRef}`,
       tone: "success",
-      certificate: historyCertificates(vehicle)[0],
+      certificate: historyCertificates(pack, vehicle)[0],
     },
   ]
 }

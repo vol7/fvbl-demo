@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest"
 
 import { recentRows } from "./seed"
 import { EMPTY_SESSION, sessionReducer } from "./session"
-import { NEW_VIN } from "./vehicles"
+import { NEW_VIN } from "@/regions/ca/vehicles"
+import { ca } from "@/regions/ca"
 
 const submission = {
   dealer: "Mercedes-Benz Downtown",
@@ -14,7 +15,7 @@ const submission = {
 
 describe("recentRows", () => {
   it("leaves the unborn vehicle out until it is registered", () => {
-    expect(recentRows(EMPTY_SESSION).some((r) => r.vin === NEW_VIN)).toBe(false)
+    expect(recentRows(ca, EMPTY_SESSION).some((r) => r.vin === NEW_VIN)).toBe(false)
     const pending = sessionReducer(EMPTY_SESSION, {
       type: "submitRegistration",
       vin: NEW_VIN,
@@ -23,7 +24,7 @@ describe("recentRows", () => {
       link: "k7m2p9xq4tvn8bwz",
       at: "2026-09-15T14:02:00.000Z",
     })
-    expect(recentRows(pending).some((r) => r.vin === NEW_VIN)).toBe(false)
+    expect(recentRows(ca, pending).some((r) => r.vin === NEW_VIN)).toBe(false)
   })
 
   it("lists the newborn first, clear and just registered", () => {
@@ -41,7 +42,7 @@ describe("recentRows", () => {
       registrationRef: "FVBL-R-2026-09-15-0417",
       at: "2026-09-15T14:05:30.000Z",
     })
-    const [first] = recentRows(s)
+    const [first] = recentRows(ca, s)
     expect(first).toMatchObject({
       vin: NEW_VIN,
       plate: "Not yet plated",

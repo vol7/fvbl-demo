@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest"
 
 import { EMPTY_SESSION, sessionReducer, type SessionState } from "./session"
 import { liveThread } from "./thread"
-import { CLEAN_VIN, NEW_VIN } from "./vehicles"
+import { CLEAN_VIN, NEW_VIN } from "@/regions/ca/vehicles"
+import { ca } from "@/regions/ca"
 
 const T0 = "2026-09-15T14:02:00.000Z"
 const LINK = "k7m2p9xq4tvn8bwz"
@@ -39,17 +40,17 @@ function submitted(from = EMPTY_SESSION): SessionState {
 
 describe("liveThread", () => {
   it("is null until something was texted", () => {
-    expect(liveThread(EMPTY_SESSION)).toBeNull()
+    expect(liveThread(ca, EMPTY_SESSION)).toBeNull()
   })
 
   it("is an authorization thread for a UVIP request", () => {
-    const thread = liveThread(requested())
+    const thread = liveThread(ca, requested())
     expect(thread?.kind).toBe("authorization")
     expect(thread?.vehicle.vin).toBe(CLEAN_VIN)
   })
 
   it("follows a dealer submission as a registration thread", () => {
-    const thread = liveThread(submitted(requested()))
+    const thread = liveThread(ca, submitted(requested()))
     expect(thread?.kind).toBe("registration")
     expect(thread?.vehicle.vin).toBe(NEW_VIN)
     expect(thread?.state.status).toBe("pending")
@@ -62,7 +63,7 @@ describe("liveThread", () => {
       registrationRef: "FVBL-R-2026-09-15-0417",
       at: T0,
     })
-    const thread = liveThread(s)
+    const thread = liveThread(ca, s)
     expect(thread?.kind).toBe("registration")
     expect(thread?.state.status).toBe("registered")
   })

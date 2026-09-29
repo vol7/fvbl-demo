@@ -1,5 +1,6 @@
+import type { RegionPack } from "@/regions/types"
+
 import type { AuthorizationState } from "./authorization"
-import { OFFICE } from "./office"
 import { sortedHistory, type Vehicle } from "./vehicles"
 
 /**
@@ -50,16 +51,6 @@ export function shortHash(hash: string): string {
   return `${hash.slice(0, 4)}…${hash.slice(-4)}`
 }
 
-export const HISTORY_TITLE: Record<Vehicle["history"][number]["kind"], string> = {
-  import: "Entered Canada",
-  customsEntry: "Cleared customs",
-  export: "Exported",
-  firstRegistration: "First registration",
-  transfer: "Ownership transferred",
-  renewal: "Registration renewed",
-  odometer: "Odometer reading",
-}
-
 /** A registration that came through a dealer rather than a counter. */
 export function isDealerChannel(office: string): boolean {
   return office.startsWith("Dealer channel")
@@ -72,15 +63,16 @@ export function officeLabel(office: string): string {
   return city ? `${city} office ${number}` : office
 }
 
-function historyDrafts(vehicle: Vehicle): Draft[] {
+function historyDrafts(pack: RegionPack, vehicle: Vehicle): Draft[] {
   const vin = vehicle.vin
+  const titles = pack.copy.portal.historyTitle
   return sortedHistory(vehicle).map((e): Draft => {
     switch (e.kind) {
       case "import":
         return {
           at: e.date,
           kind: "vehicle.import",
-          title: HISTORY_TITLE[e.kind],
+          title: titles[e.kind],
           vin,
           visibility: "public",
           payload: `${e.date}|${e.agency}|${e.port}`,
@@ -89,7 +81,7 @@ function historyDrafts(vehicle: Vehicle): Draft[] {
         return {
           at: e.date,
           kind: "vehicle.customsEntry",
-          title: HISTORY_TITLE[e.kind],
+          title: titles[e.kind],
           vin,
           visibility: "public",
           payload: `${e.date}|${e.agency}|${e.port}`,
@@ -98,7 +90,7 @@ function historyDrafts(vehicle: Vehicle): Draft[] {
         return {
           at: e.date,
           kind: "vehicle.export",
-          title: HISTORY_TITLE[e.kind],
+          title: titles[e.kind],
           vin,
           visibility: "public",
           payload: `${e.date}|${e.agency}|${e.port}`,
@@ -112,7 +104,7 @@ function historyDrafts(vehicle: Vehicle): Draft[] {
           title:
             e.kind === "firstRegistration" && isDealerChannel(e.office)
               ? "First registration (dealer submission)"
-              : HISTORY_TITLE[e.kind],
+              : titles[e.kind],
           vin,
           office: e.office,
           visibility: "public",
@@ -122,7 +114,7 @@ function historyDrafts(vehicle: Vehicle): Draft[] {
         return {
           at: e.date,
           kind: "vehicle.odometer",
-          title: HISTORY_TITLE[e.kind],
+          title: titles[e.kind],
           vin,
           visibility: "private",
           payload: `${e.date}|${e.agency}|${e.km}`,
@@ -136,10 +128,12 @@ export type AuthorizationEventId =
   "sent" | "preapproved" | "approved" | "frozen" | "issued" | "escalated"
 
 function authorizationDrafts(
+  pack: RegionPack,
   vin: string,
   state: AuthorizationState
 ): (Draft & { eventId: AuthorizationEventId })[] {
-  const office = OFFICE.name
+  const office = pack.office.name
+  const { issuedKind, issuedTitle } = pack.copy.portal.ledger
   const out: (Draft & { eventId: AuthorizationEventId })[] = []
   const entry = (
     eventId: AuthorizationEventId,
@@ -212,13 +206,7 @@ function authorizationDrafts(
         )
       }
       if (state.issued) {
-        entry(
-          "issued",
-          state.issued.at,
-          "package.issued",
-          "Package issued",
-          state.issued.packageNumber
-        )
+        entry("issued", state.issued.at, issuedKind, issuedTitle, state.issued.packageNumber)
       }
       break
     case "frozen":
@@ -253,17 +241,25 @@ function chain(vin: string, drafts: Draft[]): LedgerEntry[] {
 }
 
 /** The full chain for a vehicle, oldest first. */
-export function ledgerEntries(vehicle: Vehicle, state: AuthorizationState): LedgerEntry[] {
-  return chain(vehicle.vin, [...historyDrafts(vehicle), ...authorizationDrafts(vehicle.vin, state)])
+export function ledgerEntries(
+  pack: RegionPack,
+  vehicle: Vehicle,
+  state: AuthorizationState
+): LedgerEntry[] {
+  return chain(vehicle.vin, [
+    ...historyDrafts(pack, vehicle),
+    ...authorizationDrafts(pack, vehicle.vin, state),
+  ])
 }
 
 /** Certificates for the live-session events, keyed by activity event id. */
 export function authorizationCertificates(
+  pack: RegionPack,
   vehicle: Vehicle,
   state: AuthorizationState
 ): Partial<Record<AuthorizationEventId, string>> {
-  const history = historyDrafts(vehicle)
-  const auth = authorizationDrafts(vehicle.vin, state)
+  const history = historyDrafts(pack, vehicle)
+  const auth = authorizationDrafts(pack, vehicle.vin, state)
   const entries = chain(vehicle.vin, [...history, ...auth])
   const out: Partial<Record<AuthorizationEventId, string>> = {}
   auth.forEach((d, i) => {
@@ -273,6 +269,6 @@ export function authorizationCertificates(
 }
 
 /** Certificates for the vehicle's history events, in `sortedHistory` order. */
-export function historyCertificates(vehicle: Vehicle): string[] {
-  return chain(vehicle.vin, historyDrafts(vehicle)).map((e) => e.hash)
+export function historyCertificates(pack: RegionPack, vehicle: Vehicle): string[] {
+  return chain(vehicle.vin, historyDrafts(pack, vehicle)).map((e) => e.hash)
 }

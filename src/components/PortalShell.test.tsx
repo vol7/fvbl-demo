@@ -2,11 +2,11 @@ import { render, screen, waitFor } from "@testing-library/react"
 import { createMemoryRouter, RouterProvider } from "react-router"
 import { describe, expect, it } from "vitest"
 
-import { forcedSession } from "@/lib/forceStates"
+import { forcedSession } from "@/regions/ca/forceStates"
 import { regionPaths } from "@/lib/paths"
 import { getSessionStore } from "@/lib/session"
-import { CLEAN_VIN, NEW_VIN } from "@/lib/vehicles"
 import { PortalShell } from "./PortalShell"
+import { CLEAN_VIN, NEW_VIN } from "@/regions/ca/vehicles"
 
 const paths = regionPaths("ca")
 

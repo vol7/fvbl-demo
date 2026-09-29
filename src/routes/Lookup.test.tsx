@@ -3,9 +3,9 @@ import userEvent from "@testing-library/user-event"
 import { createMemoryRouter, RouterProvider } from "react-router"
 import { describe, expect, it } from "vitest"
 
-import { CLEAN_VIN, CLONED_VIN } from "@/lib/vehicles"
 import { regionPaths } from "@/lib/paths"
 import { Lookup } from "./Lookup"
+import { CLEAN_VIN, CLONED_VIN } from "@/regions/ca/vehicles"
 
 const paths = regionPaths("ca")
 

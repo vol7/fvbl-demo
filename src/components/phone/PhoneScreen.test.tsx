@@ -4,8 +4,8 @@ import { createMemoryRouter, RouterProvider } from "react-router"
 import { describe, expect, it } from "vitest"
 
 import { getSessionStore } from "@/lib/session"
-import { CLEAN_VIN, NEW_VIN } from "@/lib/vehicles"
 import { PhoneScreen } from "./PhoneScreen"
+import { CLEAN_VIN, NEW_VIN } from "@/regions/ca/vehicles"
 
 const T0 = "2026-09-09T18:14:00.000Z"
 const LINK = "k7m2p9xq4tvn8bwz"

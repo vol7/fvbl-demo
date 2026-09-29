@@ -10,35 +10,33 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { formatTime, plateLabel } from "@/lib/format"
-import { CASE_ROWS, type CaseRow } from "@/lib/seed"
+import type { CaseRow } from "@/lib/seed"
 import { useSession } from "@/lib/session"
 import { findVehicle, vehicleTitle } from "@/lib/vehicles"
+import { useRegion } from "@/regions"
 
 export function Cases() {
+  const pack = useRegion()
   const [session] = useSession()
   const live: CaseRow[] = Object.entries(session.authorizations).flatMap(([vin, auth]) => {
-    const vehicle = findVehicle(vin)
+    const vehicle = findVehicle(pack, vin)
     if (auth.status !== "escalated" || !vehicle) return []
     return [
       {
         reference: auth.caseReference,
         vehicle: vehicleTitle(vehicle),
         plate: plateLabel(vehicle.plate),
-        reason: "Duplicate identity · insurer write-off",
-        routedTo: "OPP Auto Theft Unit",
+        ...pack.copy.portal.liveCase,
         status: "Open" as const,
         when: `Today, ${formatTime(auth.escalatedAt)}`,
       },
     ]
   })
-  const rows = [...live, ...CASE_ROWS]
+  const rows = [...live, ...pack.seed.caseRows]
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Cases"
-        description="Transactions referred to MTO Investigations from this office."
-      />
+      <PageHeader title="Cases" description={pack.copy.portal.casesDescription} />
       <Card className="gap-0 py-0">
         <CardContent className="px-0">
           <Table>

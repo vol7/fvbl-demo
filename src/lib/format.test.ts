@@ -48,9 +48,13 @@ describe("maskName", () => {
 
 describe("formatOdometer", () => {
   it("groups thousands with a space and appends km", () => {
-    expect(formatOdometer(31240)).toBe("31 240 km")
-    expect(formatOdometer(8410)).toBe("8 410 km")
-    expect(formatOdometer(12)).toBe("12 km")
+    expect(formatOdometer(31240, "km")).toBe("31 240 km")
+    expect(formatOdometer(8410, "km")).toBe("8 410 km")
+    expect(formatOdometer(12, "km")).toBe("12 km")
+  })
+
+  it("groups miles with a comma", () => {
+    expect(formatOdometer(19410, "mi")).toBe("19,410 mi")
   })
 })
 

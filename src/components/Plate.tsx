@@ -1,10 +1,15 @@
 import { cn } from "@/lib/utils"
+import { useRegion } from "@/regions"
 
-/** An Ontario plate, drawn like one: blue ink on white, a thin border, wide tracking. */
+/**
+ * The region's plate, drawn like one. Ontario (the only style so far): blue ink on
+ * white, a thin border, wide tracking.
+ */
 export function Plate({ plate, size = "md" }: { plate: string; size?: "sm" | "md" }) {
+  const pack = useRegion()
   return (
     <span
-      aria-label="Ontario plate"
+      aria-label={pack.plate.label}
       className={cn(
         "inline-flex shrink-0 items-center justify-center rounded border-[1.5px] border-[#1d3f8f] bg-background font-mono leading-none font-semibold text-[#1d3f8f] dark:border-[#8fb0ff] dark:text-[#8fb0ff]",
         size === "md"

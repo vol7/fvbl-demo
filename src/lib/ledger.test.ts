@@ -8,10 +8,12 @@ import {
   ledgerEntries,
   shortHash,
 } from "./ledger"
-import { bornVehicle, CLEAN_VIN, EXPORTED_VIN, findVehicle, NEW_VIN } from "./vehicles"
+import { bornVehicle, findVehicle } from "./vehicles"
+import { CLEAN_VIN, EXPORTED_VIN, NEW_VIN } from "@/regions/ca/vehicles"
+import { ca } from "@/regions/ca"
 
-const clean = findVehicle(CLEAN_VIN)!
-const exported = findVehicle(EXPORTED_VIN)!
+const clean = findVehicle(ca, CLEAN_VIN)!
+const exported = findVehicle(ca, EXPORTED_VIN)!
 
 const T1 = "2026-09-10T14:02:00.000Z"
 const T2 = "2026-09-10T14:05:30.000Z"
@@ -44,7 +46,7 @@ describe("fingerprint", () => {
 
 describe("ledgerEntries", () => {
   it("lists history then session events, numbered from one", () => {
-    const entries = ledgerEntries(clean, issued)
+    const entries = ledgerEntries(ca, clean, issued)
     expect(entries).toHaveLength(clean.history.length + 3)
     expect(entries.map((e) => e.seq)).toEqual(entries.map((_, i) => i + 1))
     expect(entries.slice(-3).map((e) => e.kind)).toEqual([
@@ -55,8 +57,9 @@ describe("ledgerEntries", () => {
   })
 
   it("chains: an earlier change alters every later certificate", () => {
-    const a = ledgerEntries(clean, issued)
+    const a = ledgerEntries(ca, clean, issued)
     const b = ledgerEntries(
+      ca,
       {
         ...clean,
         history: clean.history.map((e, i) => (i === 0 ? { ...e, date: "2023-02-28" } : e)),
@@ -67,13 +70,13 @@ describe("ledgerEntries", () => {
   })
 
   it("marks odometer readings private and everything else public", () => {
-    for (const e of ledgerEntries(exported, { status: "blocked" })) {
+    for (const e of ledgerEntries(ca, exported, { status: "blocked" })) {
       expect(e.visibility).toBe(e.kind === "vehicle.odometer" ? "private" : "public")
     }
   })
 
   it("never carries a name, plate or phone", () => {
-    const text = JSON.stringify(ledgerEntries(clean, issued))
+    const text = JSON.stringify(ledgerEntries(ca, clean, issued))
     expect(text).not.toContain("Okafor")
     expect(text).not.toContain("Beaulieu")
     expect(text).not.toContain(clean.plate)
@@ -82,7 +85,7 @@ describe("ledgerEntries", () => {
   })
 
   it("carries the MTO office on registration events", () => {
-    const first = ledgerEntries(clean, { status: "idle" }).find(
+    const first = ledgerEntries(ca, clean, { status: "idle" }).find(
       (e) => e.kind === "registration.firstRegistration"
     )!
     expect(first.office).toBe("4412 · Toronto")
@@ -91,19 +94,19 @@ describe("ledgerEntries", () => {
 
 describe("certificates", () => {
   it("match the chain for both history and session events", () => {
-    const entries = ledgerEntries(clean, issued)
-    expect(historyCertificates(clean)).toEqual(
+    const entries = ledgerEntries(ca, clean, issued)
+    expect(historyCertificates(ca, clean)).toEqual(
       entries.slice(0, clean.history.length).map((e) => e.hash)
     )
-    const certs = authorizationCertificates(clean, issued)
+    const certs = authorizationCertificates(ca, clean, issued)
     expect(certs.sent).toBe(entries.at(-3)!.hash)
     expect(certs.approved).toBe(entries.at(-2)!.hash)
     expect(certs.issued).toBe(entries.at(-1)!.hash)
   })
 
   it("has nothing for an idle or blocked vehicle", () => {
-    expect(authorizationCertificates(clean, { status: "idle" })).toEqual({})
-    expect(authorizationCertificates(exported, { status: "blocked" })).toEqual({})
+    expect(authorizationCertificates(ca, clean, { status: "idle" })).toEqual({})
+    expect(authorizationCertificates(ca, exported, { status: "blocked" })).toEqual({})
   })
 })
 
@@ -124,14 +127,14 @@ describe("the newborn's chain", () => {
   }
 
   it("has no entries before registration and two after, the first a dealer submission", () => {
-    const unborn = findVehicle(NEW_VIN)!
-    expect(historyCertificates(unborn)).toEqual([])
-    const born = bornVehicle(unborn, registered)
-    const entries = ledgerEntries(born, { status: "idle" })
+    const unborn = findVehicle(ca, NEW_VIN)!
+    expect(historyCertificates(ca, unborn)).toEqual([])
+    const born = bornVehicle(ca, unborn, registered)
+    const entries = ledgerEntries(ca, born, { status: "idle" })
     expect(entries).toHaveLength(2)
     expect(entries[0].seq).toBe(1)
     expect(entries[0].title).toBe("First registration (dealer submission)")
     expect(entries[0].office).toBe("Dealer channel · Mercedes-Benz Downtown")
-    expect(historyCertificates(born)).toEqual(entries.map((e) => e.hash))
+    expect(historyCertificates(ca, born)).toEqual(entries.map((e) => e.hash))
   })
 })

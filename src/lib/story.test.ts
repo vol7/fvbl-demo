@@ -2,11 +2,13 @@ import { describe, expect, it } from "vitest"
 
 import { evaluateChecks } from "./checks"
 import { recordStory } from "./story"
-import { CLEAN_VIN, CLONED_VIN, EXPORTED_VIN, findVehicle, US_TITLE_VIN } from "./vehicles"
+import { findVehicle } from "./vehicles"
+import { CLEAN_VIN, CLONED_VIN, EXPORTED_VIN, US_TITLE_VIN } from "@/regions/ca/vehicles"
+import { ca } from "@/regions/ca"
 
 const storyFor = (vin: string) => {
-  const vehicle = findVehicle(vin)!
-  return recordStory(vehicle, evaluateChecks(vehicle))
+  const vehicle = findVehicle(ca, vin)!
+  return recordStory(ca, vehicle, evaluateChecks(ca, vehicle))
 }
 
 describe("recordStory", () => {

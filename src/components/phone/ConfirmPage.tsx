@@ -9,9 +9,9 @@ import { generateAuthorizationCode } from "@/lib/authorization"
 import { formatDate, formatTime } from "@/lib/format"
 import { generateRegistrationRef } from "@/lib/registration"
 import { useSession } from "@/lib/session"
-import { smsLink } from "@/lib/sms"
 import { liveThread, type Thread } from "@/lib/thread"
 import { vehicleTitle } from "@/lib/vehicles"
+import { useRegion } from "@/regions"
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -51,6 +51,7 @@ function RegistrationConfirm({
   onDecline: () => void
 }) {
   const reduceMotion = useReducedMotion()
+  const copy = useRegion().copy.phone.confirm.registration
   const { vehicle, state } = thread
   if (state.status === "pending") {
     return (
@@ -60,11 +61,8 @@ function RegistrationConfirm({
         exit={reduceMotion ? undefined : { opacity: 0, y: -8, transition: { duration: 0.15 } }}
       >
         <div className="flex flex-col gap-1.5">
-          <h1 className="text-xl font-semibold tracking-tight">Confirm a first registration?</h1>
-          <p className="text-[15px] text-neutral-600">
-            {state.dealer} is registering a new vehicle with the ministry. Confirm only if the New
-            Vehicle Information Statement is in hand.
-          </p>
+          <h1 className="text-xl font-semibold tracking-tight">{copy.askTitle}</h1>
+          <p className="text-[15px] text-neutral-600">{copy.askLede(state.dealer)}</p>
         </div>
 
         <dl className="divide-y divide-black/10 rounded-2xl bg-white px-4 ring-1 ring-black/10">
@@ -77,9 +75,9 @@ function RegistrationConfirm({
             value={<span className="font-mono tracking-wider">{vehicle.vin}</span>}
           />
           <Row label="Submitted by" value={state.dealer} />
-          <Row label="First registered owner" value={state.firstOwner} />
+          <Row label={copy.firstOwnerLabel} value={state.firstOwner} />
           <Row
-            label="NVIS"
+            label={copy.documentLabel}
             value={<span className="font-mono tracking-wider">{state.nvis}</span>}
           />
           <Row label="Submitted" value={`Today at ${formatTime(state.sentAt)}`} />
@@ -102,9 +100,7 @@ function RegistrationConfirm({
             Decline
           </Button>
         </div>
-        <p className="text-center text-xs text-neutral-500">
-          Your confirmation is recorded with the Federal VIN Blockchain Ledger.
-        </p>
+        <p className="text-center text-xs text-neutral-500">{copy.recorded}</p>
       </motion.section>
     )
   }
@@ -119,11 +115,8 @@ function RegistrationConfirm({
       <ResultIcon ok={state.status === "registered"} />
       {state.status === "registered" ? (
         <>
-          <h1 className="text-xl font-semibold tracking-tight">Registration recorded</h1>
-          <p className="text-[15px] text-neutral-600">
-            The ministry has recorded the first registration of the {vehicleTitle(vehicle)}. The
-            vehicle's ledger is open.
-          </p>
+          <h1 className="text-xl font-semibold tracking-tight">{copy.recordedTitle}</h1>
+          <p className="text-[15px] text-neutral-600">{copy.recordedText(vehicleTitle(vehicle))}</p>
           <div className="mt-1 flex flex-col items-center gap-0.5 rounded-2xl bg-white px-6 py-3 ring-1 ring-black/10">
             <span className="text-xs text-neutral-500">Reference</span>
             <span className="font-mono text-lg tracking-wider">{state.registrationRef}</span>
@@ -131,10 +124,8 @@ function RegistrationConfirm({
         </>
       ) : (
         <>
-          <h1 className="text-xl font-semibold tracking-tight">Submission declined</h1>
-          <p className="text-[15px] text-neutral-600">
-            Nothing was recorded for the {vehicleTitle(vehicle)}. The submission has been withdrawn.
-          </p>
+          <h1 className="text-xl font-semibold tracking-tight">{copy.declinedTitle}</h1>
+          <p className="text-[15px] text-neutral-600">{copy.declinedText(vehicleTitle(vehicle))}</p>
         </>
       )}
       <p className="mt-2 text-xs text-neutral-500">You can close this page.</p>
@@ -144,10 +135,12 @@ function RegistrationConfirm({
 
 /** One-page yes/no opened from the SMS link. Rendered inside the phone frame. */
 export function ConfirmPage() {
+  const pack = useRegion()
+  const copy = pack.copy.phone.confirm
   const [session, dispatch] = useSession()
   const navigate = useNavigate()
   const reduceMotion = useReducedMotion()
-  const thread = liveThread(session)
+  const thread = liveThread(pack, session)
   const vin = session.activeVin
   const at = () => new Date().toISOString()
   const registration = thread?.kind === "registration"
@@ -185,7 +178,9 @@ export function ConfirmPage() {
         </button>
         <div className="flex h-9 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl bg-white px-3 text-[13px] text-neutral-700 ring-1 ring-black/10">
           <Lock className="size-3 shrink-0" aria-hidden />
-          <span className="truncate">{thread ? smsLink(thread.state.link) : "fvbl.on.ca"}</span>
+          <span className="truncate">
+            {thread ? pack.sms.link(thread.state.link) : pack.sms.domain}
+          </span>
         </div>
       </div>
 
@@ -194,7 +189,7 @@ export function ConfirmPage() {
           <FvblMark className="h-6 w-auto" />
           <span className="text-sm font-semibold tracking-wide">FVBL</span>
           <span className="ml-auto text-xs text-neutral-500">
-            {registration ? "Dealer confirmation" : "Owner authorization"}
+            {registration ? copy.headerDealer : copy.headerOwner}
           </span>
         </header>
 
@@ -223,13 +218,8 @@ export function ConfirmPage() {
               }
             >
               <div className="flex flex-col gap-1.5">
-                <h1 className="text-xl font-semibold tracking-tight">
-                  Approve a Used Vehicle Information Package?
-                </h1>
-                <p className="text-[15px] text-neutral-600">
-                  Someone is asking for the UVIP for a vehicle registered to you. Only approve if
-                  you are selling it.
-                </p>
+                <h1 className="text-xl font-semibold tracking-tight">{copy.askTitle}</h1>
+                <p className="text-[15px] text-neutral-600">{copy.askLede}</p>
               </div>
 
               <dl className="divide-y divide-black/10 rounded-2xl bg-white px-4 ring-1 ring-black/10">
@@ -251,7 +241,7 @@ export function ConfirmPage() {
 
               <div className="mt-1 flex flex-col gap-2.5">
                 <Button size="lg" className="h-12 rounded-xl text-[15px]" onClick={approve}>
-                  Approve
+                  {copy.approve}
                 </Button>
                 <Button
                   size="lg"
@@ -259,12 +249,10 @@ export function ConfirmPage() {
                   className="h-12 rounded-xl bg-white text-[15px]"
                   onClick={decline}
                 >
-                  Decline
+                  {copy.decline}
                 </Button>
               </div>
-              <p className="text-center text-xs text-neutral-500">
-                Your response is recorded with the Federal VIN Blockchain Ledger.
-              </p>
+              <p className="text-center text-xs text-neutral-500">{copy.recorded}</p>
             </motion.section>
           ) : (
             <motion.section
@@ -277,10 +265,12 @@ export function ConfirmPage() {
               <ResultIcon ok={thread.state.status === "authorized"} />
               {thread.state.status === "authorized" ? (
                 <>
-                  <h1 className="text-xl font-semibold tracking-tight">Authorization recorded</h1>
+                  <h1 className="text-xl font-semibold tracking-tight">{copy.approvedTitle}</h1>
                   <p className="text-[15px] text-neutral-600">
-                    The UVIP for your {vehicleTitle(thread.vehicle)} can now be issued. This
-                    authorization is valid until {formatDate(thread.state.validUntil.slice(0, 10))}.
+                    {copy.approvedText(
+                      vehicleTitle(thread.vehicle),
+                      formatDate(thread.state.validUntil.slice(0, 10))
+                    )}
                   </p>
                   <div className="mt-1 flex flex-col items-center gap-0.5 rounded-2xl bg-white px-6 py-3 ring-1 ring-black/10">
                     <span className="text-xs text-neutral-500">Reference</span>
@@ -291,10 +281,9 @@ export function ConfirmPage() {
                 </>
               ) : (
                 <>
-                  <h1 className="text-xl font-semibold tracking-tight">Request declined</h1>
+                  <h1 className="text-xl font-semibold tracking-tight">{copy.declinedTitle}</h1>
                   <p className="text-[15px] text-neutral-600">
-                    No package will be issued for your {vehicleTitle(thread.vehicle)}. The
-                    transaction has been flagged for security review.
+                    {copy.declinedText(vehicleTitle(thread.vehicle))}
                   </p>
                 </>
               )}

@@ -10,7 +10,7 @@ import {
   generateCaseReference,
   generateLinkToken,
   generateOtp,
-  generatePackageNumber,
+  generateIssuedNumber,
   initialState,
   type AuthorizationState,
 } from "./authorization"
@@ -250,8 +250,10 @@ describe("generateLinkToken", () => {
   })
 })
 
-describe("generatePackageNumber", () => {
+describe("generateIssuedNumber", () => {
   it("stamps the date and a sequence", () => {
-    expect(generatePackageNumber(new Date(2026, 8, 9), () => 0.4821)).toBe("UVIP-2026-09-09-4821")
+    expect(generateIssuedNumber("UVIP", new Date(2026, 8, 9), () => 0.4821)).toBe(
+      "UVIP-2026-09-09-4821"
+    )
   })
 })

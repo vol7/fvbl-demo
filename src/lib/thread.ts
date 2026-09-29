@@ -1,3 +1,5 @@
+import type { RegionPack } from "@/regions/types"
+
 import type { AuthorizationState } from "./authorization"
 import type { RegistrationState } from "./registration"
 import { activeAuthorization, type SessionState } from "./session"
@@ -7,7 +9,7 @@ export type Texted = Extract<AuthorizationState, { status: "pending" | "authoriz
 export type Submitted = Exclude<RegistrationState, { status: "none" }>
 
 /**
- * What the phone is showing. The owner's phone during a UVIP request; the
+ * What the phone is showing. The owner's phone during an authorization request; the
  * dealership's phone during a first registration. A VIN is never in both
  * flows, so the registration wins whenever one exists for the active VIN.
  */
@@ -16,13 +18,13 @@ export type Thread =
   | { kind: "registration"; vehicle: Vehicle; state: Submitted }
 
 /** The request someone was texted about, if there is one. Pre-approvals send no SMS. */
-export function liveThread(session: SessionState): Thread | null {
+export function liveThread(pack: RegionPack, session: SessionState): Thread | null {
   const vin = session.activeVin
   if (!vin) return null
 
   const registration = session.registrations[vin]
   if (registration && registration.status !== "none") {
-    const vehicle = findVehicle(vin)
+    const vehicle = findVehicle(pack, vin)
     return vehicle ? { kind: "registration", vehicle, state: registration } : null
   }
 
@@ -33,6 +35,6 @@ export function liveThread(session: SessionState): Thread | null {
     return null
   }
   if (state.origin === "owner") return null
-  const vehicle = findVehicle(active.vin)
+  const vehicle = findVehicle(pack, active.vin)
   return vehicle ? { kind: "authorization", vehicle, state } : null
 }

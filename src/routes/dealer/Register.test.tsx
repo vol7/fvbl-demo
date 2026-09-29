@@ -5,8 +5,8 @@ import { describe, expect, it } from "vitest"
 
 import { regionPaths } from "@/lib/paths"
 import { getSessionStore } from "@/lib/session"
-import { NEW_VIN } from "@/lib/vehicles"
 import { Register } from "./Register"
+import { NEW_VIN } from "@/regions/ca/vehicles"
 
 const paths = regionPaths("ca")
 

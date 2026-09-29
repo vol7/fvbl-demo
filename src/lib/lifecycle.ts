@@ -1,3 +1,5 @@
+import type { RegionPack } from "@/regions/types"
+
 import { formatMonth } from "./format"
 import { countryOfOrigin, openExport, sortedHistory, type Vehicle } from "./vehicles"
 
@@ -41,7 +43,7 @@ function portPlace(port: string): string {
  * records that flag it. Consecutive renewals fold into one stop; readings are left out.
  * An export with no re-entry ends on an open stop, the gap the record cannot close.
  */
-export function lifecycleStops(vehicle: Vehicle): LifecycleStop[] {
+export function lifecycleStops(pack: RegionPack, vehicle: Vehicle): LifecycleStop[] {
   const stops: LifecycleStop[] = [
     { kind: "built", title: "Built", lines: [countryOfOrigin(vehicle)], tone: "major", date: "" },
   ]
@@ -52,7 +54,7 @@ export function lifecycleStops(vehicle: Vehicle): LifecycleStop[] {
       case "import":
         stops.push({
           kind: "entered",
-          title: "Entered Canada",
+          title: `Entered ${pack.place.country}`,
           lines: [when, portPlace(e.port)],
           tone: "major",
           date: e.date,
@@ -149,7 +151,7 @@ export function lifecycleStops(vehicle: Vehicle): LifecycleStop[] {
     stops.push({
       kind: "noReentry",
       title: "No re-entry",
-      lines: ["Not back in Canada since"],
+      lines: [pack.copy.portal.timeline.notBackSince],
       tone: "open",
       date: open.date,
     })
