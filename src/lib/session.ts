@@ -1,5 +1,8 @@
 import { useSyncExternalStore } from "react"
 
+import { useRegionId } from "@/regions/context"
+import type { RegionId } from "@/regions/types"
+
 import {
   authorizationReducer,
   buyerPendingState,
@@ -162,8 +165,17 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
   }
 }
 
-export const STORAGE_KEY = "fvbl-demo:session:v2"
-export const CHANNEL_NAME = "fvbl-demo"
+/** One session per region, so resetting a US take never touches a Canadian setup. */
+export function storageKey(region: RegionId): string {
+  return `fvbl-demo:session:v2:${region}`
+}
+
+export function channelName(region: RegionId): string {
+  return `fvbl-demo:${region}`
+}
+
+/** Where the single session lived before regions. Canada inherits it once. */
+export const LEGACY_STORAGE_KEY = "fvbl-demo:session:v2"
 
 type Listener = () => void
 
@@ -185,10 +197,10 @@ function isSession(value: unknown): value is SessionState {
   )
 }
 
-function readStorage(storage: StorageLike | null): SessionState | null {
+function readStorage(storage: StorageLike | null, key: string): SessionState | null {
   if (!storage) return null
   try {
-    const raw = storage.getItem(STORAGE_KEY)
+    const raw = storage.getItem(key)
     if (!raw) return null
     const parsed: unknown = JSON.parse(raw)
     if (!isSession(parsed)) return null
@@ -203,19 +215,32 @@ function safeStorage(): StorageLike | null {
   try {
     if (typeof window === "undefined") return null
     const s = window.localStorage
-    s.getItem(STORAGE_KEY)
+    s.getItem(LEGACY_STORAGE_KEY)
     return s
   } catch {
     return null
   }
 }
 
-function safeChannel(): BroadcastChannel | null {
+function safeChannel(region: RegionId): BroadcastChannel | null {
   try {
     if (typeof BroadcastChannel === "undefined") return null
-    return new BroadcastChannel(CHANNEL_NAME)
+    return new BroadcastChannel(channelName(region))
   } catch {
     return null
+  }
+}
+
+/** Copies the pre-region session to Canada's key, once, and drops the old key. */
+function migrateLegacy(storage: StorageLike | null) {
+  if (!storage) return
+  try {
+    const legacy = storage.getItem(LEGACY_STORAGE_KEY)
+    if (legacy === null) return
+    if (storage.getItem(storageKey("ca")) === null) storage.setItem(storageKey("ca"), legacy)
+    storage.removeItem(LEGACY_STORAGE_KEY)
+  } catch {
+    /* storage unavailable */
   }
 }
 
@@ -225,21 +250,26 @@ function describe(state: AuthorizationState | RegistrationState | undefined): st
 
 export function createSessionStore(
   options: {
+    region?: RegionId
     storage?: StorageLike | null
     channel?: BroadcastChannel | null
     warn?: (message: string) => void
   } = {}
 ): SessionStore {
+  const region = options.region ?? "ca"
+  const key = storageKey(region)
   const storage = options.storage === undefined ? safeStorage() : options.storage
-  const channel = options.channel === undefined ? safeChannel() : options.channel
+  const channel = options.channel === undefined ? safeChannel(region) : options.channel
   const warn =
     options.warn ??
     ((message: string) => {
       if (import.meta.env?.DEV) console.warn(message)
     })
 
+  if (region === "ca") migrateLegacy(storage)
+
   // Storage is the single source of truth. This is only a cache for render.
-  let state: SessionState = readStorage(storage) ?? EMPTY_SESSION
+  let state: SessionState = readStorage(storage, key) ?? EMPTY_SESSION
   const listeners = new Set<Listener>()
 
   function setState(next: SessionState) {
@@ -249,18 +279,18 @@ export function createSessionStore(
   }
 
   function current(): SessionState {
-    return readStorage(storage) ?? state
+    return readStorage(storage, key) ?? state
   }
 
   function refresh() {
-    const latest = readStorage(storage)
+    const latest = readStorage(storage, key)
     if (latest) setState(latest)
   }
 
   if (channel) channel.onmessage = refresh
   if (typeof window !== "undefined") {
     window.addEventListener("storage", (event) => {
-      if (event.key === STORAGE_KEY) refresh()
+      if (event.key === key) refresh()
     })
   }
 
@@ -279,7 +309,7 @@ export function createSessionStore(
         return
       }
       try {
-        storage?.setItem(STORAGE_KEY, JSON.stringify(next))
+        storage?.setItem(key, JSON.stringify(next))
       } catch {
         /* storage unavailable: memory only */
       }
@@ -297,20 +327,27 @@ export function createSessionStore(
   }
 }
 
-let defaultStore: SessionStore | null = null
+const stores = new Map<RegionId, SessionStore>()
 
-export function getSessionStore(): SessionStore {
-  if (!defaultStore) defaultStore = createSessionStore()
-  return defaultStore
+/** The region's store, created on first use. */
+export function getSessionStore(region: RegionId = "ca"): SessionStore {
+  let store = stores.get(region)
+  if (!store) {
+    store = createSessionStore({ region })
+    stores.set(region, store)
+  }
+  return store
 }
 
-/** Test hook: replace the singleton (pass null to reset). */
-export function setSessionStore(store: SessionStore | null) {
-  defaultStore = store
+/** Test hook: replace one region's store, or pass null to drop every store. */
+export function setSessionStore(store: SessionStore | null, region: RegionId = "ca") {
+  if (store) stores.set(region, store)
+  else stores.clear()
 }
 
+/** The session of the region the current route belongs to. */
 export function useSession(): [SessionState, (action: SessionAction) => void] {
-  const store = getSessionStore()
+  const store = getSessionStore(useRegionId())
   const state = useSyncExternalStore(store.subscribe, store.getState, store.getState)
   return [state, store.dispatch]
 }

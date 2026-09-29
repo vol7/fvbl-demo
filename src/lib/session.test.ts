@@ -6,7 +6,8 @@ import {
   createSessionStore,
   EMPTY_SESSION,
   sessionReducer,
-  STORAGE_KEY,
+  LEGACY_STORAGE_KEY,
+  storageKey,
   vehicleState,
 } from "./session"
 
@@ -15,6 +16,7 @@ const T1 = "2026-09-09T18:16:30.000Z"
 const A = "4JGFB8KB5PA812634"
 const B = "5TDEBRCH7SS041927"
 const LINK = "k7m2p9xq4tvn8bwz"
+const STORAGE_KEY = storageKey("ca")
 
 function memoryStorage() {
   const map = new Map<string, string>()
@@ -194,6 +196,52 @@ describe("createSessionStore", () => {
     })
     store.dispatch({ type: "approve", vin: A, authorizationCode: "X", at: T1 })
     expect(warnings).toEqual(["[fvbl] ignored approve in no record"])
+  })
+})
+
+describe("one session per region", () => {
+  it("keeps a US dispatch out of Canada's storage", () => {
+    const storage = memoryStorage()
+    const ca = createSessionStore({ region: "ca", storage, channel: null, warn: () => {} })
+    const us = createSessionStore({ region: "us", storage, channel: null, warn: () => {} })
+    us.dispatch(request(A))
+    expect(storage.map.get(storageKey("ca"))).toBeUndefined()
+    expect(ca.getState()).toEqual(EMPTY_SESSION)
+    expect(JSON.parse(storage.map.get(storageKey("us"))!).authorizations[A].status).toBe("pending")
+  })
+
+  it("leaves the US session alone when Canada resets", () => {
+    const storage = memoryStorage()
+    const ca = createSessionStore({ region: "ca", storage, channel: null, warn: () => {} })
+    const us = createSessionStore({ region: "us", storage, channel: null, warn: () => {} })
+    ca.dispatch(request(A))
+    us.dispatch(request(B))
+    ca.dispatch({ type: "clear" })
+    expect(ca.getState()).toEqual(EMPTY_SESSION)
+    expect(us.getState().authorizations[B].status).toBe("pending")
+  })
+
+  it("moves the pre-region session to Canada once", () => {
+    const storage = memoryStorage()
+    const legacy = sessionReducer(EMPTY_SESSION, request(A))
+    storage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(legacy))
+    const first = createSessionStore({ region: "ca", storage, channel: null, warn: () => {} })
+    expect(first.getState()).toEqual(legacy)
+    expect(storage.map.has(LEGACY_STORAGE_KEY)).toBe(false)
+
+    // A later legacy write (an old tab) never overwrites the Canadian session.
+    first.dispatch({ type: "clear" })
+    storage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(legacy))
+    const second = createSessionStore({ region: "ca", storage, channel: null, warn: () => {} })
+    expect(second.getState()).toEqual(EMPTY_SESSION)
+  })
+
+  it("never migrates into the US session", () => {
+    const storage = memoryStorage()
+    storage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(sessionReducer(EMPTY_SESSION, request(A))))
+    const us = createSessionStore({ region: "us", storage, channel: null, warn: () => {} })
+    expect(us.getState()).toEqual(EMPTY_SESSION)
+    expect(storage.map.has(LEGACY_STORAGE_KEY)).toBe(true)
   })
 })
 
