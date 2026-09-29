@@ -105,7 +105,7 @@ dealer submission is mentioned. The card resolves into the full page the moment
 the dealership confirms.
 
 The page sits in an inset frame: the sidebar is on the canvas (office, VIN
-search with ⌘K, navigation, the demo vehicles under Recent) and the page is the
+search with ⌘K, navigation) and the page is the
 one raised surface. The clerk lands on the vehicle's identity (plate, title,
 colour and body, VIN), then the **decision card**, then tabs, with a details
 rail on the right.

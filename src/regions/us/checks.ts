@@ -133,7 +133,7 @@ const DEFINITIONS: Record<UsCheckId, Omit<CheckDefinition, "id">> = {
     label: "Title or registration elsewhere",
     severity: "high",
     source: "FVBL ledger · participating states and Ontario",
-    agencies: ["States", "Ontario"],
+    agencies: ["FVBL ledger"],
     evaluate: ({ records: r }) => {
       const other = r.otherJurisdiction
       return other
@@ -148,7 +148,7 @@ const DEFINITIONS: Record<UsCheckId, Omit<CheckDefinition, "id">> = {
     label: "Title brand history",
     severity: "high",
     source: "NMVTIS · the branding state's record on the FVBL ledger",
-    agencies: ["NMVTIS", "States"],
+    agencies: ["NMVTIS", "FVBL ledger"],
     evaluate: ({ records: r }) =>
       r.brand
         ? fail(
@@ -161,14 +161,14 @@ const DEFINITIONS: Record<UsCheckId, Omit<CheckDefinition, "id">> = {
     label: "Odometer consistency",
     severity: "low",
     source: "Odometer disclosures on each title",
-    agencies: ["Titles"],
+    agencies: ["Ohio titles"],
     evaluate: (vehicle) => odometerCheck(odometerEvents(vehicle)),
   },
   lien: {
     label: "Lien on title",
     severity: "low",
     source: "The current title record",
-    agencies: ["Title"],
+    agencies: ["Ohio titles"],
     evaluate: ({ records: r }) =>
       r.lien
         ? fail("Lien on the title", `${r.lien.holder}, noted ${formatDate(r.lien.registeredOn)}`)
@@ -179,7 +179,7 @@ const DEFINITIONS: Record<UsCheckId, Omit<CheckDefinition, "id">> = {
     label: "Owner confirmed the sale",
     severity: "high",
     source: "Ohio title alert · the registered owner's answer",
-    agencies: ["Owner"],
+    agencies: ["Title alert"],
     evaluate: (_vehicle, { authorization: a }) => {
       if (a?.status === "authorized") {
         return pass("Owner confirmed", `From the title alert, ${formatDate(a.approvedAt.slice(0, 10))}`)
@@ -213,6 +213,5 @@ export const INTEGRATIONS: { name: string; detail: string }[] = [
   { name: "NICB", detail: "National Insurance Crime Bureau" },
   { name: "NMVTIS", detail: "Federal title records, all states" },
   { name: "Ohio titles", detail: "Statewide title records, all 88 counties" },
-  { name: "States", detail: "Title records from participating states, on the ledger" },
-  { name: "Ontario", detail: "Ontario vehicle registry, on the ledger" },
+  { name: "FVBL ledger", detail: "Records from participating states and Ontario" },
 ]

@@ -4,10 +4,7 @@ import { Link, NavLink, useLocation } from "react-router"
 import { FvblMark } from "@/components/FvblMark"
 import { VinSearch } from "@/components/shell/VinSearch"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { plateLabel } from "@/lib/format"
 import { isActive, navItems } from "@/lib/nav"
-import { recentRows } from "@/lib/seed"
-import { useSession } from "@/lib/session"
 import { cn } from "@/lib/utils"
 import { useRegionPaths } from "@/regions/context"
 import { useRegion } from "@/regions"
@@ -22,14 +19,12 @@ const itemClass = (active: boolean) =>
 
 /**
  * Sits on the canvas, not on a card: the page is the raised surface. The office is the
- * workspace, search lives here, and the demo vehicles are one click away under Recent.
+ * workspace and search lives here.
  */
 export function Sidebar() {
   const pack = useRegion()
   const paths = useRegionPaths()
   const { pathname } = useLocation()
-  const [session] = useSession()
-  const recent = recentRows(pack, session).filter((row) => row.live)
 
   return (
     <aside className="flex h-svh w-60 shrink-0 flex-col px-2 py-2.5">
@@ -48,7 +43,7 @@ export function Sidebar() {
         <VinSearch />
       </div>
 
-      <nav aria-label="Primary" className="mt-3 flex flex-1 flex-col gap-5 overflow-y-auto">
+      <nav aria-label="Primary" className="mt-3 flex flex-1 flex-col overflow-y-auto">
         <div className="flex flex-col gap-0.5">
           {navItems(
             paths,
@@ -73,27 +68,6 @@ export function Sidebar() {
                 />
                 {item.label}
               </NavLink>
-            )
-          })}
-        </div>
-
-        <div className="flex flex-col gap-0.5">
-          <div className="px-2 pb-1 text-xs text-muted-foreground">Recent</div>
-          {recent.map((row) => {
-            const to = paths.portal.vehicle(row.vin)
-            const active = pathname === to
-            return (
-              <Link
-                key={row.vin}
-                to={to}
-                aria-current={active ? "page" : undefined}
-                className={itemClass(active)}
-              >
-                <span className="shrink-0 font-mono text-xs tracking-wider text-muted-foreground">
-                  {plateLabel(pack.plate, row.plate)}
-                </span>
-                <span className="truncate">{row.vehicle.replace(/^\d{4} /, "")}</span>
-              </Link>
             )
           })}
         </div>
