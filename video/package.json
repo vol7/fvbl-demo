@@ -19,15 +19,20 @@
     "@remotion/eslint-config-flat": "4.0.522",
     "@types/react": "19.2.7",
     "@types/web": "0.0.166",
+    "d3-geo": "^3.1.1",
     "eslint": "9.19.0",
     "prettier": "3.8.1",
     "typescript": "5.9.3"
   },
   "scripts": {
     "dev": "remotion studio --no-open",
-    "render": "remotion render Demo out/fvbl-demo.mp4",
-    "still": "remotion still Demo",
+    "render:ca": "remotion render Demo-CA out/fvbl-demo-ca.mp4",
+    "render:us": "remotion render Demo-US out/fvbl-demo-us.mp4",
+    "render:review:ca": "remotion render Demo-CA-Review out/fvbl-demo-ca-review.mp4",
+    "render:review:us": "remotion render Demo-US-Review out/fvbl-demo-us-review.mp4",
+    "still": "remotion still Demo-CA",
     "durations": "node scripts/durations.mjs",
+    "voice:scratch": "node --no-warnings scripts/scratch-voice.mjs",
     "lint": "eslint src && tsc"
   }
 }

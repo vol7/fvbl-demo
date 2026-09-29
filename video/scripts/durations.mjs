@@ -38,5 +38,5 @@ console.log("Set durationInFrames on the Demo composition in src/Root.tsx to tha
 
 // Files referenced in Demo.tsx that are not recorded yet.
 const wanted = [...demo.matchAll(/file="([^"]+)"/g)].map((m) => m[1]);
-const missing = wanted.filter((f) => { try { statSync(join(dir, f)); return false; } catch { return true; } });
+const missing = [...new Set(wanted)].filter((f) => { try { statSync(join(dir, f)); return false; } catch { return true; } });
 if (missing.length) console.log(`\nStill to record (${missing.length}):\n  ${missing.join("\n  ")}`);

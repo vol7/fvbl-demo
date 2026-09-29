@@ -9,3 +9,6 @@ out
 # Recorded clips are large; keep them out of git.
 public/clips/*
 !public/clips/.gitkeep
+
+# Licensed music and the final mix stay out of git too.
+public/audio/*

@@ -14,28 +14,47 @@ repo root; the cut is `src/Demo.tsx`.
 2. `pnpm durations` prints each clip's length in frames and lists the shots
    still missing. Paste the frame counts into the matching
    `<TransitionSeries.Sequence durationInFrames={…}>` in `src/Demo.tsx`, and
-   the printed total into the Demo composition's `durationInFrames` in `src/Root.tsx`.
-3. `pnpm dev` opens Remotion Studio (http://localhost:3000/Demo). Drag a
+   the printed total into `DURATION` in `src/Root.tsx`.
+3. `pnpm dev` opens Remotion Studio (http://localhost:3000/Demo-CA). Drag a
    sequence's right edge to trim it; Studio writes the number back to the
-   file. The `Cards` folder previews each card on its own.
-4. `pnpm render` writes `out/fvbl-demo.mp4`.
+   file. The `Slides` folder previews the map, the hero and a card on their own.
+4. `pnpm render:review:ca` (or `:us`) writes `out/fvbl-demo-ca-review.mp4`,
+   the cut with each voiceover line as a caption, for reviewing the script
+   before the voice is recorded. `pnpm render:ca` and `pnpm render:us` write
+   the finals, without captions.
+
+## Two versions
+
+The cut has a Canada-first and a US-first version (`src/audience.ts`), as
+the compositions `Demo-CA` and `Demo-US` (plus `-Review`). They share every
+shot, card and mark. Per version: the hero figure (`HEROES` in
+`src/Demo.tsx`), the lines that name an agency (`src/lines.ts`), the takes in
+`public/audio/vo/<ca|us>/`, the final mix `public/audio/soundtrack-<ca|us>.wav`,
+and optionally a clip in `public/clips/<ca|us>/`, which replaces the shared
+clip of the same name. `pnpm voice:scratch --audience us` reads the US lines.
 
 Shots that have no file yet render a grey slate with the shot number, so the
 whole timeline can be previewed before anything is recorded.
 
 ## Editing the cards
 
-Card copy lives inline in `src/Demo.tsx`. `BrandCard` is the portal's sign-in
-brand panel at full frame; `index` adds the card number top-right and is left
-off the open and close. `PaperCard` is a light alternative, not in the cut.
-Styles and keyframes are inline literals so Remotion Studio can edit them.
-Every card cross-fades over 12 frames; clips cut straight into each other. To
-add a transition between two clips, insert a `<TransitionSeries.Transition>`
-between their sequences and subtract 12 from the composition total.
+Card copy lives inline in `src/Demo.tsx`: `<Slide eyebrow title>`, where a
+`\n` in the title forces a line break. Titles of 32 characters or fewer set
+as headlines, longer ones as sentences. The hero's copy is `HERO` in the same
+file; its beat timings are `BEATS` in `src/Opening.tsx`. Styles and
+keyframes are inline literals so Remotion Studio can edit them. Every hand-off
+is the 16-frame `settle` transition; see the header of `src/Demo.tsx`.
+
+## Music and voice
+
+`src/Soundtrack.tsx` plays `public/audio/soundtrack-<ca|us>.wav` (the final
+mix of voice and music for that version) if it is there, otherwise `public/audio/music.mp3` as a low
+bed with a fade in and out, otherwise nothing. See "Look and sound" in
+`docs/screenplay.md`.
 
 ## Notes
 
 - Remotion is pinned to 4.0.522. This machine's pnpm rejects packages under a
   day old, so `pnpm upgrade` may need to wait a day after a release.
-- `public/clips/*.mp4` is git-ignored.
+- `public/clips/*.mp4` and `public/audio/*` are git-ignored.
 - Remotion is free for teams of up to three; larger companies need a licence.
