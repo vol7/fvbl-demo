@@ -1,25 +1,28 @@
 import { endsSentence } from "@/lib/format"
 
 /**
- * The buyer's page at `/us/ohio`: a mock of Ohio's title search with one added
- * step, asking the owner to confirm. It shows title status only; the owner's name
- * and number, the vehicle's history and NMVTIS data never reach the buyer.
+ * The buyer's page at `/us/ohio`: a generic state title search (Ohio in the
+ * facts, no agency's look) with FVBL's embedded step, asking the owner to
+ * confirm. It shows title status only; the owner's name and number, the
+ * vehicle's history and NMVTIS data never reach the buyer.
  */
 export const TITLE_SEARCH = {
   shell: {
-    state: "Ohio",
-    service: "Vehicle titles",
-    nav: ["Titles", "Registration", "Help"],
-    footer: ["Accessibility", "Privacy", "Contact"],
+    documentTitle: "Title search | Vehicle Titles",
+    name: "Vehicle Titles",
+    nav: ["Titles", "Registration", "Plates", "Dealers"],
+    activeNav: "Titles",
+    signIn: "Sign in",
+    footer: ["Accessibility", "Privacy policy", "Contact us"],
   },
-  crumbs: ["Vehicle titles", "Title search"],
 
-  title: "Look up a vehicle title",
-  lede: "Check the title status of a vehicle before you buy it. We show the status only, not the owner or the vehicle's history.",
+  eyebrow: "Title search",
+  title: "Check an Ohio title before you buy",
+  lede: "Enter the VIN to see its title status. We show the status only, not the owner or the vehicle's history.",
 
   vin: {
     label: "Vehicle Identification Number (VIN)",
-    placeholder: "17 characters",
+    placeholder: "Enter the 17-character VIN",
     hint: "On the title, the driver-side dashboard or the door jamb.",
     invalid: "Enter the 17-character VIN. VINs don't use the letters I, O or Q.",
     notFound:
@@ -27,9 +30,13 @@ export const TITLE_SEARCH = {
     search: "Search",
   },
 
+  result: {
+    vehicle: "Vehicle",
+    vin: "VIN",
+  },
+
   active: {
     status: "Title active in Ohio",
-    detail: "An Ohio title is on record for this VIN.",
   },
   notOhio: {
     status: "No active Ohio title",
@@ -37,10 +44,17 @@ export const TITLE_SEARCH = {
       "We have no active Ohio title for this VIN. If the seller holds a title from another state, a county title office transfers it when you title the vehicle in Ohio.",
   },
 
+  /** The owner-confirmation module FVBL hosts under the state's search result. */
+  embed: {
+    label: "Owner confirmation",
+    poweredBy: "Powered by FVBL",
+  },
+
   ask: {
-    heading: "Ask the owner to confirm",
-    text: "Buying from a private seller? Before you pay, ask the registered owner to confirm the sale. They get an Ohio title alert and decide. We never show you their name or number.",
+    teaser: "Buying from a private seller?",
+    text: "Before you pay, ask the registered owner to confirm the sale. They get an Ohio title alert and decide. We never show you their name or number.",
     start: "Ask the owner to confirm",
+    heading: "Ask the owner to confirm",
     name: "Your name",
     nameHint: "The owner sees your first name and last initial.",
     mobile: "Your mobile number",
@@ -67,5 +81,4 @@ export const TITLE_SEARCH = {
     text: "The owner didn't answer within 24 hours. That's common and isn't a warning on its own. You can ask again or go ahead as you normally would.",
     again: "Ask again",
   },
-  searchAgain: "Search another VIN",
 } as const

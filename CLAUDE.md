@@ -18,7 +18,8 @@ cards. It was supplied for the demo only.
 - The app component, the favicon and the video copy share one path, kept in sync
   by hand. If you change one, change all three.
 - The mark appears in the clerk sidebar, the dealer sidebar, the phone confirm
-  header and the sign-in page. Use `FvblMark` there rather than pasting the path
+  header, the sign-in page and the "Powered by FVBL" foot of the Ohio title
+  search's embed. Use `FvblMark` there rather than pasting the path
   again. `tone="current"` is for dark grounds.
 - The phone's SMS thread is deliberately not FVBL-branded: its sender is "MTO"
   (2026-09-18 review), since an unfamiliar sender name reads as phishing.

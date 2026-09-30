@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/public-sans";
+@import "@fontsource-variable/source-serif-4/opsz.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -48,7 +49,8 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-:root {
+:root,
+.theme-fvbl {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -181,6 +183,36 @@
   font-family: var(--font-heading);
   font-weight: 700;
   letter-spacing: 0;
+}
+
+/* A generic US state page for the title search, in the spirit of America.gov: a display
+   serif for headings, Helvetica for text, deep navy, pill controls, lots of air. It is no
+   real agency's site: no seal, no logo, no "official website" banner. */
+.theme-state {
+  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-heading: "Source Serif 4 Variable", Georgia, serif;
+  --primary: #002664;
+  --primary-foreground: #fff;
+  --foreground: #000c1f;
+  --muted: #f3f4f6;
+  --muted-foreground: #5b6472;
+  --border: #e2e5ea;
+  --input: #c9ced6;
+  --ring: #2f6fe4;
+  --destructive: #b3261e;
+  --radius: 0.75rem;
+  --state-red: #c1272d;
+  font-family: var(--font-sans);
+}
+.theme-state .font-display {
+  font-family: var(--font-heading);
+  font-optical-sizing: auto;
+}
+
+/* A module FVBL hosts inside someone else's page (the Ohio title search): the app's own
+   tokens (reset alongside :root above) and type, so it reads as distinct from the host. */
+.theme-fvbl {
+  font-family: "Public Sans Variable", sans-serif;
 }
 
 @layer base {
