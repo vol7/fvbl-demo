@@ -2,13 +2,15 @@ import { Audio } from "@remotion/media";
 import { Fragment } from "react";
 import { getStaticFiles, Sequence, staticFile } from "remotion";
 import { useAudience } from "./audience";
-import { estimate, say, type Line } from "./lines";
+import { estimate, mark, say, type Line } from "./lines";
 import { Script } from "./Script";
 import { mix } from "./Soundtrack";
 
 /**
  * A scene's voiceover: each line starts on its own frame. The take is
- * `public/audio/vo/<audience>/<id>.wav` (or .mp3); a missing take is silent, and a
+ * `public/audio/vo/<audience>/<id>.wav` (or .mp3). A shared line (one text,
+ * read the same in both cuts) falls back to the Canada take, so the US cut
+ * only needs takes for its own lines. A missing take is silent, and a
  * present finished mix (`Soundtrack`) silences them all. With `showScript`,
  * each line is also a caption for as long as it's spoken, for the review
  * render.
@@ -24,21 +26,31 @@ export const Voice: React.FC<{ lines: Line[]; showScript: boolean }> = ({
   return (
     <>
       {lines.map((line) => {
-        const take = ["wav", "mp3"]
-          .map((ext) => `audio/vo/${audience}/${line.id}.${ext}`)
+        const at = mark(line, audience);
+        if (at === null) return null;
+        const shared = typeof line.text === "string";
+        const take = [audience, ...(shared ? ["ca"] : [])]
+          .flatMap((dir) => ["wav", "mp3"].map((ext) => `audio/vo/${dir}/${line.id}.${ext}`))
           .find((path) => files.includes(path));
         const text = say(line, audience);
         return (
           <Fragment key={line.id}>
             {take && !mixed ? (
-              <Sequence name={`Voice ${line.id}`} from={line.at} layout="none">
+              // Mounted a second early so the take is loaded when its mark
+              // arrives; otherwise the Studio preview clips its first words.
+              // Premounting needs the default layout, an empty full-frame div.
+              <Sequence
+                name={`Voice ${line.id}`}
+                from={at}
+                premountFor={30}
+              >
                 <Audio src={staticFile(take)} />
               </Sequence>
             ) : null}
             {showScript ? (
               <Sequence
                 name={`Caption ${line.id}`}
-                from={line.at}
+                from={at}
                 durationInFrames={estimate(text) + 12}
               >
                 <Script text={text} />

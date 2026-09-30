@@ -6,17 +6,17 @@
   "license": "UNLICENSED",
   "private": true,
   "dependencies": {
-    "@remotion/cli": "4.0.522",
-    "@remotion/google-fonts": "4.0.522",
-    "@remotion/media": "4.0.522",
-    "@remotion/transitions": "4.0.522",
-    "mediabunny": "1.55.5",
+    "@remotion/cli": "4.0.530",
+    "@remotion/google-fonts": "4.0.530",
+    "@remotion/media": "4.0.530",
+    "@remotion/transitions": "4.0.530",
+    "mediabunny": "1.56.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "remotion": "4.0.522"
+    "remotion": "4.0.530"
   },
   "devDependencies": {
-    "@remotion/eslint-config-flat": "4.0.522",
+    "@remotion/eslint-config-flat": "4.0.530",
     "@types/react": "19.2.7",
     "@types/web": "0.0.166",
     "d3-geo": "^3.1.1",

@@ -12,11 +12,7 @@ US-first (`Demo-US`). The switch is `video/src/audience.ts`.
 Shared by both, and done:
 
 - The title cards, the timing (marks in `video/src/lines.ts`) and the map.
-- The map (`video/src/MapScene.tsx`) is neutral: every state and province
-  lights together, rippling out from the border; the Great Lakes are water;
-  one arc runs from each capital (a dot on Ottawa and on Washington) to the
-  ledger, drawn as the FVBL mark; a flag goes each way, Ontario to Ohio and
-  Ohio to Ontario. Line 36 is "Both countries connect to the ledger." and
+- The map's voice. Line 36 is "Both countries connect to the ledger." and
   says nothing about where the ledger is hosted, on purpose: the hosting
   question stays open for either government.
 - The mission card says "the registration counter", the caveat says
@@ -24,6 +20,12 @@ Shared by both, and done:
 
 Per version:
 
+- The map. The US cut plays `MapPeers` (variant `join`): the usual US map
+  with Canada drawn whole along the top, no hub and no capitals. States join
+  one by one, streaking records into the FVBL mark beside the map; Ohio's
+  flag goes in and back out to every region. The Canada cut still plays the
+  joint map (`MapScene`); its inverse, provinces in full and the US drawn
+  whole, is next. Shapes per version in `map-shapes.ts` (`MAP_CA`, `MAP_US`).
 - The hero figure (`HEROES` in `video/src/Demo.tsx`) and hero lines 01–02.
 - Lines that name an agency: MTO, the ministry and CBSA for Canada; the DMV
   for the US (`say()` in `lines.ts`).
@@ -50,16 +52,17 @@ agencies we are pitching that their system fails. The US opening leads with
 the size of what cloning preys on instead:
 
 > **38,500,000** used cars change hands in the US every year.
-> Every sale trusts the VIN.
+> Every sale relies on the VIN.
 >
-> (card) Not every VIN tells the truth.
-> (voice) Crime rings clone VINs and forge titles so stolen cars pass as clean.
+> (card) Some of them carry a copied VIN.
+> (voice) Some of them carry a copied VIN. Crime rings forge titles to match.
 
 Source on screen: "Cox Automotive, 2026 used-vehicle forecast" (38.5 million
 total used-vehicle sales in 2026, updated 2026-09-24; slightly below 2025).
 The screen shows the full number and the voice says "38.5 million", so the
-two match. The second card is about the information: a VIN can lie, which
-covers all three catches and blames no one. The voice under it keeps the
+two match. The second card says some of those cars carry a copied VIN
+(plain wording, 2026-09-29; it was "Not every VIN tells the truth."). It
+blames no one. The voice under it keeps the
 crime for a law-and-order audience, and "forge titles" sets up catch 3.
 The turn beat is 30 frames longer than it was for this line, in both cuts.
 
@@ -139,7 +142,7 @@ If Policaro's US contact has a home state, that beats all of this. Keep the
 mock generic whatever the state: no seals, no officials' names, watermarked
 "Concept mock-up. Not a government page."
 
-The map's US flag starts in Ohio: `FLAG_STATE` in `MapScene.tsx`.
+The map's US flag starts in Ohio: `OHIO` in `MapPeers.tsx`, and `crossing` in `scripts/map-shapes.mjs`.
 
 ## The US flow: title alerts and the owner's confirmation
 
@@ -260,7 +263,12 @@ App (`src/`), planned in
 
 - Flow 0: first title from the certificate of origin; the title-alert opt-in.
 - A mock of Ohio's title search with **Ask the owner to confirm**, in place
-  of the ServiceOntario UVIP page. Watermarked, no seals.
+  of the ServiceOntario UVIP page. The host page is a generic state site
+  (in the spirit of America.gov: display serif, navy, pill search; no
+  agency's look, no seal, no "official website" banner); Ohio is in the
+  content only. The ask is an FVBL embed
+  under the state's result, in FVBL's own style with "Powered by FVBL": the
+  pitch is one module a state drops in, not a site rebuild (2026-09-30).
 - The owner's title alert and request screen (the phone flow, new wording),
   with Approve and **Not me**; the buyer's "Owner confirmed" and red states.
 - Ohio demo vehicles: plates and VINs for the happy path and each catch.

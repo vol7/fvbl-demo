@@ -2,3 +2,7 @@ packages:
   - "."
 allowBuilds:
   esbuild: true
+minimumReleaseAgeExclude:
+  - '@remotion/google-fonts@4.0.530'
+  - '@remotion/media-utils@4.0.530'
+  - '@remotion/studio@4.0.530'

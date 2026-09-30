@@ -8,7 +8,15 @@ import { ALL_FORMATS, FilePathSource, Input } from "mediabunny";
 const FPS = 30;
 const dir = new URL("../public/clips/", import.meta.url).pathname;
 
-const files = readdirSync(dir)
+// Shared takes, then each version's own takes in public/clips/<version>/.
+const files = ["", "ca/", "us/"]
+  .flatMap((sub) => {
+    try {
+      return readdirSync(join(dir, sub)).map((f) => sub + f);
+    } catch {
+      return [];
+    }
+  })
   .filter((f) => /\.(mp4|mov|webm)$/i.test(f))
   .sort();
 
@@ -32,9 +40,18 @@ const sequences = [...demo.matchAll(/<TransitionSeries\.Sequence[^>]*durationInF
 // falling back to inline <TransitionSeries.Transition> elements.
 const handoffs = (demo.match(/\{handoff\}/g) ?? []).length;
 const transitions = handoffs > 0 ? handoffs : (demo.match(/<TransitionSeries\.Transition\b/g) ?? []).length;
-const total = sequences.reduce((a, b) => a + b, 0) - 16 * transitions;
-console.log(`\nDemo.tsx: ${sequences.length} sequences, ${transitions} transitions → ${total} frames (${(total / FPS).toFixed(1)} s)`);
-console.log("Set durationInFrames on the Demo composition in src/Root.tsx to that value.");
+// The whip pans between the catches are 12 frames, not 16.
+const whips = (demo.match(/\{whipPan\}/g) ?? []).length;
+const fixed = sequences.reduce((a, b) => a + b, 0) - 16 * transitions - 12 * whips;
+// The recorded shots' lengths, per version, from the SHOTS table.
+const shots = demo.match(/export const SHOTS = \{([\s\S]*?)\n\}/)?.[1] ?? "";
+console.log(`\nDemo.tsx: ${sequences.length} fixed sequences, ${transitions} settles, ${whips} whip pans.`);
+for (const [, version, body] of shots.matchAll(/(\w+): \{([^}]*)\}/g)) {
+  const recorded = [...body.matchAll(/:\s*(\d+)/g)].reduce((a, m) => a + Number(m[1]), 0);
+  const total = fixed + recorded;
+  console.log(`  ${version}: ${total} frames (${(total / FPS).toFixed(1)} s)`);
+}
+console.log("Set DURATION in src/Root.tsx to those values.");
 
 // Files referenced in Demo.tsx that are not recorded yet.
 const wanted = [...demo.matchAll(/file="([^"]+)"/g)].map((m) => m[1]);

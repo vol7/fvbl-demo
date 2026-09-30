@@ -8,7 +8,11 @@ import {
   staticFile,
   useCurrentFrame,
 } from "remotion";
+import { createContext, useContext } from "react";
 import { useAudience } from "./audience";
+
+/** On in the -Review cuts: production notes such as "Stand-in" show there only. */
+export const ReviewContext = createContext(false);
 import { fontFamily } from "./theme";
 
 type ClipProps = {
@@ -60,6 +64,7 @@ export const Clip: React.FC<ClipProps> = ({
   label,
 }) => {
   const audience = useAudience();
+  const review = useContext(ReviewContext);
   const files = getStaticFiles().map((f) => f.name);
   const own = files.includes(`clips/${audience}/${file}`);
   const recorded = own || files.includes(`clips/${file}`);
@@ -103,7 +108,7 @@ export const Clip: React.FC<ClipProps> = ({
       <Corner side="right">
         {label ? <Label {...label} /> : null}
         {watermark ? <Note text={watermark} /> : null}
-        {standIn ? <Note text={`Stand-in: ${standIn.file}, old take`} /> : null}
+        {standIn && review ? <Note text={`Stand-in: ${standIn.file}, old take`} /> : null}
       </Corner>
     </AbsoluteFill>
   );
@@ -170,20 +175,23 @@ const Label: React.FC<{ eyebrow: string; title: string }> = ({
   );
 };
 
-/** A small note in a top corner, above the recording. */
+/** A small note in a top corner, above the recording: one quiet line. */
 const Note: React.FC<{ text: string }> = ({ text }) => (
   <div
     style={{
-      maxWidth: 720,
-      padding: "10px 16px",
-      borderRadius: 10,
-      backgroundColor: "rgba(8,21,39,0.82)",
-      color: "rgba(245,248,251,0.9)",
+      padding: "6px 12px",
+      borderRadius: 8,
+      backgroundColor: "rgba(8,21,39,0.35)",
+      // Light enough to see through, blurred so the page behind doesn't
+      // tangle with the words.
+      backdropFilter: "blur(14px)",
+      color: "rgba(245,248,251,0.85)",
       fontFamily,
-      fontSize: 22,
-      fontWeight: 500,
+      fontSize: 15,
+      fontWeight: 400,
       lineHeight: 1.3,
       letterSpacing: "0.01em",
+      whiteSpace: "nowrap",
     }}
   >
     {text}

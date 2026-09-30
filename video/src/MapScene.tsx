@@ -175,7 +175,10 @@ const Label: React.FC<{
   p: number;
   children: string;
 }> = ({ x, y, p, children }) => (
+  // The font is set on every <text>, not inherited: Studio's in-browser
+  // render doesn't carry CSS fonts into SVG, and falls back to a serif.
   <text
+    fontFamily={fontFamily}
     x={x}
     y={y}
     textAnchor="middle"
@@ -373,6 +376,7 @@ export const MapScene: React.FC<{
             transform={`translate(${HUB.x - (37 * markScale) / 2} ${HUB.y - MARK / 2}) scale(${markScale})`}
           />
           <text
+            fontFamily={fontFamily}
             x={HUB.x}
             y={HUB.y + 112}
             textAnchor="middle"
@@ -384,6 +388,7 @@ export const MapScene: React.FC<{
             FVBL
           </text>
           <text
+            fontFamily={fontFamily}
             x={HUB.x}
             y={HUB.y + 144}
             textAnchor="middle"

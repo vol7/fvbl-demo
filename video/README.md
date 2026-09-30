@@ -27,11 +27,19 @@ repo root; the cut is `src/Demo.tsx`.
 
 The cut has a Canada-first and a US-first version (`src/audience.ts`), as
 the compositions `Demo-CA` and `Demo-US` (plus `-Review`). They share every
-shot, card and mark. Per version: the hero figure (`HEROES` in
+card and the order of shots. Per version: the hero figure (`HEROES` in
 `src/Demo.tsx`), the lines that name an agency (`src/lines.ts`), the takes in
 `public/audio/vo/<ca|us>/`, the final mix `public/audio/soundtrack-<ca|us>.wav`,
 and optionally a clip in `public/clips/<ca|us>/`, which replaces the shared
-clip of the same name. `pnpm voice:scratch --audience us` reads the US lines.
+clip of the same name. A shared line (one text in `lines.ts`) plays its Canada
+take in both cuts, so `vo/us/` holds only the US's own lines.
+
+The US takes (2026-09-30) run to their own timing, so each recorded shot has a
+length per version (`SHOTS` in `src/Demo.tsx`), each line over them a mark per
+version (`at: { ca, us }`, where `null` drops the line from that version), and
+`DURATION` in `src/Root.tsx` a total per version. `pnpm voice:scratch --audience us`
+reads the US lines and times the shared ones from their Canada takes. It
+overwrites the takes in `vo/us/`, so don't run it over recorded ones.
 
 Shots that have no file yet render a grey slate with the shot number, so the
 whole timeline can be previewed before anything is recorded.
@@ -51,6 +59,12 @@ is the 16-frame `settle` transition; see the header of `src/Demo.tsx`.
 mix of voice and music for that version) if it is there, otherwise `public/audio/music.mp3` as a low
 bed with a fade in and out, otherwise nothing. See "Look and sound" in
 `docs/screenplay.md`.
+
+To audition candidate beds, drop up to four MP3s in `public/audio/compare/`:
+while it has files, each plays as its own layer in place of `music.mp3`, to
+be muted one by one in the Studio timeline. Studio saves those mutes into
+`src/Soundtrack.tsx` as `hidden` props. Remove them and empty the folder
+before a render.
 
 ## Notes
 

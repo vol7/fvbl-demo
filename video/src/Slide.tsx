@@ -66,8 +66,6 @@ type Props = {
   note?: string;
 };
 
-/** Titles this short are headlines and set larger; longer ones are sentences. */
-const HEADLINE_MAX = 32;
 /** Frames between one word of the title and the next. */
 const STAGGER = 3;
 
@@ -97,7 +95,6 @@ export const Slide: React.FC<Props> = ({
   const frame = useCurrentFrame();
   // A "\n" in the title is a deliberate line break.
   const lines = title.split("\n").map((line) => line.split(" "));
-  const headline = Math.max(...lines.map((l) => l.join(" ").length)) <= HEADLINE_MAX;
   let n = 0;
   const titleStart = eyebrow ? 10 : 6;
 
@@ -178,11 +175,12 @@ export const Slide: React.FC<Props> = ({
         name="Title"
         style={{
           position: "relative",
-          maxWidth: headline ? "18ch" : "26ch",
-          fontSize: headline ? 128 : 92,
-          fontWeight: headline ? 700 : 600,
-          letterSpacing: headline ? "-0.045em" : "-0.035em",
-          lineHeight: headline ? 1.02 : 1.06,
+          // One style for every card, whatever the title's length.
+          maxWidth: "20ch",
+          fontSize: 104,
+          fontWeight: 700,
+          letterSpacing: "-0.04em",
+          lineHeight: 1.04,
           textWrap: "balance",
         }}
       >
@@ -214,13 +212,14 @@ export const Slide: React.FC<Props> = ({
 
       {note ? (
         <div
+          // Fine print, like a car commercial's: small, regular, low and faint.
           style={{
             position: "absolute",
-            bottom: 170,
-            fontSize: 26,
-            fontWeight: 500,
+            bottom: 40,
+            fontSize: 16,
+            fontWeight: 400,
             letterSpacing: "0.01em",
-            color: "rgba(245,248,251,0.7)",
+            color: "rgba(245,248,251,0.45)",
             opacity: interpolate(frame, [20, 36], [0, 1], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",

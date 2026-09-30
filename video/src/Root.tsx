@@ -1,7 +1,10 @@
 import { Composition, Folder } from "remotion";
 import { AudienceContext, type Audience } from "./audience";
 import { Demo, HEROES } from "./Demo";
+import { LINES } from "./lines";
+import { MapPeers } from "./MapPeers";
 import { MapScene } from "./MapScene";
+import { Voice } from "./Voice";
 import { Opening } from "./Opening";
 import { Backdrop, Slide } from "./Slide";
 
@@ -13,6 +16,15 @@ const MapPreview: React.FC<{ audience: Audience }> = ({ audience }) => (
   </AudienceContext.Provider>
 );
 
+/** A no-hub draft of the US map, with the map's lines as captions. */
+const MapPeersPreview: React.FC<{ variant: "quiet" | "join" }> = ({ variant }) => (
+  <AudienceContext.Provider value="us">
+    <Backdrop />
+    <MapPeers variant={variant} />
+    <Voice lines={LINES.map} showScript />
+  </AudienceContext.Provider>
+);
+
 /** The hero on its navy ground, with the cut's copy. */
 const OpeningPreview: React.FC = () => (
   <>
@@ -21,31 +33,58 @@ const OpeningPreview: React.FC = () => (
   </>
 );
 
-/** The cut's length in frames, shared by all four Demo compositions. */
-const DURATION = 6820;
+/**
+ * Each version's length in frames, for its cut and its -Review cut. They
+ * differ because the recorded shots do (`SHOTS` in Demo.tsx).
+ */
+const DURATION = { ca: 6962, us: 7196 } satisfies Record<Audience, number>;
 
 export const RemotionRoot: React.FC = () => {
   return (
     <>
       {/* One cut, two versions: Canada-first and US-first (audience.ts).
           DURATION = sum of every <TransitionSeries.Sequence> in Demo.tsx
-          minus 16 per <Transition>. `pnpm durations` prints the current value.
+          minus 16 per <Transition>, per version. `pnpm durations` prints both.
           The -Review cuts show each voiceover line as a caption, for checking
-          the script against the picture before the voice is recorded. */}
-      {(["ca", "us"] as const).flatMap((audience) =>
-        [false, true].map((showScript) => (
-          <Composition
-            key={`${audience}-${showScript}`}
-            id={`Demo-${audience.toUpperCase()}${showScript ? "-Review" : ""}`}
-            component={Demo}
-            durationInFrames={DURATION}
-            fps={30}
-            width={1920}
-            height={1080}
-            defaultProps={{ audience, showScript }}
-          />
-        )),
-      )}
+          the script against the picture before the voice is recorded.
+          Written out rather than looped so the Studio can save their props:
+          it needs a literal id and defaultProps to find each one. */}
+      <Composition
+        id="Demo-CA"
+        component={Demo}
+        durationInFrames={DURATION.ca}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{ audience: "ca", showScript: false }}
+      />
+      <Composition
+        id="Demo-CA-Review"
+        component={Demo}
+        durationInFrames={DURATION.ca}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{ audience: "ca", showScript: true }}
+      />
+      <Composition
+        id="Demo-US"
+        component={Demo}
+        durationInFrames={DURATION.us}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{ audience: "us", showScript: false }}
+      />
+      <Composition
+        id="Demo-US-Review"
+        component={Demo}
+        durationInFrames={DURATION.us}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{ audience: "us", showScript: true }}
+      />
 
       <Folder name="Slides">
         {(["ca", "us"] as const).map((audience) => (
@@ -60,10 +99,22 @@ export const RemotionRoot: React.FC = () => {
             defaultProps={{ audience }}
           />
         ))}
+        {(["quiet", "join"] as const).map((variant) => (
+          <Composition
+            key={variant}
+            id={`Map-US-${variant === "quiet" ? "Quiet" : "Join"}`}
+            component={MapPeersPreview}
+            durationInFrames={525}
+            fps={30}
+            width={1920}
+            height={1080}
+            defaultProps={{ variant }}
+          />
+        ))}
         <Composition
           id="Opening"
           component={OpeningPreview}
-          durationInFrames={810}
+          durationInFrames={885}
           fps={30}
           width={1920}
           height={1080}
