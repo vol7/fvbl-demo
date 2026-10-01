@@ -50,7 +50,8 @@ export const LINES = {
     },
     {
       id: "02-hero-problem",
-      at: 250,
+      // Canada 8 frames later: Victoria's 01 runs 8.1 s (2026-09-30).
+      at: { ca: 258, us: 250 },
       text: {
         ca: "Crime rings clone VINs to sell stolen cars, here and across the border.",
         us: "Some of them carry a copied VIN. Crime rings forge titles to match.",
@@ -236,7 +237,8 @@ export const LINES = {
     },
     {
       id: "37-map-connect",
-      at: 110,
+      // Canada 4 frames later: Victoria's 36 runs 3.36 s (2026-09-30).
+      at: { ca: 114, us: 110 },
       text: {
         ca: "With the right agreements, neighbouring countries can join too. Cars that cross the border keep their history.",
         us: "With the right agreements, neighboring countries can join too. Cars that cross the border keep their history.",
@@ -255,9 +257,17 @@ export const LINES = {
     {
       // After the map (2026-09-30): "these sources" are the records it just
       // showed connecting. A new id, so the old take's words don't play.
+      // The US cut only: Canada has a fourth catch at the border.
       id: "25-bridge-sources",
-      at: 14,
+      at: { ca: null, us: 14 },
       text: "With these sources connected, here are three cars FVBL would flag.",
+    },
+    {
+      // Canada's, with catch 3d at the border (2026-09-30 call). Its own id,
+      // so the US keeps playing the three-car take.
+      id: "25c-bridge-four",
+      at: { ca: 14, us: null },
+      text: "With these sources connected, here are four cars FVBL would flag.",
     },
   ],
   export: [
@@ -346,6 +356,29 @@ export const LINES = {
         ca: "Now its VIN is on a second Ontario plate. That's a write-off coming back under another identity.",
         us: "Now this VIN has a clean title in another state. That's a salvage car passing as clean.",
       },
+    },
+  ],
+  // Canada only (2026-09-30 call with Policaro): the CBSA officer's card for the
+  // RAM 1500, recorded after its owner said no (Force state "Export: owner said
+  // no"). A catch like the others: one car, one red card.
+  border: [
+    {
+      id: "40-border-ledger",
+      // On the list of declared vehicles, then the click into the RAM's card.
+      at: { ca: 10, us: null },
+      text: "With the right agreements, CBSA can check the same ledger before a car is loaded.",
+    },
+    {
+      id: "41-border-owner",
+      // On the card: the permit and stolen cells, then "Said no".
+      at: { ca: 215, us: null },
+      text: "This truck's permit is real, and it isn't reported stolen. But its owner was asked by text, and said no.",
+    },
+    {
+      id: "42-border-container",
+      // On the container number, as the officer holds it for examination.
+      at: { ca: 465, us: null },
+      text: "So officers know which container to open.",
     },
   ],
   close: [

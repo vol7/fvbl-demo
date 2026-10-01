@@ -8,7 +8,8 @@ from the end to just before the catches on 2026-09-30: the sharing it shows is
 what each catch relies on.
 v4 is in git history.
 
-The cut is `video/src/Demo.tsx`. It runs 3:53 (6999 frames). The open
+The cut is `video/src/Demo.tsx`. The Canada cut runs 4:12 (7550 frames), with
+a fourth catch at the border since the 2026-09-30 call; the US cut runs 4:00. The open
 questions for Policaro are in `docs/2026-09-23-policaro-review.md`.
 
 What changed from v4:
@@ -72,6 +73,7 @@ Do this once.
 | Catch 1, export | 2022 Land Rover Range Rover Sport | CPLR 482 | `SALWR2SEXNA209311` |
 | Catch 2, US title | 2024 Lexus GX 550 | CTRV 657 | `JTJTABGX9R4027418` |
 | Catch 3, write-off | 2025 Toyota Highlander | BWTP 903 | `5TDEBRCH9SS041927` |
+| Catch 4, border (Canada only) | 2024 RAM 1500 Limited | CPWT 318 | `1C6SRFHT4RN318405` |
 
 ## Look and sound
 
@@ -271,12 +273,28 @@ cut plays its own map instead (`MapPeers`, variant `join`):
 | 11.2 s | Ohio turns coral and its flag streaks into the mark, then back out to every region, staggered. Each state flashes coral as its streak lands, east first, sweeping west. Canada's streak lands across Lake Erie, with no flash. |
 
 No capitals, no standing lines. Ohio goes unnamed: a named state lighting
-first reads as one that has signed on. The Canada cut's inverse (provinces
-in full, the US drawn whole) is still to build.
+first reads as one that has signed on.
+
+**The Canada cut's map (2026-09-30).** The inverse, the same component
+(`MapPeers`, variant `join`, `country="ca"`), so neither cut plays the joint
+map above any more; it stays as the Map-CA preview. The layout is
+`MAP_CA_PEERS` in `video/src/map-shapes.ts`.
+
+| Mark | On screen |
+| --- | --- |
+| 0.3 s | Canada's provinces and territories in full, on Statistics Canada's projection (Lambert conformal conic), fitted to the width, with the Arctic islands just clearing the top, and the US as one quieter outline along the bottom, running off the frame. Ontario lights first, unnamed. The FVBL mark sits right of the map, "One shared ledger". |
+| 1 s | The other provinces and territories join one by one, each sending a streak of records into the mark. The US joins last, at 6 s. |
+| 11.2 s | Ontario turns coral and its flag streaks into the mark, then back out to every province and territory, each flashing coral as it lands. The US streak lands in Pennsylvania, with no flash: the Canada cut's second catch is an active Pennsylvania title. |
+
+The voice is unchanged: the Canada lines already name the provinces and
+territories, the neighbouring country and a flag raised in one province.
 
 ### Bridge · 8 s
 
-> *The catches.* **Three cars FVBL would flag.**
+> *The catches.* **Four cars FVBL would flag.**
+> US: *The catches.* **Three cars FVBL would flag.**
+
+Canada's voice is its own line, `25c-bridge-four`: *With these sources connected, here are four cars FVBL would flag.* The US keeps `25-bridge-sources` below, unchanged.
 
 VO at 0.5 s: *With these sources connected, here are three cars FVBL would flag.* Both cuts (2026-09-30). It follows the map, so "these sources" are the records the map just showed connecting, and it stays generic because the sources are not only states or provinces. It replaced *Of course, that's when everything goes smoothly…*, which closed the clean sale and no longer sits next to it.
 
@@ -305,6 +323,37 @@ VO at 0.5 s: *With these sources connected, here are three cars FVBL would flag.
 | | 3.3 s | Zoom on **Insurer write-off**: "This vehicle was declared a total loss", "Reported by IBC and Carfax". | *Insurer records show this one was written off last year.*<br>US: *This one was branded salvage in Kentucky in 2024.* |
 | | 9 s | Zoom on **Duplicate identity**: "Also on Ontario plate CRHM 118". Hold. No referral. | *Now its VIN is on a second Ontario plate. That's a write-off coming back under another identity.*<br>US: *Now its VIN is on a second plate. …* |
 
+### Flow 3d · the border, Canada only · 20 s · `flow-3d.mp4` · new
+
+From the 2026-09-30 call with Francesco and Fawaz. CBSA can't open every
+container. With the declarations checked against the ledger, officers know
+which ones to open. A catch like the others: one car, one red card, the same
+card and strip as the clerk's. The officer sees only what the decision needs
+(the permit, a stolen report, the registered owner and their answer, the
+container); none of the clerk's record. The full flow (the owner's text and
+answer) is in the app for the live walkthrough. The US cut skips the shot and
+goes from 3c to the close.
+
+Setup: on the hub, **Force state → Export: owner said no**. Open the border
+officer's window from the hub (`/ca/border` → sign in → **Declared for
+export**), at 1440×900. A whip pan from 3c.
+
+| # | Mark | Action | VO |
+| --- | --- | --- | --- |
+| 3.6 | 0.3 s | The list: *Declared for export*, the RAM 1500 on top, red, "Owner said no", with the two bad permits under it and the cleared cars below. Click the RAM by 2 s. The card: **Doesn't clear**. | *With the right agreements, CBSA can check the same ledger before a car is loaded.* |
+| 3.7 | 7.2 s | Zoom on **The registered owner did not authorize this export.**, then the strip: permit **Matches**, stolen report **None**, registered owner **Said no** in red. | *This truck's permit is real, and it isn't reported stolen. But its owner was asked by text, and said no.* |
+| 3.8 | 15.5 s | Zoom on container **HBLU 420517 4**, "Block 4C · row 15 · tier 1". Click **Hold for examination** at about 16.5 s: **Held for examination** and its reference. Hold to the end. | *So officers know which container to open.* |
+
+The list carries the other failures Fawaz described: another car's permit
+(an Acura MDX whose permit is on file for a Honda Civic) and a permit number on
+no Ontario registration (a RAV4). The cleared cars include a Mercedes shipped
+on a bill of sale alone, matched to its registered owner by the VIN. The truck
+is a pickup on purpose: the three catches before it are SUVs.
+
+**Confidential.** Fawaz described CBSA's process as police-internal
+information, shared under the NDA. Francesco confirmed everyone who sees the
+demo signs one. Don't post the Canada cut anywhere public.
+
 ## Close
 
 ### Close · 6 s
@@ -329,13 +378,15 @@ silence.
 | Clerk, card and flow 2 | 1515 | 50.5 |
 | Map | 525 | 17.5 |
 | Bridge | 240 | 8 |
-| Catches, flows 3a to 3c | 1815 | 60.5 |
+| Catches, flows 3a to 3d | 2415 | 80.5 |
 | Close | 180 | 6 |
-| Handoffs, 16 × 16, and 2 whip pans × 12 | −280 | −9.3 |
-| Total | 6962 | 3:52 |
+| Handoffs, 13 × 16, and 3 whip pans × 12 | −244 | −8.1 |
+| Total | 7598 | 4:13 |
 
-This is the Canada cut. The US cut runs to its own takes (`SHOTS` in
-`video/src/Demo.tsx`): 7196 frames, 4:00.
+Flow 2's four parts join with no transition: they are one take, and each
+starts on the frame where the last one ends (2026-09-30). This is the Canada
+cut. The US cut runs to its own takes (`SHOTS` in `video/src/Demo.tsx`) and
+has no catch 3d: 7244 frames, 4:01.
 
 If a take runs long, trim flow 1a and flow 2 first. Never trim the catches,
 and never cut a shot below its lines: a line's mark moves with its action.
@@ -345,13 +396,16 @@ and never cut a shot below its lines: a line's mark moves with its action.
 - The clerk-triggered request, the owner-initiated pre-approval, deny and
   timeout. Built; mention if asked.
 - Referral on catches 2 and 3. Shown once.
+- The border's full flow: declaring the export, the owner's text and answer,
+  and holding a container. Built for the live walkthrough (README, scenario 7);
+  catch 3d shows only the result.
 - An ask card. It depends on what Policaro wants to ask for.
 - Revenue and fees.
 
 ## Assembly
 
 Hero, dealer card, 0, buyer card, 1a, owner card, 1b, clerk card, 2a, 2b, 2c,
-2d, map, bridge, 3a, 3b, 3c, close.
+2d, map, bridge, 3a, 3b, 3c, 3d (Canada only), close.
 
 Record, drop the clips in `video/public/clips/`, run `pnpm durations`, paste
 the frame counts into `Demo.tsx` and the total into `DURATION` in

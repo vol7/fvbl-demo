@@ -10,8 +10,10 @@ import { mix } from "./Soundtrack";
  * A scene's voiceover: each line starts on its own frame. The take is
  * `public/audio/vo/<audience>/<id>.wav` (or .mp3). A shared line (one text,
  * read the same in both cuts) falls back to the Canada take, so the US cut
- * only needs takes for its own lines. A missing take is silent, and a
- * present finished mix (`Soundtrack`) silences them all. With `showScript`,
+ * only needs takes for its own lines. A line with no recorded take plays its
+ * scratch take from `public/audio/vo-scratch/` (`pnpm voice:scratch`), in the
+ * same order. A missing take is silent, and a present finished mix
+ * (`Soundtrack`) silences them all. With `showScript`,
  * each line is also a caption for as long as it's spoken, for the review
  * render.
  */
@@ -29,8 +31,13 @@ export const Voice: React.FC<{ lines: Line[]; showScript: boolean }> = ({
         const at = mark(line, audience);
         if (at === null) return null;
         const shared = typeof line.text === "string";
-        const take = [audience, ...(shared ? ["ca"] : [])]
-          .flatMap((dir) => ["wav", "mp3"].map((ext) => `audio/vo/${dir}/${line.id}.${ext}`))
+        const dirs = [audience, ...(shared ? ["ca"] : [])];
+        const take = ["vo", "vo-scratch"]
+          .flatMap((folder) =>
+            dirs.flatMap((dir) =>
+              ["wav", "mp3"].map((ext) => `audio/${folder}/${dir}/${line.id}.${ext}`)
+            )
+          )
           .find((path) => files.includes(path));
         const text = say(line, audience);
         return (

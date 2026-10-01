@@ -37,9 +37,12 @@ take in both cuts, so `vo/us/` holds only the US's own lines.
 The US takes (2026-09-30) run to their own timing, so each recorded shot has a
 length per version (`SHOTS` in `src/Demo.tsx`), each line over them a mark per
 version (`at: { ca, us }`, where `null` drops the line from that version), and
-`DURATION` in `src/Root.tsx` a total per version. `pnpm voice:scratch --audience us`
-reads the US lines and times the shared ones from their Canada takes. It
-overwrites the takes in `vo/us/`, so don't run it over recorded ones.
+`DURATION` in `src/Root.tsx` a total per version. `pnpm voice:scratch` (or
+`--audience us`) reads that version's lines with the macOS voice into
+`public/audio/vo-scratch/<ca|us>/`, and times the US's shared lines from their
+Canada takes. It never touches the recorded takes in `vo/`: the cut plays a
+recorded take where there is one and the scratch take for the rest. Add
+`--check` to write nothing and only time what the cut plays, take by take.
 
 Shots that have no file yet render a grey slate with the shot number, so the
 whole timeline can be previewed before anything is recorded.

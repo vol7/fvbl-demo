@@ -3,7 +3,6 @@ import { AbsoluteFill, Easing } from "remotion";
 import { AudienceContext, type Audience } from "./audience";
 import { Clip, ReviewContext } from "./Clip";
 import { MapPeers } from "./MapPeers";
-import { MapScene } from "./MapScene";
 import { Opening } from "./Opening";
 import { Poster } from "./Poster";
 import { LINES, type Line } from "./lines";
@@ -36,7 +35,7 @@ import { Backdrop, Slide } from "./Slide";
  * durations` adds these to the fixed sequences for each version's total.
  */
 export const SHOTS = {
-  ca: { flow0: 360, flow1a: 716, flow1b: 571, flow2a: 345, flow2b: 270, flow2c: 360, flow2d: 420, flow3a: 810, flow3b: 495, flow3c: 510 },
+  ca: { flow0: 360, flow1a: 716, flow1b: 571, flow2a: 345, flow2b: 270, flow2c: 360, flow2d: 420, flow3a: 810, flow3b: 495, flow3c: 510, flow3d: 600 },
   us: { flow0: 732, flow1a: 640, flow1b: 513, flow2a: 420, flow2b: 279, flow2c: 381, flow2d: 191, flow3a: 930, flow3b: 495, flow3c: 510 },
 } satisfies Record<Audience, Record<string, number>>;
 
@@ -65,12 +64,24 @@ const whipPan = (
 );
 
 /**
+ * Into the Canada cut's fourth catch, the border (3d). The same whip pan; its
+ * own name so `pnpm durations` counts it for Canada only.
+ */
+const caWhipPan = whipPan;
+
+/**
  * Once, on the shot where the sources first answer (2b). The voice keeps its
  * conditional wording throughout, and the close card repeats the point, so
  * the other shots carry no note (2026-09-29: six notes read as overbearing).
  */
 const SOURCES_CAVEAT =
   "Concept. The data sources shown are illustrative, and no data-sharing agreements are in place.";
+
+/** The bridge card: Canada's cut has a fourth catch, at the border. */
+const BRIDGE = {
+  ca: "Four cars FVBL would flag.",
+  us: "Three cars FVBL would flag.",
+} satisfies Record<Audience, string>;
 
 /** The hero's lockup line, the same in both versions. */
 const HERO_SHARED = {
@@ -239,7 +250,7 @@ export const Demo: React.FC<DemoProps> = ({ audience, showScript }) => {
               <Clip shot="2a" surface="Portal" file="flow-2a.mp4" />
               {voice(LINES.clerkLanding)}
             </TransitionSeries.Sequence>
-            {handoff}
+            {/* No transition: 2a to 2d are one take, and the next part starts where this one ends. */}
             <TransitionSeries.Sequence
               name="Flow 2b Portal checks"
               durationInFrames={SHOTS[audience].flow2b}
@@ -252,7 +263,7 @@ export const Demo: React.FC<DemoProps> = ({ audience, showScript }) => {
               />
               {voice(LINES.clerkChecks)}
             </TransitionSeries.Sequence>
-            {handoff}
+            {/* No transition: 2a to 2d are one take, and the next part starts where this one ends. */}
             <TransitionSeries.Sequence
               name="Flow 2c Portal history"
               durationInFrames={SHOTS[audience].flow2c}
@@ -260,7 +271,7 @@ export const Demo: React.FC<DemoProps> = ({ audience, showScript }) => {
               <Clip shot="2c" surface="Portal" file="flow-2c.mp4" />
               {voice(LINES.clerkHistory)}
             </TransitionSeries.Sequence>
-            {handoff}
+            {/* No transition: 2a to 2d are one take, and the next part starts where this one ends. */}
             <TransitionSeries.Sequence
               name="Flow 2d Portal reveal and issue"
               durationInFrames={SHOTS[audience].flow2d}
@@ -274,9 +285,9 @@ export const Demo: React.FC<DemoProps> = ({ audience, showScript }) => {
             {/* Before the catches (2026-09-30): the sharing it shows is what
               lets each catch happen, so the catches pay it off. */}
             <TransitionSeries.Sequence name="Map" durationInFrames={525}>
-              {/* The US cut's map has no hub and draws Canada whole
-                (2026-09-29); the Canada cut keeps the joint map for now. */}
-              {audience === "us" ? <MapPeers variant="join" /> : <MapScene />}
+              {/* Each cut's own map, with no hub, and the neighbour drawn
+                whole (the US 2026-09-29, Canada 2026-09-30). */}
+              <MapPeers variant="join" country={audience} />
               {voice(LINES.map)}
             </TransitionSeries.Sequence>
             {handoff}
@@ -285,7 +296,7 @@ export const Demo: React.FC<DemoProps> = ({ audience, showScript }) => {
             <TransitionSeries.Sequence name="Bridge" durationInFrames={240}>
               <Slide
                 eyebrow="The catches"
-                title="Three cars FVBL would flag."
+                title={BRIDGE[audience]}
                 chrome={false}
               />
               {voice(LINES.bridge)}
@@ -314,6 +325,21 @@ export const Demo: React.FC<DemoProps> = ({ audience, showScript }) => {
               <Clip shot="3c" surface="Portal" file="flow-3c.mp4" />
               {voice(LINES.writeOff)}
             </TransitionSeries.Sequence>
+            {/* Canada only (2026-09-30 call): the CBSA officer's card for a
+              truck its owner never agreed to ship. The US cut goes straight
+              from 3c to the close. */}
+            {audience === "ca" ? (
+              <>
+                {caWhipPan}
+                <TransitionSeries.Sequence
+                  name="Flow 3d Border"
+                  durationInFrames={SHOTS.ca.flow3d}
+                >
+                  <Clip shot="3d" surface="CBSA officer" file="flow-3d.mp4" />
+                  {voice(LINES.border)}
+                </TransitionSeries.Sequence>
+              </>
+            ) : null}
             {handoff}
 
             {/* ── Close ─────────────────────────────────────────────────── */}

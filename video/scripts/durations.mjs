@@ -40,15 +40,17 @@ const sequences = [...demo.matchAll(/<TransitionSeries\.Sequence[^>]*durationInF
 // falling back to inline <TransitionSeries.Transition> elements.
 const handoffs = (demo.match(/\{handoff\}/g) ?? []).length;
 const transitions = handoffs > 0 ? handoffs : (demo.match(/<TransitionSeries\.Transition\b/g) ?? []).length;
-// The whip pans between the catches are 12 frames, not 16.
+// The whip pans between the catches are 12 frames, not 16. `caWhipPan` leads
+// into Canada's border catch, which the US cut doesn't play.
 const whips = (demo.match(/\{whipPan\}/g) ?? []).length;
+const caWhips = (demo.match(/\{caWhipPan\}/g) ?? []).length;
 const fixed = sequences.reduce((a, b) => a + b, 0) - 16 * transitions - 12 * whips;
 // The recorded shots' lengths, per version, from the SHOTS table.
 const shots = demo.match(/export const SHOTS = \{([\s\S]*?)\n\}/)?.[1] ?? "";
-console.log(`\nDemo.tsx: ${sequences.length} fixed sequences, ${transitions} settles, ${whips} whip pans.`);
+console.log(`\nDemo.tsx: ${sequences.length} fixed sequences, ${transitions} settles, ${whips} whip pans (+${caWhips} in Canada's cut).`);
 for (const [, version, body] of shots.matchAll(/(\w+): \{([^}]*)\}/g)) {
   const recorded = [...body.matchAll(/:\s*(\d+)/g)].reduce((a, m) => a + Number(m[1]), 0);
-  const total = fixed + recorded;
+  const total = fixed + recorded - (version === "ca" ? 12 * caWhips : 0);
   console.log(`  ${version}: ${total} frames (${(total / FPS).toFixed(1)} s)`);
 }
 console.log("Set DURATION in src/Root.tsx to those values.");

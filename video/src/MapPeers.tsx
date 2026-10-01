@@ -1,24 +1,28 @@
 import { AbsoluteFill, Easing, interpolate, random, useCurrentFrame } from "remotion";
-import { MAP_US, type Region } from "./map-shapes";
+import { MAP_CA_PEERS, MAP_US, type MapLayout, type Region } from "./map-shapes";
 import { MARK_PATH } from "./Mark";
 import { fontFamily } from "./theme";
 
 /**
- * The US map, with no hub: the ledger is a caption beside the map, not a
- * place on it, and nothing runs to the capitals. Two drafts were compared on
- * 2026-09-29; the US cut plays `join`. `quiet` stays as the Map-US-Quiet
- * preview.
+ * One country's map, with its neighbour drawn whole and quieter, and no hub:
+ * the ledger is a caption beside the map, not a place on it, and nothing runs
+ * to the capitals. `country` picks the map: the US cut's (the states, Canada
+ * along the top, Ohio first) or, since 2026-09-30, the Canada cut's inverse
+ * (the provinces and territories, the US along the bottom, Ontario first).
+ * Two drafts were compared on 2026-09-29; both cuts play `join`. `quiet`
+ * stays as the Map-US-Quiet preview.
  *
  * - `quiet`: the states ripple out from the border as in MapScene, then every
  *   state pulses in time with the ledger's mark. The only line is the flag,
  *   hopping across Lake Erie from Ohio to Ontario and back.
- * - `join`: Ohio lights first, then the other states join one by one at an
- *   uneven pace, so it reads as states choosing to, not a national switch-on.
- *   Canada comes on once the states have, as the partner across the border.
- *   Each region's records streak into the ledger as it joins. When Ohio
- *   raises the flag, it streaks in and back out to every region on the
- *   ledger, each state flashing coral as it lands. Canada's streak lands
- *   across Lake Erie, with no flash.
+ * - `join`: Ohio (Ontario) lights first, then the other states (provinces)
+ *   join one by one at an uneven pace, so it reads as each choosing to, not a
+ *   national switch-on. The neighbour comes on last, as the partner across
+ *   the border. Each region's records streak into the ledger as it joins.
+ *   When the first region raises the flag, it streaks in and back out to
+ *   every region on the ledger, each flashing coral as it lands. The
+ *   neighbour's streak lands across the border (Lake Erie in the US cut,
+ *   Pennsylvania in Canada's), with no flash.
  *   Streaks fade as they land: no standing wiring to a centre.
  *
  * Timed to the map's three voice lines (lines.ts): 10, 110, 332.
@@ -39,12 +43,34 @@ const progress = (frame: number, start: number, length = 20) =>
 const blip = (frame: number, at: number, rise = 6, fall = 28) =>
   interpolate(frame, [at, at + rise, at + rise + fall], [0, 1, 0], clamp);
 
-const L = MAP_US;
-const CANADA = L.regions.find((r) => r.country === "CA")!;
-const OHIO = L.regions.find((r) => r.country === "US" && r.code === "OH")!;
-const STATES = L.regions.filter((r) => r.country === "US");
-const ACROSS = L.across!;
 const key = (r: Region) => r.country + r.code;
+
+/** A map's cast: its layout, the region that lights first, and its neighbour. */
+type Peers = {
+  L: MapLayout;
+  /** The region that lights first and raises the flag, unnamed. */
+  first: Region;
+  /** The other country, drawn whole. */
+  neighbour: Region;
+  /** This country's own regions. */
+  home: Region[];
+  /** Where the flag lands in the neighbour. */
+  across: { x: number; y: number };
+};
+
+const peers = (L: MapLayout, first: string): Peers => {
+  const neighbour = L.regions.find((r) => r.country === L.neighbour)!;
+  const home = L.regions.filter((r) => r.country !== L.neighbour);
+  return {
+    L,
+    first: home.find((r) => r.code === first)!,
+    neighbour,
+    home,
+    across: L.across!,
+  };
+};
+
+const MAPS = { us: peers(MAP_US, "OH"), ca: peers(MAP_CA_PEERS, "ON") };
 
 /** The mark and its caption, right of the map. */
 const CAPTION = { x: 1640, y: 520 };
@@ -57,35 +83,35 @@ const TRAVEL = 32;
 const TAIL = 0.18;
 /** The flag reaches the ledger, then goes back out to every region. */
 const FLAG_IN = FLAG_AT + TRAVEL;
-/** Where the flag lands in a region: Canada's across Lake Erie from Ohio. */
-const target = (r: Region) => (r === CANADA ? ACROSS : r);
+/** Where the flag lands in a region: the neighbour's, across the border. */
+const target = (P: Peers, r: Region) => (r === P.neighbour ? P.across : r);
 /** How long the flag takes to reach a region: farther takes longer, so it sweeps out. */
-const outTravel = (r: Region) => {
-  const to = target(r);
+const outTravel = (P: Peers, r: Region) => {
+  const to = target(P, r);
   return Math.round(18 + Math.hypot(CAPTION.x - to.x, CAPTION.y - to.y) / 45);
 };
 /** When the flag leaves the ledger for a region: staggered, not one burst. */
 const outAt = (r: Region) => FLAG_IN + Math.round(random(`out-${r.code}`) * 10);
 /** When the flag lands in a region. */
-const waveAt = (r: Region) => outAt(r) + outTravel(r);
+const waveAt = (P: Peers, r: Region) => outAt(r) + outTravel(P, r);
 const RETURN_AT = 404;
 /** The quiet draft's pulses, through the second voice line. */
 const PULSES = [160, 214, 268];
 
 /** When each region lights, per draft. */
-function schedule(variant: "quiet" | "join"): Map<string, number> {
+function schedule(P: Peers, variant: "quiet" | "join"): Map<string, number> {
   if (variant === "quiet") {
-    const order = [...L.regions].sort((a, b) => a.border - b.border);
+    const order = [...P.L.regions].sort((a, b) => a.border - b.border);
     return new Map(order.map((r, i) => [key(r), 12 + i * 1.5]));
   }
-  // Ohio, then the rest in a shuffled order that starts slow and speeds up,
-  // like states signing on; then Canada.
-  const rest = STATES.filter((r) => r !== OHIO).sort(
+  // The first region, then the rest in a shuffled order that starts slow and
+  // speeds up, like each signing on; then the neighbour.
+  const rest = P.home.filter((r) => r !== P.first).sort(
     (a, b) => random(`join-${a.code}`) - random(`join-${b.code}`),
   );
   const times = new Map<string, number>([
-    [key(OHIO), 14],
-    [key(CANADA), 182],
+    [key(P.first), 14],
+    [key(P.neighbour), 182],
   ]);
   rest.forEach((r, i) => {
     // Ease-out on the index, with a linear share so it never bunches up: the
@@ -196,13 +222,18 @@ const Landing: React.FC<{ at: { x: number; y: number }; frame: number; from: num
 
 export const MapPeers: React.FC<{
   variant: "quiet" | "join";
+  /** Whose map: the US cut's, or the Canada cut's inverse. */
+  country?: "us" | "ca";
   note?: string;
-}> = ({ variant, note }) => {
+}> = ({ variant, country = "us", note }) => {
   const frame = useCurrentFrame();
-  const lightsAt = schedule(variant);
+  const P = MAPS[country];
+  const { L, first: FIRST, across: ACROSS } = P;
+  const lightsAt = schedule(P, variant);
   const land = progress(frame, 0, 24);
 
-  // The flag: Ohio turns coral as it's raised; the other side receives it.
+  // The flag: the first region (Ohio, or Ontario in Canada's map) turns
+  // coral as it's raised; the other side receives it.
   const raised = interpolate(frame, [FLAG_AT - 6, FLAG_AT + 6], [0, 1], clamp);
   const landed = FLAG_AT + 26;
   const back = RETURN_AT + 26;
@@ -248,14 +279,14 @@ export const MapPeers: React.FC<{
             const at = lightsAt.get(key(r))!;
             const p = progress(frame, at, variant === "join" ? 14 : 20);
             const quiet = r.country === L.neighbour;
-            // A region that just joined glows a moment brighter; Canada, drawn
-            // whole, only a little, or it floods the top of the frame.
+            // A region that just joined glows a moment brighter; the
+            // neighbour, drawn whole, only a little, or it floods the frame.
             const glow =
               variant === "join" ? blip(frame, at, 4, 20) * (quiet ? 0.3 : 1) : 0;
             // The flag passing through, in coral.
             const wave =
-              variant === "join" && !quiet && r !== OHIO
-                ? blip(frame, waveAt(r) - 2, 4, 30) * p
+              variant === "join" && !quiet && r !== FIRST
+                ? blip(frame, waveAt(P, r) - 2, 4, 30) * p
                 : 0;
             // Coral over teal mixes to grey, so the teal steps aside for it.
             const under = 1 - wave;
@@ -286,7 +317,7 @@ export const MapPeers: React.FC<{
           })}
           {/* The flag raised in Ohio, and received on the other side. */}
           <path
-            d={OHIO.d}
+            d={FIRST.d}
             fill={FLAG}
             fillOpacity={0.5 * raised}
             stroke={FLAG}
@@ -330,14 +361,14 @@ export const MapPeers: React.FC<{
         {/* The quiet draft's flag hops the lake, and comes back. */}
         {variant === "quiet" ? (
           <>
-            <Hop from={OHIO} to={ACROSS} at={FLAG_AT} />
+            <Hop from={FIRST} to={ACROSS} at={FLAG_AT} />
             <Landing at={ACROSS} frame={frame} from={landed} />
-            <Hop from={ACROSS} to={OHIO} at={RETURN_AT} />
-            <Landing at={OHIO} frame={frame} from={back} />
+            <Hop from={ACROSS} to={FIRST} at={RETURN_AT} />
+            <Landing at={FIRST} frame={frame} from={back} />
           </>
         ) : (
           <>
-            <Landing at={OHIO} frame={frame} from={FLAG_AT} />
+            <Landing at={FIRST} frame={frame} from={FLAG_AT} />
           </>
         )}
 
@@ -354,15 +385,15 @@ export const MapPeers: React.FC<{
               />
             ))}
             {/* The flag: in from Ohio, then out to every region on the ledger. */}
-            <Streak from={OHIO} start={FLAG_AT} color={FLAG} width={3} />
+            <Streak from={FIRST} start={FLAG_AT} color={FLAG} width={3} />
             {L.regions
-              .filter((r) => r !== OHIO)
+              .filter((r) => r !== FIRST)
               .map((r) => (
                 <Streak
                   key={`out-${key(r)}`}
-                  from={target(r)}
+                  from={target(P, r)}
                   start={outAt(r)}
-                  length={outTravel(r)}
+                  length={outTravel(P, r)}
                   color={FLAG}
                   width={1.25}
                   outward
@@ -370,8 +401,8 @@ export const MapPeers: React.FC<{
               ))}
           </>
         ) : null}
-        {/* Ohio goes unnamed: a named state lighting first would read as a
-            state that has signed on, and this is a concept. */}
+        {/* The first region goes unnamed: a named state or province lighting
+            first would read as one that has signed on, and this is a concept. */}
         <Label x={L.labels.CA.x} y={L.labels.CA.y} p={progress(frame, 32)}>
           CANADA
         </Label>

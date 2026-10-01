@@ -5,7 +5,8 @@ The voiceover for the v5 cut, ready to generate in ElevenLabs. The lines are
 screen (the marks in `docs/screenplay.md`). If you change a line, change it in
 all three places.
 
-40 lines, about 470 words over 3:53. The poster that opens the cut is silent.
+44 lines, about 520 words over 4:12 in the Canada cut. Four of them are
+Canada only (2026-09-30): the four-car bridge and catch 4, at the border. The poster that opens the cut is silent.
 
 **Two versions, one picture.** The cut goes out Canada-first or US-first.
 Both play the same marks; what changes is the hero figure, which opens on the
@@ -58,12 +59,15 @@ whole, with no hub; the Canada cut's inverse is next.
 ## Scratch voice
 
 Before spending ElevenLabs credits, `pnpm voice:scratch` reads every Canada
-line with the macOS `say` voice into `video/public/audio/vo/ca/`, then prints
-each take's length against its room; `pnpm voice:scratch --audience us` does
-the US's own lines into `vo/us/` and times the shared ones from their Canada
-takes. The cut plays those files, so
-`pnpm render:review:ca` (or `:us`) gives a rough cut with the voice on its
-marks. The real takes overwrite them.
+line with the macOS `say` voice into `video/public/audio/vo-scratch/ca/`, then
+prints each take's length against its room; `pnpm voice:scratch --audience us`
+does the US's own lines into `vo-scratch/us/` and times the shared ones from
+their Canada takes. It never touches the recorded takes in `vo/`. The cut plays
+a recorded take where there is one and the scratch take for every other line,
+so `pnpm render:review:ca` (or `:us`) gives a rough cut with the voice on its
+marks, even while only some lines are recorded. `pnpm voice:scratch --check`
+writes nothing and times what the cut plays now, marking each line `take` or
+`scratch`: run it after dropping in a take to see whether it fits.
 
 ## ElevenLabs
 
@@ -96,6 +100,20 @@ reads slower than the scratch voice, so the hero's marks moved to fit her:
 the turn card holds 30 frames longer, 04b starts 15 frames later with the
 ledger animation, and 17 starts 8 frames earlier, since the phone clip ends
 at the shot's end. Every take now fits its room.
+
+**Canada, 2026-09-30.** The 2026-09-25 scratch that sat in `vo/ca/` is in
+`vo/ca/old-scratch-2026-09-25/`, where the cut doesn't read it. `vo/ca/` now
+holds Victoria's takes for the 14 lines both cuts share, plus
+`23-clerk-reveal` and `37-map-connect`, whose Canada text reads the same as
+the US one. Canada's other 27 lines, its own wording and the border catch,
+were generated the same day in the same voice, model and settings, through
+the ElevenLabs flow `nwvw9Wk54SJFhlh63RXd`: two takes each, trimmed below
+-50 dB, 48 kHz mono, the longer take that fits in `vo/ca/` and the other in
+`vo/ca/alt/`. Two Canada marks moved to fit Victoria, Canada only: 02 starts
+8 frames later (01 runs 8.1 s) and 37 starts 4 frames later (36 runs 3.36 s).
+The US bridge line, `25-bridge-sources`, had no take and got one on the same
+flow. Every line in both cuts now plays a recorded take, and every take fits
+(`pnpm voice:scratch --check`, and `--audience us`).
 
 ## Pronunciation
 
@@ -373,6 +391,14 @@ sale. Needs a new Canada take; the US plays the same one.
 
 A small drop in tone. The easy part is over.
 
+**`25c-bridge-four`** · Canada only · starts at 0.5 s · max 7.0 s
+
+> With these sources connected, here are four cars F V B L would flag.
+
+Canada's cut has a fourth catch at the border (2026-09-30), so it gets its own
+line and take. The US keeps `25-bridge-sources` and its three cars. Same
+delivery.
+
 ### Catch 1, export, flow 3a · 27 s
 
 **`26-export-flag`** · starts at 0.3 s · max 9.6 s
@@ -475,6 +501,32 @@ US:
 
 > Now this /vɪn/ has a clean title in another state. That's a salvage car passing as clean.
 
+### Catch 4, the border, flow 3d · Canada only · 20 s
+
+From the 2026-09-30 call. The CBSA officer's card for the RAM 1500, recorded
+after its owner said no. No US version: the US cut skips the shot.
+
+**`40-border-ledger`** · starts at 0.3 s · max 6.5 s
+
+> With the right agreements, C B S A can check the same ledger before a car is loaded.
+
+"With the right agreements" keeps CBSA from sounding like a partner. "The same
+ledger" ties it to the clerk's catches just before it.
+
+**`41-border-owner`** · starts at 7.2 s · max 8.0 s
+
+> This truck's permit is real, and it isn't reported stolen. But its owner was asked by text, and said no.
+
+A beat after "stolen". The paperwork is clean; only the owner's answer catches
+it. "Said no" lands on the red cell.
+
+**`42-border-container`** · starts at 15.5 s · max 3.5 s
+
+> So officers know which container to open.
+
+Lands on the container number. That's the point Fawaz made: out of a hundred,
+this is the one.
+
 ### Map · 17.5 s
 
 **`36-map-ledger`** · starts at 0.3 s · max 3.1 s
@@ -531,7 +583,8 @@ Slow, with a pause after "F V B L". Then silence to the fade.
 
 - [ ] FVBL and NMVTIS pronunciations decided
 - [x] Voice, model and settings chosen and written down here (US test run)
-- [ ] 39 files per version generated, each under its max
+- [ ] 39 files per version generated, each under its max, plus Canada's four
+      (25c, 40, 41, 42)
 - [ ] Every file listened to for the pronunciations
 - [ ] Files in `video/public/audio/vo/ca/` and `vo/us/`, named by id
 

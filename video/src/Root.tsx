@@ -8,7 +8,7 @@ import { Voice } from "./Voice";
 import { Opening } from "./Opening";
 import { Backdrop, Slide } from "./Slide";
 
-/** The map on its navy ground, as it sits in the cut. */
+/** The first, joint map, on its navy ground. Neither cut plays it now. */
 const MapPreview: React.FC<{ audience: Audience }> = ({ audience }) => (
   <AudienceContext.Provider value={audience}>
     <Backdrop />
@@ -16,11 +16,14 @@ const MapPreview: React.FC<{ audience: Audience }> = ({ audience }) => (
   </AudienceContext.Provider>
 );
 
-/** A no-hub draft of the US map, with the map's lines as captions. */
-const MapPeersPreview: React.FC<{ variant: "quiet" | "join" }> = ({ variant }) => (
-  <AudienceContext.Provider value="us">
+/** A no-hub map, as each cut plays it, with the map's lines as captions. */
+const MapPeersPreview: React.FC<{ variant: "quiet" | "join"; country: Audience }> = ({
+  variant,
+  country,
+}) => (
+  <AudienceContext.Provider value={country}>
     <Backdrop />
-    <MapPeers variant={variant} />
+    <MapPeers variant={variant} country={country} />
     <Voice lines={LINES.map} showScript />
   </AudienceContext.Provider>
 );
@@ -37,7 +40,7 @@ const OpeningPreview: React.FC = () => (
  * Each version's length in frames, for its cut and its -Review cut. They
  * differ because the recorded shots do (`SHOTS` in Demo.tsx).
  */
-const DURATION = { ca: 6962, us: 7196 } satisfies Record<Audience, number>;
+const DURATION = { ca: 7598, us: 7244 } satisfies Record<Audience, number>;
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -108,9 +111,18 @@ export const RemotionRoot: React.FC = () => {
             fps={30}
             width={1920}
             height={1080}
-            defaultProps={{ variant }}
+            defaultProps={{ variant, country: "us" }}
           />
         ))}
+        <Composition
+          id="Map-CA-Join"
+          component={MapPeersPreview}
+          durationInFrames={525}
+          fps={30}
+          width={1920}
+          height={1080}
+          defaultProps={{ variant: "join", country: "ca" }}
+        />
         <Composition
           id="Opening"
           component={OpeningPreview}
