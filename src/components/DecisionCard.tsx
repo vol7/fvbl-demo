@@ -345,19 +345,26 @@ export function DecisionCard({ vehicle, checks, state, onRequest, onIssue, onEsc
 
 type Cell = { value: React.ReactNode; detail: React.ReactNode }
 
-function StripCell({
+/**
+ * One cell of the strip under a decision card. Shared with the border officer's
+ * card, which marks the answer that fails in red (`failed`).
+ */
+export function StripCell({
   icon: Icon,
   label,
   value,
   detail,
-}: Cell & { icon: LucideIcon; label: string }) {
+  failed = false,
+}: Cell & { icon: LucideIcon; label: string; failed?: boolean }) {
   return (
     <div className="flex gap-2.5 rounded-xl border bg-card px-4 py-3.5">
       <Icon className="mt-px size-3.5 shrink-0 text-muted-foreground" aria-hidden />
       {/* The category is fixed, so it steps back; the value is what the clerk reads. */}
       <span className="flex min-w-0 flex-col">
         <span className="truncate text-xs font-medium text-muted-foreground">{label}</span>
-        <span className="mt-1 truncate text-sm font-semibold">{value}</span>
+        <span className={cn("mt-1 truncate text-sm font-semibold", failed && "text-destructive")}>
+          {value}
+        </span>
         <span className="truncate text-[13px] text-muted-foreground">{detail}</span>
       </span>
     </div>

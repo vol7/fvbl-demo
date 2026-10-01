@@ -9,11 +9,22 @@ import { Label } from "@/components/ui/label"
 import { useRegion } from "@/regions"
 import { useRegionPaths } from "@/regions/context"
 
-/** Two entrances, one form: the clerk's portal and the dealer's. */
-export function SignIn({ variant = "clerk" }: { variant?: "clerk" | "dealer" }) {
-  const copy = useRegion().copy.signIn[variant]
+/**
+ * Three entrances, one form: the clerk's portal, the dealer's, and the border
+ * officer's where the region has one.
+ */
+export function SignIn({ variant = "clerk" }: { variant?: "clerk" | "dealer" | "border" }) {
+  const pack = useRegion()
+  const copy =
+    variant === "border" && pack.border
+      ? pack.border.copy.signIn
+      : pack.copy.signIn[variant === "dealer" ? "dealer" : "clerk"]
   const paths = useRegionPaths()
-  const destination = variant === "clerk" ? paths.portal.home : paths.dealer.register
+  const destination = {
+    clerk: paths.portal.home,
+    dealer: paths.dealer.register,
+    border: paths.border.list,
+  }[variant]
   const navigate = useNavigate()
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")

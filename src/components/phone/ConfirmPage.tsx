@@ -6,7 +6,8 @@ import { FvblMark } from "@/components/FvblMark"
 import { StatusBar } from "@/components/phone/PhoneChrome"
 import { Button } from "@/components/ui/button"
 import { generateAuthorizationCode } from "@/lib/authorization"
-import { formatDate, formatTime } from "@/lib/format"
+import { generateExportRef } from "@/lib/exports"
+import { formatDate, formatDateTime, formatTime } from "@/lib/format"
 import { generateRegistrationRef } from "@/lib/registration"
 import { useSession } from "@/lib/session"
 import { liveThread, type Thread } from "@/lib/thread"
@@ -141,6 +142,111 @@ function RegistrationConfirm({
   )
 }
 
+/** The owner answers whether they authorized their car's export. */
+function ExportConfirm({
+  thread,
+  onConfirm,
+  onDecline,
+}: {
+  thread: Extract<Thread, { kind: "export" }>
+  onConfirm: () => void
+  onDecline: () => void
+}) {
+  const reduceMotion = useReducedMotion()
+  const border = useRegion().border
+  if (!border) return null
+  const copy = border.copy.phone.confirm
+  const { vehicle, state } = thread
+  if (state.status === "pending") {
+    return (
+      <motion.section
+        key="ask-export"
+        className="flex flex-col gap-5 p-5"
+        exit={reduceMotion ? undefined : { opacity: 0, y: -8, transition: { duration: 0.15 } }}
+      >
+        <div className="flex flex-col gap-1.5">
+          <h1 className="text-xl font-semibold tracking-tight">{copy.askTitle}</h1>
+          <p className="text-[15px] text-neutral-600">{copy.askLede}</p>
+        </div>
+
+        <dl className="divide-y divide-black/10 rounded-2xl bg-white px-4 ring-1 ring-black/10">
+          <Row
+            label="Vehicle"
+            value={<span className="font-medium">{vehicleTitle(vehicle)}</span>}
+          />
+          <Row
+            label="Plate"
+            value={<span className="font-mono tracking-wider">{vehicle.plate}</span>}
+          />
+          <Row label={copy.portLabel} value={border.vessel.from} />
+          <Row label={copy.toLabel} value={border.vessel.to} />
+          <Row
+            label={copy.exporterLabel}
+            value={
+              <>
+                {state.exporter}
+                {state.exporter === vehicle.owner.name ? (
+                  <span className="block text-xs text-neutral-500">{copy.exporterIsYou}</span>
+                ) : null}
+              </>
+            }
+          />
+          <Row label={copy.deadlineLabel} value={formatDateTime(state.expiresAt)} />
+        </dl>
+
+        <div className="mt-1 flex flex-col gap-2.5">
+          <Button size="lg" className="h-12 rounded-xl text-[15px]" onClick={onConfirm}>
+            {copy.approve}
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            className="h-12 rounded-xl bg-white text-[15px]"
+            onClick={onDecline}
+          >
+            {copy.decline}
+          </Button>
+        </div>
+        <p className="text-center text-xs text-neutral-500">{copy.recorded}</p>
+      </motion.section>
+    )
+  }
+  const ok = state.status === "confirmed"
+  return (
+    <motion.section
+      key={`result-export-${state.status}`}
+      className="flex flex-col items-center gap-4 px-5 pt-10 text-center"
+      initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
+    >
+      <ResultIcon ok={ok} />
+      {ok ? (
+        <>
+          <h1 className="text-xl font-semibold tracking-tight">{copy.approvedTitle}</h1>
+          <p className="text-[15px] text-neutral-600">{copy.approvedText(vehicleTitle(vehicle))}</p>
+          <div className="mt-1 flex flex-col items-center gap-0.5 rounded-2xl bg-white px-6 py-3 ring-1 ring-black/10">
+            <span className="text-xs text-neutral-500">Reference</span>
+            <span className="font-mono text-lg tracking-wider">{state.confirmationCode}</span>
+          </div>
+        </>
+      ) : (
+        <>
+          <h1 className="text-xl font-semibold tracking-tight">{copy.declinedTitle}</h1>
+          <p className="text-[15px] text-neutral-600">{copy.declinedText(vehicleTitle(vehicle))}</p>
+          {state.status === "denied" ? (
+            <div className="mt-1 flex flex-col items-center gap-0.5 rounded-2xl bg-white px-6 py-3 ring-1 ring-black/10">
+              <span className="text-xs text-neutral-500">{copy.referenceLabel}</span>
+              <span className="font-mono text-lg tracking-wider">{state.reference}</span>
+            </div>
+          ) : null}
+        </>
+      )}
+      <p className="mt-2 text-xs text-neutral-500">You can close this page.</p>
+    </motion.section>
+  )
+}
+
 /** One-page yes/no opened from the SMS link. Rendered inside the phone frame. */
 export function ConfirmPage() {
   const pack = useRegion()
@@ -170,6 +276,29 @@ export function ConfirmPage() {
       at: at(),
     })
   const declineRegistration = () => vin && dispatch({ type: "declineRegistration", vin, at: at() })
+  const confirmExport = () =>
+    vin &&
+    dispatch({
+      type: "confirmExport",
+      vin,
+      confirmationCode: generateAuthorizationCode(),
+      at: at(),
+    })
+  const denyExport = () =>
+    vin &&
+    pack.border &&
+    dispatch({
+      type: "denyExport",
+      vin,
+      reference: generateExportRef(pack.border.refusalPrefix, new Date()),
+      at: at(),
+    })
+  const header =
+    thread?.kind === "registration"
+      ? copy.headerDealer
+      : thread?.kind === "export" && pack.border
+        ? pack.border.copy.phone.confirm.header
+        : copy.headerOwner
 
   return (
     <div
@@ -201,7 +330,7 @@ export function ConfirmPage() {
           <FvblMark className="h-6 w-auto" />
           <span className="text-sm font-semibold tracking-wide">FVBL</span>
           <span className="ml-auto text-xs text-neutral-500">
-            {registration ? copy.headerDealer : copy.headerOwner}
+            {header}
           </span>
         </header>
 
@@ -221,6 +350,8 @@ export function ConfirmPage() {
               onConfirm={confirmRegistration}
               onDecline={declineRegistration}
             />
+          ) : thread.kind === "export" ? (
+            <ExportConfirm thread={thread} onConfirm={confirmExport} onDecline={denyExport} />
           ) : thread.state.status === "pending" ? (
             <motion.section
               key="ask"

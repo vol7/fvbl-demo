@@ -1,12 +1,17 @@
 import type { Vehicle } from "@/lib/vehicles"
 
-import { FIRST_OWNER } from "./people"
+import { EXPORT_OWNER, FIRST_OWNER } from "./people"
 
 export const CLEAN_VIN = "4JGFB8KBXPA812634"
 export const CLONED_VIN = "5TDEBRCH9SS041927"
 export const EXPORTED_VIN = "SALWR2SEXNA209311"
 /** Registered in Ontario while the same VIN holds an active Pennsylvania title. */
 export const US_TITLE_VIN = "JTJTABGX9R4027418"
+/**
+ * Catch 4, the border: clean in every record, declared for export at the Port of
+ * Montréal under its owner's name, and the owner never agreed (2026-09-30 call).
+ */
+export const EXPORT_VIN = "1C6SRFHT4RN318405"
 /** Brand new: decodes, but has no registration until a dealer submits one. */
 export const NEW_VIN = "4JGFF5KE3SB412009"
 
@@ -314,6 +319,78 @@ export const DEMO_VEHICLES: Vehicle[] = [
         date: "2025-05-06",
         agency: "MTO",
         reading: 22860,
+        source: "Registration renewal",
+      },
+    ],
+  },
+  {
+    vin: EXPORT_VIN,
+    year: 2024,
+    make: "RAM",
+    model: "1500",
+    trim: "Limited",
+    colour: "Diamond Black",
+    bodyStyle: "Pickup",
+    plate: "CPWT 318",
+    registeredOn: "2024-02-09",
+    odometer: 31275,
+    owner: {
+      name: EXPORT_OWNER.name,
+      phone: EXPORT_OWNER.mobile,
+      phoneLast4: EXPORT_OWNER.mobileLast4,
+      city: "Oakville, ON",
+    },
+    lastInspection: "2026-05-12",
+    riskTier: "high-value",
+    records: {
+      stolenReport: null,
+      writeOff: null,
+      collision: null,
+      duplicateIdentity: null,
+      usTitle: null,
+      otherJurisdiction: null,
+      brand: null,
+      lien: null,
+    },
+    decoded: {
+      year: 2024,
+      make: "RAM",
+      model: "1500",
+      bodyStyle: "Pickup",
+      plant: "Sterling Heights, Michigan, USA",
+    },
+    history: [
+      {
+        kind: "import",
+        date: "2024-01-22",
+        agency: "Transport Canada",
+        port: "Windsor, ON",
+        from: "United States",
+        detail: "Registrar of Imported Vehicles · new vehicle",
+      },
+      { kind: "customsEntry", date: "2024-01-22", agency: "CBSA", port: "Windsor, ON" },
+      { kind: "firstRegistration", date: "2024-02-09", agency: "MTO", office: "4436 · Brampton" },
+      {
+        kind: "odometer",
+        date: "2024-02-09",
+        agency: "Dealer",
+        reading: 24,
+        source: "Dealer delivery",
+      },
+      { kind: "transfer", date: "2025-05-14", agency: "MTO", office: "4521 · Oakville" },
+      {
+        kind: "odometer",
+        date: "2025-05-14",
+        agency: "MTO",
+        reading: 18940,
+        source: "Registration",
+      },
+      { kind: "renewal", date: "2026-05-12", agency: "MTO", office: "4521 · Oakville" },
+      {
+        kind: "odometer",
+        date: "2026-05-12",
+        agency: "MTO",
+        reading: 31275,
         source: "Registration renewal",
       },
     ],

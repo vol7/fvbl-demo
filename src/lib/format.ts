@@ -33,6 +33,14 @@ export function formatDate(isoDate: string): string {
   })
 }
 
+/** The local calendar date of a timestamp, "2026-10-01", for a history event. */
+export function localDate(iso: string): string {
+  const d = new Date(iso)
+  const mm = String(d.getMonth() + 1).padStart(2, "0")
+  const dd = String(d.getDate()).padStart(2, "0")
+  return `${d.getFullYear()}-${mm}-${dd}`
+}
+
 /** Times read "4:02 p.m.", so a sentence ending on one takes no second period. */
 export function endsSentence(text: string): string {
   return text.endsWith(".") ? text : `${text}.`
@@ -43,6 +51,11 @@ export function formatTime(iso: string): string {
     hour: "numeric",
     minute: "2-digit",
   })
+}
+
+/** "October 3, 2026 at 6:00 a.m.": a deadline or a cut-off. */
+export function formatDateTime(iso: string): string {
+  return `${formatDate(localDate(iso))} at ${formatTime(iso)}`
 }
 
 /** "just now", "3 minutes ago", "2 hours ago". Coarse on purpose. */

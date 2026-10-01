@@ -1,5 +1,6 @@
 import type { RegionPack } from "@/regions/types"
 
+import { BORDER } from "./border"
 import { CHECKS, INTEGRATIONS } from "./checks"
 import { DECISION } from "./copy/decision"
 import { DEALER_COPY } from "./copy/dealer"
@@ -14,7 +15,10 @@ import { PEOPLE } from "./people"
 import { SEED } from "./seed"
 import { DEMO_VEHICLES } from "./vehicles"
 
-/** Canada-first: Ontario's MTO counter, ServiceOntario and the dealer's first registration. */
+/**
+ * Canada-first: Ontario's MTO counter, ServiceOntario, the dealer's first
+ * registration, and the CBSA officer's check of vehicles declared for export.
+ */
 export const ca: RegionPack = {
   id: "ca",
   place: { country: "Canada", registry: { agency: "MTO", inSentence: "the MTO" } },
@@ -29,6 +33,7 @@ export const ca: RegionPack = {
   references: { issued: "UVIP", registration: "FVBL-R" },
   forceStates: FORCE_STATES,
   forcedSession: (key, now) => forcedSession(key as ForceKey, now),
+  border: BORDER,
   story: STORY,
   copy: {
     decision: DECISION,

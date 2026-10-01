@@ -12,6 +12,13 @@ import {
   type AuthorizationState,
 } from "./authorization"
 import {
+  exportReducer,
+  NO_EXPORT,
+  type Examination,
+  type ExportAction,
+  type ExportState,
+} from "./exports"
+import {
   NO_REGISTRATION,
   registrationReducer,
   upgradeRegistration,
@@ -28,11 +35,16 @@ import {
  * the actions that actually text someone (or pre-approve) move it.
  *
  * Registrations (a dealer's first registration of a new VIN) live in their own map
- * with their own machine. A VIN is never in both flows during the demo.
+ * with their own machine, and so do exports (the owner confirming a car declared
+ * for export, Canada only). A VIN is never in two flows during the demo.
+ * `examinations` are the containers a border officer held, keyed by container.
  */
 export type SessionState = {
   authorizations: Record<string, AuthorizationState>
   registrations: Record<string, RegistrationState>
+  /** Absent in sessions from before exports, and in the US. */
+  exports?: Record<string, ExportState>
+  examinations?: Record<string, Examination>
   activeVin: string | null
 }
 
@@ -57,6 +69,19 @@ export type SessionAction =
     }
   | { type: "confirmRegistration"; vin: string; registrationRef: string; at: string }
   | { type: "declineRegistration"; vin: string; at: string }
+  | {
+      type: "declareExport"
+      vin: string
+      exporter: string
+      otp: string
+      link: string
+      at: string
+      expiresAt: string
+    }
+  | { type: "confirmExport"; vin: string; confirmationCode: string; at: string }
+  | { type: "denyExport"; vin: string; reference: string; at: string }
+  | { type: "expireExport"; vin: string; at: string }
+  | { type: "holdContainer"; container: string; reference: string; at: string }
 
 export const EMPTY_SESSION: SessionState = {
   authorizations: {},
@@ -76,6 +101,16 @@ export function vehicleState(
 /** The registration of one vehicle, `none` until a dealer submits. */
 export function registrationState(session: SessionState, vin: string): RegistrationState {
   return session.registrations[vin] ?? NO_REGISTRATION
+}
+
+/** The owner's confirmation of an export, `none` until the vehicle is declared. */
+export function exportState(session: SessionState, vin: string): ExportState {
+  return session.exports?.[vin] ?? NO_EXPORT
+}
+
+/** The container's hold, if the border officer placed one. */
+export function examination(session: SessionState, container: string): Examination | null {
+  return session.examinations?.[container] ?? null
 }
 
 /** The authorization the phone and hub follow, if any. */
@@ -117,6 +152,22 @@ function withRegistration(
   }
 }
 
+function withExport(
+  session: SessionState,
+  vin: string,
+  action: ExportAction,
+  activate = false
+): SessionState {
+  const base = exportState(session, vin)
+  const next = exportReducer(base, action)
+  if (next === base) return session
+  return {
+    ...session,
+    exports: { ...session.exports, [vin]: next },
+    activeVin: activate ? vin : session.activeVin,
+  }
+}
+
 export function sessionReducer(state: SessionState, action: SessionAction): SessionState {
   switch (action.type) {
     case "clear":
@@ -148,6 +199,44 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
       })
     case "declineRegistration":
       return withRegistration(state, action.vin, { type: "decline", at: action.at })
+    case "declareExport":
+      return withExport(
+        state,
+        action.vin,
+        {
+          type: "declare",
+          exporter: action.exporter,
+          otp: action.otp,
+          link: action.link,
+          at: action.at,
+          expiresAt: action.expiresAt,
+        },
+        true
+      )
+    case "confirmExport":
+      return withExport(state, action.vin, {
+        type: "confirm",
+        confirmationCode: action.confirmationCode,
+        at: action.at,
+      })
+    case "denyExport":
+      return withExport(state, action.vin, {
+        type: "deny",
+        reference: action.reference,
+        at: action.at,
+      })
+    case "expireExport":
+      return withExport(state, action.vin, { type: "expire", at: action.at })
+    case "holdContainer": {
+      if (state.examinations?.[action.container]) return state
+      return {
+        ...state,
+        examinations: {
+          ...state.examinations,
+          [action.container]: { reference: action.reference, heldAt: action.at },
+        },
+      }
+    }
     case "request": {
       const { vin, canRequest, ...rest } = action
       const base = state.authorizations[vin] ?? initialState(canRequest)
@@ -287,8 +376,21 @@ function migrateLegacy(storage: StorageLike | null) {
   }
 }
 
-function describe(state: AuthorizationState | RegistrationState | undefined): string {
-  return state ? state.status : "no record"
+function describe(
+  state: AuthorizationState | RegistrationState | ExportState | Examination | undefined
+): string {
+  if (!state) return "no record"
+  return "status" in state ? state.status : "held"
+}
+
+/** The slot an ignored action was aimed at, for the dev warning. */
+function slotOf(session: SessionState, action: SessionAction) {
+  if (action.type === "holdContainer") return session.examinations?.[action.container]
+  const vin = "vin" in action ? action.vin : session.activeVin
+  if (!vin) return undefined
+  if (action.type.endsWith("Registration")) return session.registrations[vin]
+  if (action.type.endsWith("Export")) return session.exports?.[vin]
+  return session.authorizations[vin]
 }
 
 export function createSessionStore(
@@ -343,11 +445,7 @@ export function createSessionStore(
       const before = current()
       const next = sessionReducer(before, action)
       if (next === before) {
-        const vin = "vin" in action ? action.vin : before.activeVin
-        const slot = action.type.endsWith("Registration")
-          ? vin && before.registrations[vin]
-          : vin && before.authorizations[vin]
-        warn(`[fvbl] ignored ${action.type} in ${describe(slot || undefined)}`)
+        warn(`[fvbl] ignored ${action.type} in ${describe(slotOf(before, action))}`)
         setState(before)
         return
       }

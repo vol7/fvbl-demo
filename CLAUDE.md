@@ -17,7 +17,8 @@ cards. It was supplied for the demo only.
 - Do not remove or soften the placeholder notices at the top of those three files.
 - The app component, the favicon and the video copy share one path, kept in sync
   by hand. If you change one, change all three.
-- The mark appears in the clerk sidebar, the dealer sidebar, the phone confirm
+- The mark appears in the clerk sidebar, the dealer sidebar, the border
+  officer's sidebar, the phone confirm
   header, the sign-in page and the "Powered by FVBL" foot of the Ohio title
   search's embed. Use `FvblMark` there rather than pasting the path
   again. `tone="current"` is for dark grounds.

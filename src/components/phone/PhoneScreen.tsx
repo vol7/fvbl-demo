@@ -3,7 +3,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 import { useNavigate } from "react-router"
 
 import { StatusBar } from "@/components/phone/PhoneChrome"
-import { formatDate, formatTime } from "@/lib/format"
+import { formatDate, formatDateTime, formatTime } from "@/lib/format"
 import { useSession } from "@/lib/session"
 import { liveThread, type Thread } from "@/lib/thread"
 import { cn } from "@/lib/utils"
@@ -161,6 +161,56 @@ function RegistrationThread({
   )
 }
 
+/** The owner is texted about their car being declared for export, and answers from the link. */
+function ExportThread({
+  thread,
+  onOpen,
+}: {
+  thread: Extract<Thread, { kind: "export" }>
+  onOpen: () => void
+}) {
+  const pack = useRegion()
+  const border = pack.border
+  if (!border) return null
+  const { phone } = border.copy
+  const { vehicle, state } = thread
+  return (
+    <>
+      <Separator>Today {formatTime(state.sentAt)}</Separator>
+      <Bubble from="sender">
+        {fill(
+          phone.request({
+            vehicle: vehicleTitle(vehicle),
+            plate: vehicle.plate ?? "",
+            port: border.vessel.from,
+            deadline: formatDateTime(state.expiresAt),
+          }),
+          { link: <SmsLink onClick={onOpen}>{pack.sms.link(state.link)}</SmsLink> }
+        )}
+      </Bubble>
+      {state.status === "confirmed" ? (
+        <Bubble from="sender" delay={0.3}>
+          {fill(phone.confirmed, {
+            code: <span className="font-semibold tracking-wide">{state.confirmationCode}</span>,
+          })}
+        </Bubble>
+      ) : null}
+      {state.status === "denied" ? (
+        <Bubble from="sender" delay={0.3}>
+          {fill(phone.denied, {
+            ref: <span className="font-semibold tracking-wide">{state.reference}</span>,
+          })}
+        </Bubble>
+      ) : null}
+      {state.status === "expired" ? (
+        <Bubble from="sender" delay={0.2}>
+          {phone.expired}
+        </Bubble>
+      ) : null}
+    </>
+  )
+}
+
 /** The tappable link inside a text. */
 function SmsLink({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
   return (
@@ -202,6 +252,16 @@ export function PhoneScreen() {
                 initial={false}
               >
                 <RegistrationThread thread={thread} onOpen={() => navigate("confirm")} />
+              </motion.div>
+            ) : null}
+
+            {thread?.kind === "export" ? (
+              <motion.div
+                key={`export-${thread.state.sentAt}`}
+                className="flex flex-col gap-2.5"
+                initial={false}
+              >
+                <ExportThread thread={thread} onOpen={() => navigate("confirm")} />
               </motion.div>
             ) : null}
 

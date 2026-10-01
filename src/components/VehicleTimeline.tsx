@@ -11,6 +11,7 @@ import {
   PlaneTakeoff,
   RefreshCw,
   ShieldCheck,
+  Ship,
   Siren,
   type LucideIcon,
 } from "lucide-react"
@@ -40,6 +41,7 @@ const EVENT_ICON: Record<VehicleEvent["kind"], LucideIcon> = {
   import: PlaneLanding,
   customsEntry: Globe,
   export: PlaneTakeoff,
+  exportDeclared: Ship,
   firstRegistration: Landmark,
   firstTitle: FileText,
   titleTransfer: ArrowLeftRight,
@@ -64,6 +66,7 @@ const STOP_ICON: Record<StopKind, LucideIcon> = {
   titleTransferred: ArrowLeftRight,
   branded: FileBadge,
   otherJurisdiction: Globe,
+  exportDeclared: Ship,
 }
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -76,6 +79,8 @@ function titleFor(pack: RegionPack, event: VehicleEvent): string {
       return "Cleared customs"
     case "export":
       return pack.copy.portal.timeline.exported
+    case "exportDeclared":
+      return pack.copy.portal.timeline.exportAnswer[event.answer].title
     case "firstRegistration":
       return "First registration"
     case "firstTitle":
@@ -92,7 +97,7 @@ function titleFor(pack: RegionPack, event: VehicleEvent): string {
   }
 }
 
-function detailFor(event: VehicleEvent, flagged: boolean): string {
+function detailFor(pack: RegionPack, event: VehicleEvent, flagged: boolean): string {
   switch (event.kind) {
     case "import":
       return `${event.port}, through the ${event.detail.split(" · ")[0]}`
@@ -100,6 +105,8 @@ function detailFor(event: VehicleEvent, flagged: boolean): string {
       return event.port
     case "export":
       return flagged ? `${event.port}, with no re-entry on record` : event.port
+    case "exportDeclared":
+      return pack.copy.portal.timeline.exportAnswer[event.answer].detail(event.port)
     case "titleBrand":
       return event.detail
     case "firstRegistration":
@@ -274,7 +281,10 @@ export function VehicleTimeline({ vehicle }: { vehicle: Vehicle }) {
                   const Icon = EVENT_ICON[event.kind]
                   const major = MILESTONES.has(event.kind)
                   const border = isBorderEvent(event)
-                  const bad = (flagged !== null && event === flagged) || event.kind === "titleBrand"
+                  const bad =
+                    (flagged !== null && event === flagged) ||
+                    event.kind === "titleBrand" ||
+                    (event.kind === "exportDeclared" && event.answer !== "confirmed")
                   // A vehicle born on the ledger: its first entry is the registration itself.
                   const opened =
                     index === 0 &&
@@ -306,7 +316,7 @@ export function VehicleTimeline({ vehicle }: { vehicle: Vehicle }) {
                           {titleFor(pack, event)}
                         </span>
                         <span className="text-[13px] text-muted-foreground">
-                          {detailFor(event, bad)}
+                          {detailFor(pack, event, bad)}
                         </span>
                         {opened ? (
                           <span className="text-xs font-medium text-primary">

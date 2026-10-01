@@ -20,10 +20,10 @@ import {
 import { ca } from "@/regions/ca"
 
 describe("DEMO_VEHICLES", () => {
-  it("contains five vehicles with valid, unique VINs", () => {
-    expect(DEMO_VEHICLES).toHaveLength(5)
+  it("contains six vehicles with valid, unique VINs", () => {
+    expect(DEMO_VEHICLES).toHaveLength(6)
     const vins = DEMO_VEHICLES.map((v) => v.vin)
-    expect(new Set(vins).size).toBe(5)
+    expect(new Set(vins).size).toBe(6)
     for (const vin of vins) expect(isValidVin(vin)).toBe(true)
   })
 

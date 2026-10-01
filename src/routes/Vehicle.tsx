@@ -24,12 +24,13 @@ import {
 import { allPass, evaluateChecks } from "@/lib/checks"
 import { authorizationCertificates, ledgerEntries } from "@/lib/ledger"
 import type { RegistrationState } from "@/lib/registration"
-import { registrationState, useSession, vehicleState } from "@/lib/session"
+import { exportState, registrationState, useSession, vehicleState } from "@/lib/session"
 import {
   bornVehicle,
   findVehicle,
   isOwnershipStart,
   vehicleTitle,
+  withExportAnswer,
   type Vehicle as VehicleRecord,
 } from "@/lib/vehicles"
 import { useRegionPaths } from "@/regions/context"
@@ -48,8 +49,11 @@ export function Vehicle() {
   const [session] = useSession()
   const found = findVehicle(pack, vin)
   const registration = registrationState(session, found?.vin ?? vin)
-  // The registry's view: a confirmed dealer submission becomes the first history events.
-  const vehicle = found ? bornVehicle(pack, found, registration) : undefined
+  // The registry's view: a confirmed dealer submission becomes the first history
+  // events, and an owner's answer to an export declaration joins the history.
+  const vehicle = found
+    ? withExportAnswer(pack, bornVehicle(pack, found, registration), exportState(session, found.vin))
+    : undefined
 
   if (!vehicle) {
     return (

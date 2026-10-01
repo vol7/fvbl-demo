@@ -1,11 +1,14 @@
 import { Navigate, type RouteObject } from "react-router"
 
+import { BorderShell } from "@/components/border/BorderShell"
 import { DealerShell } from "@/components/dealer/DealerShell"
 import { ConfirmPage } from "@/components/phone/ConfirmPage"
 import { PhoneScreen } from "@/components/phone/PhoneScreen"
 import { PortalShell } from "@/components/PortalShell"
 import { paths, regionPaths, routePatterns as r } from "@/lib/paths"
 import { OnlyIn, RegionRoot } from "@/regions/RegionRoot"
+import { Declared } from "@/routes/border/Declared"
+import { ExportCheck } from "@/routes/border/ExportCheck"
 import { Cases } from "@/routes/Cases"
 import { Register } from "@/routes/dealer/Register"
 import { Home } from "@/routes/Home"
@@ -59,6 +62,26 @@ export const routes: RouteObject[] = [
       {
         element: <DealerShell />,
         children: [{ path: r.dealer.register, element: <Register /> }],
+      },
+
+      {
+        path: r.border.signIn,
+        element: (
+          <OnlyIn region="ca">
+            <SignIn variant="border" />
+          </OnlyIn>
+        ),
+      },
+      {
+        element: (
+          <OnlyIn region="ca">
+            <BorderShell />
+          </OnlyIn>
+        ),
+        children: [
+          { path: r.border.list, element: <Declared /> },
+          { path: r.border.vehicle, element: <ExportCheck /> },
+        ],
       },
 
       {

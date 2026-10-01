@@ -25,11 +25,28 @@ export const PORTAL: PortalCopy = {
     titleBrand: "Title branded",
     renewal: "Registration renewed",
     odometer: "Odometer reading",
+    exportDeclared: "Declared for export",
   },
   timeline: {
     entered: (from) => `Entered the US from ${from}`,
     exported: "Exported from the US",
     notBackSince: "Not back in the US since",
+    // A US record never carries an export declaration; the kinds are shared.
+    exportAnswer: {
+      denied: {
+        title: "Export not authorized",
+        detail: (port) =>
+          `Declared for export at ${port}. The owner said they didn't authorize it.`,
+      },
+      confirmed: {
+        title: "Export confirmed",
+        detail: (port) => `Declared for export at ${port}. The owner confirmed it.`,
+      },
+      expired: {
+        title: "Export not confirmed",
+        detail: (port) => `Declared for export at ${port}. The owner didn't answer before loading.`,
+      },
+    },
   },
   ownersExported: (date, noTransfer) =>
     `CBP recorded a vehicle with this VIN leaving the US on ${date}, while it was titled to this owner.${noTransfer ? " No sale or transfer is on file." : ""}`,

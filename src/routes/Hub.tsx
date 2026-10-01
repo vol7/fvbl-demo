@@ -1,7 +1,17 @@
-import { CarFront, Check, Copy, ExternalLink, Globe, Monitor, Smartphone } from "lucide-react"
+import {
+  CarFront,
+  Check,
+  Container,
+  Copy,
+  ExternalLink,
+  Globe,
+  Monitor,
+  Smartphone,
+} from "lucide-react"
 import { useState } from "react"
 import { Link } from "react-router"
 
+import { DeclareExportButton } from "@/components/border/BorderDemoControls"
 import { OutcomeBadge } from "@/components/OutcomeBadge"
 import { OwnerActionButtons } from "@/components/DemoControls"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -16,7 +26,12 @@ import {
 } from "@/components/ui/table"
 import { plateLabel } from "@/lib/format"
 import { paths as rootPaths } from "@/lib/paths"
-import { activeAuthorization, registrationState, useSession } from "@/lib/session"
+import {
+  activeAuthorization,
+  exportState,
+  registrationState,
+  useSession,
+} from "@/lib/session"
 import { findVehicle, vehicleTitle } from "@/lib/vehicles"
 import { useRegion } from "@/regions"
 import { useRegionPaths } from "@/regions/context"
@@ -53,6 +68,13 @@ const REGISTRATION_LABEL: Record<string, string> = {
   declined: "Declined",
 }
 
+const EXPORT_LABEL: Record<string, string> = {
+  pending: "Awaiting owner",
+  confirmed: "Owner confirmed",
+  denied: "Owner said no",
+  expired: "Expired",
+}
+
 const STATUS_LABEL: Record<string, string> = {
   idle: "Idle",
   blocked: "Blocked",
@@ -71,6 +93,15 @@ export function Hub() {
   const vehicle = session.activeVin ? findVehicle(pack, session.activeVin) : undefined
   const auth = active?.state
   const registration = session.activeVin ? registrationState(session, session.activeVin) : null
+  const declared = session.activeVin ? exportState(session, session.activeVin) : null
+  const border = pack.border
+  // The README's scenarios, then the border's where the region has one.
+  const scenarios = border
+    ? [
+        ...hub.scenarios,
+        { n: hub.scenarios.length + 1, vin: border.live.vin, ...border.copy.hub.scenario },
+      ]
+    : hub.scenarios
 
   return (
     <main className="min-h-svh bg-muted/40 px-6 py-12">
@@ -141,6 +172,26 @@ export function Hub() {
               </a>
             </CardContent>
           </Card>
+          {border ? (
+            <Card>
+              <CardHeader>
+                <div className="mb-1 flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Container className="size-5" aria-hidden />
+                </div>
+                <CardTitle>{border.copy.hub.title}</CardTitle>
+                <CardDescription>{border.copy.hub.description}</CardDescription>
+              </CardHeader>
+              <CardContent className="flex-row flex-wrap gap-2">
+                <Button onClick={() => open(paths.border.signIn, 1440, 900)}>
+                  <ExternalLink data-icon="inline-start" aria-hidden />
+                  Open window
+                </Button>
+                <a href={paths.border.signIn} className={buttonVariants({ variant: "outline" })}>
+                  Open here
+                </a>
+              </CardContent>
+            </Card>
+          ) : null}
           <Card>
             <CardHeader>
               <div className="mb-1 flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -179,7 +230,7 @@ export function Hub() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {hub.scenarios.map((s) => {
+                {scenarios.map((s) => {
                   const v = findVehicle(pack, s.vin)!
                   return (
                     <TableRow key={s.n}>
@@ -222,7 +273,15 @@ export function Hub() {
             </CardDescription>
           </CardHeader>
           <CardContent className="gap-4">
-            {registration && registration.status !== "none" ? (
+            {declared && declared.status !== "none" ? (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-muted-foreground">Export</span>
+                <OutcomeBadge label={EXPORT_LABEL[declared.status]} />
+                <span className="text-muted-foreground">
+                  · exporter on the declaration: {declared.exporter}
+                </span>
+              </div>
+            ) : registration && registration.status !== "none" ? (
               <div className="flex items-center gap-2 text-sm">
                 <span className="text-muted-foreground">Registration</span>
                 <OutcomeBadge label={REGISTRATION_LABEL[registration.status]} />
@@ -240,6 +299,7 @@ export function Hub() {
               </div>
             )}
             <div className="flex flex-wrap gap-2">
+              {border ? <DeclareExportButton size="default" /> : null}
               <OwnerActionButtons size="default" />
             </div>
             <div className="flex flex-col gap-2 border-t pt-4">

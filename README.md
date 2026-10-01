@@ -23,6 +23,7 @@ hub opens each surface in its own window and shows the live session:
 | Dealer portal | `/ca/dealer` (sign-in → `/ca/dealer/register`) | `/us/dealer` | 1440×900 |
 | Public page | `/serviceontario` → `/ca/uvip` | `/us/ohio` (Ohio title search) | 1440×900 |
 | Clerk portal | `/ca/portal` (sign-in → `/ca/portal/home`) | `/us/portal` | 1440×900 |
+| Border officer (CBSA) | `/ca/border` (sign-in → `/ca/border/exports`) | none | 1440×900 |
 | Phone (owner or dealership) | `/ca/phone` (thread) → `/ca/phone/confirm` | `/us/phone` | 390×844 |
 
 All windows of one country share one session. `localStorage` is the single source of truth,
@@ -76,12 +77,14 @@ theme's fonts and colours so the hand-off feels continuous.
 | 3 · Buyer pre-request | `4JGFB8KBXPA812634` | On ServiceOntario choose "Buying a vehicle", send the request; owner taps the SMS link and approves; clerk lookup shows the authorization on file. The owner can also pre-approve directly ("Selling my vehicle"). |
 | 4 · Exported vehicle | `SALWR2SEXNA209311` | Clean MTO record, but CBSA logged a vehicle carrying this VIN leaving in March 2025 with no re-entry. The identity is in conflict: either the car at the counter is a clone, or the exported one was. One high-risk check fails and holds the package for review. ServiceOntario refuses the pre-approval. |
 | 5 · US title conflict | `JTJTABGX9R4027418` | Clean Ontario record and border history (imported new from Japan), but NMVTIS, the US federal title database, shows the same VIN with an active Pennsylvania title. One high-risk check fails. One federal query covers every state. |
+| 7 · Export · owner didn't authorize | `1C6SRFHT4RN318405` | 2024 RAM 1500 Limited, plate `CPWT 318`, sold on a deposit and shipped under the seller's name. On the hub, **Declare the RAM 1500 for export**: it joins the CBSA officer's list, awaiting its owner, and the owner gets an MTO text with the loading cut-off as the deadline. The permit is genuine and it isn't reported stolen; the owner taps **No, I didn't** (and gets a reference for police) and the officer's card turns red: **Doesn't clear**, with the container to open. **Yes, I authorized it** clears it. Once the owner has answered, the clerk's record shows it on the history. The list already holds two cars with bad permits: another car's permit (an Acura MDX) and a number on no Ontario registration (a RAV4). |
 | 6 · New vehicle · dealer first registration | `4JGFF5KE3SB412009` | The birth of the VIN. In the dealer portal the VIN decodes but has no registration on file; tick the NVIS check mark, submit to the ministry; the dealership's phone gets the text and confirms. The clerk portal's Unregistered VIN card resolves live into a record with two history rows, the first captioned "Ledger opened". |
 
-The four registered VINs are the first rows under "Recent lookups" so you can
+The five registered VINs are the first rows under "Recent lookups" so you can
 click instead of typing; the new one joins them once the dealer's submission is
-confirmed. The video covers scenario 3 and scenario 2; the others are
-there for the live walkthrough.
+confirmed. The video covers scenario 3 and scenario 2, and in the Canada cut
+the result of scenario 7 as a fourth catch; the others are there for the live
+walkthrough.
 
 ### US demo VINs
 
@@ -186,6 +189,27 @@ Canada's surfaces below; the US ones follow the same shape (see [US demo VINs](#
   During a first registration the same surface is the dealership's phone: the
   text reads the submission back and the link opens **Confirm a first
   registration?** with the NVIS and first owner.
+- **Border officer** (`/ca/border` → `/ca/border/exports`). Canada only, from
+  the 2026-09-30 call with Policaro. CBSA can't open every container, so the
+  officer lands on the vehicles declared for export, the ones that don't clear
+  first, and opens one card per car: the clerk's decision card and strip, with
+  only what the decision needs. That's whether the declared permit matches the
+  one on file for the VIN, a stolen report (CPIC), the registered owner against
+  the exporter, the owner's answer, and the container with where it sits in the
+  terminal. None of the clerk's record: no insurer, odometer or history data, no
+  previous owners. A car doesn't clear on a permit on no Ontario registration, a
+  permit on file for another vehicle, a stolen report, or a registered owner who
+  said no (or didn't answer by the loading cut-off). Every declared vehicle's
+  owner is texted by MTO at the mobile on the registration, never one from the
+  declaration; a car shipped on a bill of sale alone is still matched to its
+  owner by the VIN. **Hold for examination** holds the container with an
+  `EX-…` reference. FVBL informs; the officer decides. The clerk never sees the
+  container or the examination: once the owner has answered, the vehicle's
+  history gains one event ("Export not authorized", with the port). The vessel,
+  exporters, owners, container and permit numbers are invented; the permit
+  number format and the loading cut-off (two days after the declaration) are
+  stand-ins until the client confirms them. Fawaz described the process as
+  police-internal, under NDA.
 - **Clerk portal** (`/ca/portal`). Summary header, tabs, then the package panel: applicant
   name, licence and mobile, request owner authorization, and once authorized,
   issue the package. Failed checks hold it and refer it for investigation.
@@ -200,6 +224,8 @@ Canada's surfaces below; the US ones follow the same shape (see [US demo VINs](#
 | Registered owner (Range Rover) | Amara Chen | — | ending 2286 |
 | Dealer (new GLE 450) | Mercedes-Benz Downtown · Sofia Marchetti, dealer principal · No. 47-1182 · NVIS 2026-MB-0187342 | — | ending 2204 |
 | First registered owner (new GLE 450) | Léa Tremblay | `T4418-22067-90315` | ending 7731 |
+| Registered owner (RAM 1500, the export) | Hannah Kowalski, also the exporter on the declaration | — | ending 3162 |
+| Border services officer | Karine Ouellet, CBSA · Port of Montréal, badge 18842 | — | — |
 
 ### US demo people
 
@@ -222,9 +248,12 @@ name was checked against Ohio dealers so it matches none of them.
 Press `Shift+D` on a vehicle page to open the hidden panel: owner approves,
 owner denies, simulate 24h timeout, reset session. Approve and deny act on
 whatever the phone is showing, so they confirm or decline a dealer submission
-too. Each hub (`/ca`, `/us`) always shows the same buttons plus **Force
-state** for its own session. Canada's includes **Dealer submitted** and
-**Vehicle registered** for the day-one beat. The US list follows the cut:
+too, and the owner's answer about an export. Each hub (`/ca`, `/us`) always shows
+the same buttons plus **Force state** for its own session. Canada's includes
+**Dealer submitted** and **Vehicle registered** for the day-one beat, and for
+the border **Export declared**, **Export confirmed**, **Export: owner said no**
+(catch 3d's setup) and **Containers held**. Canada's hub also has **Declare the
+RAM 1500 for export**, and so do the border pages' `Shift+D` panel. The US list follows the cut:
 **Dealer submitted**, **Title recorded**, **Buyer asked**, **Owner confirmed**,
 **Owner said "Not me"**, **No reply**, **Title issued**, **Held for review**,
 **Referred**.

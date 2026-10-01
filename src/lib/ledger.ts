@@ -95,6 +95,15 @@ function historyDrafts(pack: RegionPack, vehicle: Vehicle): Draft[] {
           visibility: "public",
           payload: `${e.date}|${e.agency}|${e.port}`,
         }
+      case "exportDeclared":
+        return {
+          at: e.date,
+          kind: "vehicle.exportDeclared",
+          title: titles[e.kind],
+          vin,
+          visibility: "public",
+          payload: `${e.date}|${e.agency}|${e.port}|${e.answer}`,
+        }
       case "firstRegistration":
       case "transfer":
       case "renewal":

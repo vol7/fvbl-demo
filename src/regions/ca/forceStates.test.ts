@@ -23,6 +23,10 @@ describe("forcedSession", () => {
         expect(s.registrations[s.activeVin!], key).toBeDefined()
         continue
       }
+      if (key.startsWith("export")) {
+        expect(s.exports?.[s.activeVin!], key).toBeDefined()
+        continue
+      }
       expect(activeAuthorization(s), key).not.toBeNull()
     }
   })

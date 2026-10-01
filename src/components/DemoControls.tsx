@@ -13,7 +13,7 @@ function isEditable(target: EventTarget | null): boolean {
 }
 
 export function OwnerActionButtons({ size = "sm" }: { size?: "sm" | "default" }) {
-  const { pending, canTimeout, approve, deny, timeout, reset } = useOwnerActions()
+  const { thread, pending, canTimeout, approve, deny, timeout, reset } = useOwnerActions()
   return (
     <>
       <Button variant="outline" size={size} disabled={!pending} onClick={approve}>
@@ -23,7 +23,7 @@ export function OwnerActionButtons({ size = "sm" }: { size?: "sm" | "default" })
         Owner denies
       </Button>
       <Button variant="outline" size={size} disabled={!canTimeout} onClick={timeout}>
-        Simulate 24h timeout
+        {thread?.kind === "export" ? "Simulate no answer by cut-off" : "Simulate 24h timeout"}
       </Button>
       <Button variant="secondary" size={size} onClick={reset}>
         Reset session
@@ -32,7 +32,8 @@ export function OwnerActionButtons({ size = "sm" }: { size?: "sm" | "default" })
   )
 }
 
-export function DemoControls() {
+/** `children` adds a surface's own buttons above the owner's, e.g. the border's declaration. */
+export function DemoControls({ children }: { children?: React.ReactNode }) {
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
@@ -63,6 +64,7 @@ export function DemoControls() {
         </Button>
       </div>
       <div className="flex flex-col gap-1.5">
+        {children}
         <OwnerActionButtons />
       </div>
       <p className="mt-2 text-[11px] text-muted-foreground">Shift+D to hide</p>

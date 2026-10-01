@@ -32,6 +32,13 @@ export function regionPaths(region: RegionId) {
       register: `${root}/dealer/register`,
     },
 
+    /** Canada only: the border officer's vehicles declared for export, one card each. */
+    border: {
+      signIn: `${root}/border`,
+      list: `${root}/border/exports`,
+      vehicle: (vin: string) => `${root}/border/exports/${vin}`,
+    },
+
     /** Canada only: the UVIP pages behind the saved ServiceOntario page. */
     uvip: `${root}/uvip`,
     uvipOwner: `${root}/uvip/owner`,
@@ -55,6 +62,7 @@ export const routePatterns = {
     cases: "portal/cases",
   },
   dealer: { signIn: "dealer", register: "dealer/register" },
+  border: { signIn: "border", list: "border/exports", vehicle: "border/exports/:vin" },
   phone: "phone",
   uvip: "uvip",
   uvipOwner: "uvip/owner",

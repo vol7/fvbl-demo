@@ -1,6 +1,7 @@
 import type { RegionPack } from "@/regions/types"
 
-import { normalizeVin } from "./format"
+import { answeredAt, type ExportState } from "./exports"
+import { localDate, normalizeVin } from "./format"
 import type { RegistrationState } from "./registration"
 
 /**
@@ -37,6 +38,12 @@ export type VehicleEvent =
     }
   | { kind: "customsEntry"; date: string; agency: "CBSA"; port: string }
   | { kind: "export"; date: string; agency: "CBSA" | "CBP"; port: string }
+  /**
+   * A declaration to export the vehicle, closed by the registered owner's answer.
+   * Not an export: the vehicle hasn't left. Carries no container and no
+   * examination; those stay with the border officer.
+   */
+  | { kind: "exportDeclared"; date: string; agency: Agency; port: string; answer: ExportAnswer }
   | { kind: "firstRegistration"; date: string; agency: RegistryAgency; office: string }
   /**
    * A US title, first or on a transfer. `office` is the titling office ("Franklin
@@ -58,6 +65,9 @@ export type VehicleEvent =
   /** A reading in the region's odometer unit (`RegionPack.odometerUnit`). */
   | { kind: "odometer"; date: string; agency: Agency; reading: number; source: string }
 
+/** How the owner closed an export declaration. */
+export type ExportAnswer = "confirmed" | "denied" | "expired"
+
 export type TitleAgency = "County clerk" | "State registry"
 export type TitleBrand = "Salvage" | "Rebuilt" | "Flood"
 
@@ -75,6 +85,7 @@ export const MILESTONES: ReadonlySet<EventKind> = new Set<EventKind>([
   "firstTitle",
   "titleTransfer",
   "titleBrand",
+  "exportDeclared",
 ])
 
 export type VehicleRecords = {
@@ -142,6 +153,29 @@ export type Vehicle = {
 export function findVehicle(pack: RegionPack, vin: string): Vehicle | undefined {
   const needle = normalizeVin(vin)
   return pack.vehicles.find((v) => v.vin === needle)
+}
+
+/**
+ * The vehicle with the owner's answer to an export declaration on its history,
+ * once they have answered (or run out of time). While the owner can still answer,
+ * the declaration stays with the border officer and the record is unchanged.
+ */
+export function withExportAnswer(pack: RegionPack, vehicle: Vehicle, state: ExportState): Vehicle {
+  const at = answeredAt(state)
+  if (!pack.border || !at || state.status === "none" || state.status === "pending") return vehicle
+  return {
+    ...vehicle,
+    history: [
+      ...vehicle.history,
+      {
+        kind: "exportDeclared",
+        date: localDate(at),
+        agency: pack.border.agency,
+        port: pack.border.vessel.from,
+        answer: state.status,
+      },
+    ],
+  }
 }
 
 /**

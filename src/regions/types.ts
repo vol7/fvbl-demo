@@ -1,7 +1,8 @@
+import type { DeclaredVehicle, OwnerResult, PermitResult, Reason } from "@/lib/border"
 import type { Check, CheckDefinition } from "@/lib/checks"
 import type { CaseRow, RecentLookup, RequestRow } from "@/lib/seed"
 import type { SessionState } from "@/lib/session"
-import type { EventKind, RegistryAgency, Vehicle } from "@/lib/vehicles"
+import type { Agency, EventKind, ExportAnswer, RegistryAgency, Vehicle } from "@/lib/vehicles"
 
 /** Which country's demo a surface plays: the first segment of every route. */
 export type RegionId = "ca" | "us"
@@ -92,6 +93,13 @@ export type RegionPack = {
 
   forceStates: { key: string; label: string }[]
   forcedSession: (key: string, now?: Date) => SessionState
+
+  /**
+   * Canada only: the border officer's vehicles declared for export, and the
+   * owner's text about an export (2026-09-30). Absent where the demo has no
+   * border surface.
+   */
+  border?: BorderPack
 
   story: StoryCopy
   copy: {
@@ -437,7 +445,16 @@ export type PortalCopy = {
   request: { licenceLabel: string }
   /** Titles of history events, keyed by event kind. */
   historyTitle: Record<EventKind, string>
-  timeline: { entered: (from: string) => string; exported: string; notBackSince: string }
+  timeline: {
+    entered: (from: string) => string
+    exported: string
+    notBackSince: string
+    /**
+     * The owner's answer to an export declaration, as the clerk sees it on the
+     * vehicle's history: no container, no examination (2026-09-30 review).
+     */
+    exportAnswer: Record<ExportAnswer, { title: string; detail: (port: string) => string }>
+  }
   ownersExported: (date: string, noTransfer: boolean) => string
   activity: {
     /** The request going out: from the buyer online, or from the counter. */
@@ -462,5 +479,117 @@ export type PortalCopy = {
     /** The kind is hashed into the certificate, so it never changes for a region. */
     issuedKind: string
     issuedTitle: string
+  }
+}
+
+/**
+ * The border side of a region: the vehicles declared for export at one port, the
+ * one card the officer opens for each, and the owner's text about an export.
+ */
+export type BorderPack = {
+  /** Whose declarations these are, as a history event names its source. */
+  agency: Agency
+  officer: { name: string; initials: string; role: string; badge: string }
+  /** The ship the declared vehicles are loading onto. */
+  vessel: { name: string; voyage: string; from: string; to: string }
+  /** Every declared vehicle, the live one first; the list sorts them. */
+  declared: DeclaredVehicle[]
+  /** The live declaration: the vehicle's VIN (a demo vehicle) and the exporter it names. */
+  live: { vin: string; exporter: string }
+  /** Prefix of a container hold's reference: "EX". */
+  holdPrefix: string
+  /** Prefix of the reference an owner who refuses gives to police: "EXR". */
+  refusalPrefix: string
+  copy: BorderCopy
+}
+
+/** What the card leads with, per reason. */
+export type BorderStory = { title: string; body: string }
+
+export type BorderCopy = {
+  /** The officer's workspace in the sidebar: "CBSA · Port of Montréal". */
+  workspace: string
+  navItem: string
+  list: {
+    title: string
+    /** "MV Laurentide Spirit to Antwerp, Belgium · Loading cut-off …". */
+    vessel: (name: string, to: string, cutoff: string) => string
+    lede: string
+    columns: { vehicle: string; container: string; exporter: string; status: string }
+    /** Under the status pill: one short reason. */
+    reason: Record<Reason, string>
+    empty: string
+  }
+  /** The status pill, per verdict, and once a container is held. */
+  status: { hold: string; awaiting: string; cleared: string; held: string }
+  card: {
+    /** The card's accessible name. */
+    ariaLabel: string
+    story: {
+      otherVehicle: (permit: string, belongsTo: string) => BorderStory
+      notOnFile: (permit: string) => BorderStory
+      stolen: BorderStory
+      denied: BorderStory
+      expired: BorderStory
+      pending: BorderStory
+      noReply: BorderStory
+      /** The owner confirmed and nothing else fails: cleared to load. */
+      confirmed: BorderStory
+    }
+    containerLabel: string
+    ownerLabel: string
+    exporterLabel: string
+    /** After the exporter's name when it is the registered owner's. */
+    exporterIsOwner: string
+    /** Under the card: how the owner was reached. */
+    ownerNote: string
+    hold: { action: string; text: string }
+  }
+  strip: {
+    permit: string
+    stolen: string
+    owner: string
+    permitValue: Record<PermitResult, string>
+    permitDetail: (
+      permit: PermitResult,
+      numbers: { declared: string | null; onFile: string; belongsTo?: string }
+    ) => string
+    stolenValue: { clear: string; reported: string; source: string }
+    ownerValue: (owner: OwnerResult | null) => { value: string; detail: string }
+  }
+  signIn: SignInVariant
+  hub: {
+    title: string
+    description: string
+    declare: string
+    scenario: { title: string; route: string; outcome: string }
+  }
+  phone: {
+    /** `{link}` is the tappable link. */
+    request: (ctx: { vehicle: string; plate: string; port: string; deadline: string }) => Template
+    /** `{code}` is the confirmation code. */
+    confirmed: Template
+    /** `{ref}` is the reference for police. */
+    denied: Template
+    expired: string
+    confirm: {
+      header: string
+      askTitle: string
+      askLede: string
+      portLabel: string
+      toLabel: string
+      exporterLabel: string
+      /** Under the exporter when it is the owner's own name. */
+      exporterIsYou: string
+      deadlineLabel: string
+      approve: string
+      decline: string
+      recorded: string
+      approvedTitle: string
+      approvedText: (vehicle: string) => string
+      declinedTitle: string
+      declinedText: (vehicle: string) => string
+      referenceLabel: string
+    }
   }
 }

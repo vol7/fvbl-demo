@@ -18,6 +18,7 @@ export type StopKind =
   | "titleTransferred"
   | "branded"
   | "otherJurisdiction"
+  | "exportDeclared"
 
 export type LifecycleStop = {
   kind: StopKind
@@ -139,6 +140,16 @@ export function lifecycleStops(pack: RegionPack, vehicle: Vehicle): LifecycleSto
         }
         break
       }
+      case "exportDeclared":
+        // The owner's answer to a declaration: a flag unless they confirmed it.
+        stops.push({
+          kind: "exportDeclared",
+          title: pack.copy.portal.timeline.exportAnswer[e.answer].title,
+          lines: [when, portPlace(e.port)],
+          tone: e.answer === "confirmed" ? "major" : "bad",
+          date: e.date,
+        })
+        break
       case "customsEntry":
       case "odometer":
         break

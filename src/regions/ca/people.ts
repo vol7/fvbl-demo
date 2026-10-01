@@ -35,6 +35,16 @@ export const FIRST_OWNER = {
   mobileLast4: "7731",
 } as const
 
+/**
+ * Registered owner of the RAM 1500 declared for export. Sold it on a deposit; the
+ * buyer shipped it under this name before paying the rest (2026-09-30 call).
+ */
+export const EXPORT_OWNER = {
+  name: "Hannah Kowalski",
+  mobile: "(905) 555-3162",
+  mobileLast4: "3162",
+} as const
+
 export const PEOPLE: People = {
   owner: OWNER,
   buyer: BUYER,

@@ -3,11 +3,13 @@ import {
   PREAPPROVAL_VALIDITY_MS,
   type AuthorizationState,
 } from "@/lib/authorization"
+import { generateExportRef, loadingCutoff, type ExportState } from "@/lib/exports"
 import { dealerOffice, REGISTRATION_WINDOW_MS, type RegistrationState } from "@/lib/registration"
 import type { SessionState } from "@/lib/session"
 
-import { BUYER, DEALER, FIRST_OWNER } from "./people"
-import { CLEAN_VIN, CLONED_VIN, NEW_VIN } from "./vehicles"
+import { BORDER } from "./border"
+import { BUYER, DEALER, EXPORT_OWNER, FIRST_OWNER } from "./people"
+import { CLEAN_VIN, CLONED_VIN, EXPORT_VIN, NEW_VIN } from "./vehicles"
 
 /** Demo-control shortcuts: jump the session straight to a state for a re-shoot. */
 export type ForceKey =
@@ -23,6 +25,10 @@ export type ForceKey =
   | "escalated"
   | "dealerSubmitted"
   | "vehicleRegistered"
+  | "exportDeclared"
+  | "exportConfirmed"
+  | "exportDenied"
+  | "exportHeld"
 
 export const FORCE_STATES: { key: ForceKey; label: string }[] = [
   { key: "idle", label: "Idle" },
@@ -37,6 +43,10 @@ export const FORCE_STATES: { key: ForceKey; label: string }[] = [
   { key: "escalated", label: "Escalated" },
   { key: "dealerSubmitted", label: "Dealer submitted" },
   { key: "vehicleRegistered", label: "Vehicle registered" },
+  { key: "exportDeclared", label: "Export declared" },
+  { key: "exportConfirmed", label: "Export confirmed" },
+  { key: "exportDenied", label: "Export: owner said no" },
+  { key: "exportHeld", label: "Containers held" },
 ]
 
 const OTP = "868 292"
@@ -55,6 +65,28 @@ function registration(vin: string, state: RegistrationState): SessionState {
   return { authorizations: {}, registrations: { [vin]: state }, activeVin: vin }
 }
 
+function declared(
+  state: ExportState,
+  examinations: SessionState["examinations"] = {}
+): SessionState {
+  return {
+    authorizations: {},
+    registrations: {},
+    exports: { [EXPORT_VIN]: state },
+    examinations,
+    activeVin: EXPORT_VIN,
+  }
+}
+
+/** Every container that doesn't clear once the owner says no, held. */
+const HELD_CONTAINERS = BORDER.declared
+  .filter((v) => v.owner === "live" || v.declared.permit !== v.record.permit)
+  .map((v) => v.container)
+
+/** A dated reference with fixed digits, so a forced take always reads the same. */
+const ref = (prefix: string, now: Date, n: number) =>
+  generateExportRef(prefix, now, () => (n + 0.5) / 10000)
+
 export function forcedSession(key: ForceKey, now: Date = new Date()): SessionState {
   const sentAt = iso(now, -3 * 60_000)
   const at = now.toISOString()
@@ -68,6 +100,19 @@ export function forcedSession(key: ForceKey, now: Date = new Date()): SessionSta
     titleAlerts: null,
   }
   const buyer = { origin: "buyer" as const, requester: BUYER.name }
+  const exported = {
+    exporter: EXPORT_OWNER.name,
+    otp: OTP,
+    link: LINK,
+    sentAt,
+    expiresAt: loadingCutoff(now),
+  }
+  const denied: ExportState = {
+    status: "denied",
+    ...exported,
+    reference: ref(BORDER.refusalPrefix, now, 2291),
+    deniedAt: at,
+  }
 
   const authorized: AuthorizationState = {
     status: "authorized",
@@ -159,5 +204,26 @@ export function forcedSession(key: ForceKey, now: Date = new Date()): SessionSta
         registeredAt: at,
         office: dealerOffice(DEALER.name),
       })
+    case "exportDeclared":
+      return declared({ status: "pending", ...exported })
+    case "exportConfirmed":
+      return declared({
+        status: "confirmed",
+        ...exported,
+        confirmationCode: "OV-R7QD-M4XC",
+        confirmedAt: at,
+      })
+    case "exportDenied":
+      return declared(denied)
+    case "exportHeld":
+      return declared(
+        denied,
+        Object.fromEntries(
+          HELD_CONTAINERS.map((container, i) => [
+            container,
+            { reference: ref(BORDER.holdPrefix, now, 417 + i), heldAt: at },
+          ])
+        )
+      )
   }
 }

@@ -121,5 +121,11 @@ export const SEED: Seed = {
   requestRows: REQUEST_ROWS,
   caseRows: CASE_ROWS,
   todayStats: { lookups: 14, casesOpened: 1 },
-  demoLookupTimes: ["Today, 9:41 a.m.", "Today, 9:12 a.m.", "Today, 8:56 a.m.", "Today, 8:33 a.m."],
+  demoLookupTimes: [
+    "Today, 9:41 a.m.",
+    "Today, 9:12 a.m.",
+    "Today, 8:56 a.m.",
+    "Today, 8:33 a.m.",
+    "Today, 8:17 a.m.",
+  ],
 }

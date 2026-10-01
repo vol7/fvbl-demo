@@ -23,11 +23,29 @@ export const PORTAL: PortalCopy = {
     titleBrand: "Title branded",
     renewal: "Registration renewed",
     odometer: "Odometer reading",
+    exportDeclared: "Declared for export",
   },
   timeline: {
     entered: (from) => `Entered Canada from ${from}`,
     exported: "Exported from Canada",
     notBackSince: "Not back in Canada since",
+    // The owner's answer only: the container and any examination stay with CBSA.
+    exportAnswer: {
+      denied: {
+        title: "Export not authorized",
+        detail: (port) =>
+          `Declared for export at the ${port}. The registered owner said they didn't authorize it.`,
+      },
+      confirmed: {
+        title: "Export confirmed",
+        detail: (port) => `Declared for export at the ${port}. The registered owner confirmed it.`,
+      },
+      expired: {
+        title: "Export not confirmed",
+        detail: (port) =>
+          `Declared for export at the ${port}. The registered owner didn't answer before loading.`,
+      },
+    },
   },
   ownersExported: (date, noTransfer) =>
     `CBSA recorded a vehicle with this VIN leaving Canada on ${date}, while it was registered to this owner.${noTransfer ? " The MTO has no sale or transfer on file." : ""}`,
